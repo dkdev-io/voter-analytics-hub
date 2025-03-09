@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -12,18 +13,65 @@ export const VoterAnalytics = () => {
 
   const tactics = Array.from(new Set(TEST_DATA.map(d => d.tactic))).sort();
   
-  const getAllPeople = () => {
-    const uniquePeople = new Set<string>();
-    
-    TEST_DATA.forEach(d => {
-      const fullName = `${d.firstName} ${d.lastName}`;
-      uniquePeople.add(fullName);
-    });
-    
-    return Array.from(uniquePeople).sort();
-  };
-  
-  const people = getAllPeople();
+  // Use the complete list of people instead of extracting from TEST_DATA
+  const people = [
+    "John Smith",
+    "Jane Doe",
+    "Alex Johnson",
+    "Maria Martinez",
+    "Chris Brown",
+    "Candidate Carter",
+    "Ava King",
+    "Evelyn Nelson",
+    "James White",
+    "Owen Torres",
+    "David Kim",
+    "Nathan Powell",
+    "Emily Davis",
+    "Victoria Howard",
+    "Emma Scott",
+    "Amelia Adams",
+    "Lucas Wright",
+    "Mason Anderson",
+    "Leo Bennett",
+    "Ava Lewis",
+    "Gabriel Peterson",
+    "Lily Murphy",
+    "Isaac Sanders",
+    "Samuel Bell",
+    "Harper Mitchell",
+    "Jacob Thomas",
+    "Isabella Harris",
+    "Ethan Wilson",
+    "Abigail Roberts",
+    "Scarlett Cox",
+    "Zoe Gray",
+    "Henry Baker",
+    "Elijah Perez",
+    "Julian Flores",
+    "Alexander Reed",
+    "Matthew Cooper",
+    "Mia Robinson",
+    "Grace Russell",
+    "Jack Rivera",
+    "Michael Johnson",
+    "Sarah Lee",
+    "Aria Barnes",
+    "Hannah Price",
+    "Ella Morgan",
+    "Noah Walker",
+    "Olivia Martinez",
+    "Liam Turner",
+    "Sebastian Carter",
+    "William Brown",
+    "Charlotte Hill",
+    "Benjamin Green",
+    "Chloe Ramirez",
+    "Madison Jenkins",
+    "Sophia Clark",
+    "Daniel Hall",
+    "Dan Kelly"
+  ].sort();
   
   console.log("Total unique people:", people.length);
   console.log("First few people:", people.slice(0, 5));
