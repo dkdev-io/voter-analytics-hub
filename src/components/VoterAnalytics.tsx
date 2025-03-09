@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -103,7 +102,6 @@ export const VoterAnalytics = () => {
   console.log('Total data entries:', TEST_DATA.length);
   
   const calculateResult = () => {
-    // Make sure at least one field is selected
     if (!query.tactic && !query.resultType && !query.person && !query.date) {
       setError("Please select at least one field");
       setResult(null);
@@ -111,7 +109,6 @@ export const VoterAnalytics = () => {
     }
 
     try {
-      // Make a copy of the data with Dan Kelly added
       const danKellyEntry = {
         firstName: "Dan",
         lastName: "Kelly",
@@ -137,20 +134,16 @@ export const VoterAnalytics = () => {
       
       const dataToSearch = hasDanKelly ? TEST_DATA : [...TEST_DATA, danKellyEntry];
       
-      // Get the result type (default to "attempts" if not specified)
       const resultType = query.resultType ? 
         query.resultType.toLowerCase().replace(" ", "") : 
         "attempts";
       
-      // Filter the data based on selections
       let filtered = [...dataToSearch];
       
-      // Filter by tactic if not "All"
       if (query.tactic && query.tactic !== "All") {
         filtered = filtered.filter(d => d.tactic === query.tactic);
       }
       
-      // Filter by person if not "All"
       if (query.person && query.person !== "All") {
         let firstName, lastName;
         
@@ -172,7 +165,6 @@ export const VoterAnalytics = () => {
         );
       }
       
-      // Filter by date if not "All"
       if (query.date && query.date !== "All") {
         filtered = filtered.filter(d => d.date === query.date);
       }
@@ -188,7 +180,6 @@ export const VoterAnalytics = () => {
           variant: "default"
         });
       } else {
-        // Sum up the results for the specified metric
         const total = filtered.reduce((sum, item) => {
           return sum + (item[resultType as keyof typeof item] as number || 0);
         }, 0);
@@ -248,7 +239,6 @@ export const VoterAnalytics = () => {
                 <SelectValue placeholder={<span className="font-bold">Select Metric</span>} />
               </SelectTrigger>
               <SelectContent className="bg-white z-50">
-                <SelectItem value="All">All</SelectItem>
                 {RESULT_TYPES.map(type => (
                   <SelectItem key={type} value={type}>
                     {type}
