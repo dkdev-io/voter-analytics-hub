@@ -24,6 +24,7 @@ export const VoterAnalytics = () => {
   console.log('Total data entries:', TEST_DATA.length);
   
   const calculateResult = () => {
+    // Check for incomplete query parameters
     if (!query.tactic || !query.resultType || !query.person || !query.date) {
       setError("Please complete all fields");
       setResult(null);
@@ -41,13 +42,16 @@ export const VoterAnalytics = () => {
         d.date === query.date
       );
 
+      // If no matching data is found, return 0 instead of an error
       if (filtered.length === 0) {
         setResult(0);
+        setError(null);
       } else {
         setResult(filtered[0][resultType as keyof typeof filtered[0]] as number);
+        setError(null);
       }
-      setError(null);
     } catch (e) {
+      console.error("Error calculating result:", e);
       setError("Unknown error");
       setResult(null);
     }
@@ -125,7 +129,8 @@ export const VoterAnalytics = () => {
             onValueChange={(value) => {
               setQuery(prev => ({ ...prev, date: value }));
               setError(null);
-              calculateResult();
+              // Calculate result only after all selections are complete
+              setTimeout(() => calculateResult(), 0);
             }}
           >
             <SelectTrigger>
