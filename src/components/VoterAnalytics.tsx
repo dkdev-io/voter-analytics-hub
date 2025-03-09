@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -16,7 +15,7 @@ export const VoterAnalytics = () => {
   
   // Fix the method to extract all unique people from the dataset
   const getAllPeople = () => {
-    const uniquePeople = new Set();
+    const uniquePeople = new Set<string>();
     
     TEST_DATA.forEach(d => {
       // Create a consistent full name for each person
@@ -171,7 +170,7 @@ export const VoterAnalytics = () => {
               <SelectValue placeholder="Select person" />
             </SelectTrigger>
             <SelectContent className="max-h-60 overflow-y-auto">
-              {people.map(person => (
+              {people.map((person: string) => (
                 <SelectItem key={person} value={person}>
                   {person}
                 </SelectItem>
@@ -192,7 +191,7 @@ export const VoterAnalytics = () => {
               <SelectValue placeholder="Select date" />
             </SelectTrigger>
             <SelectContent className="max-h-60 overflow-y-auto">
-              {dates.map(date => (
+              {dates.map((date: string) => (
                 <SelectItem key={date} value={date}>
                   {date}
                 </SelectItem>
@@ -218,4 +217,3 @@ export const VoterAnalytics = () => {
     </div>
   );
 };
-
