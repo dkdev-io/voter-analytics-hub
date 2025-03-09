@@ -9,10 +9,20 @@ export const VoterAnalytics = () => {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<number | null>(null);
 
-  const tactics = Array.from(new Set(TEST_DATA.map(d => d.tactic)));
-  const people = Array.from(new Set(TEST_DATA.map(d => `${d.firstName} ${d.lastName}`)));
-  const dates = Array.from(new Set(TEST_DATA.map(d => d.date)));
+  // Extract unique values from the dataset
+  const tactics = Array.from(new Set(TEST_DATA.map(d => d.tactic))).sort();
+  const people = Array.from(new Set(TEST_DATA.map(d => `${d.firstName} ${d.lastName}`))).sort();
+  
+  // Ensure we get all dates and sort them chronologically
+  const dates = Array.from(
+    new Set(TEST_DATA.map(d => d.date))
+  ).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
 
+  // Add console logging for debugging
+  console.log('Available dates:', dates);
+  console.log('Total unique dates:', dates.length);
+  console.log('Total data entries:', TEST_DATA.length);
+  
   const calculateResult = () => {
     if (!query.tactic || !query.resultType || !query.person || !query.date) {
       setError("Please complete all fields");
@@ -121,7 +131,7 @@ export const VoterAnalytics = () => {
             <SelectTrigger>
               <SelectValue placeholder="Select date" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="max-h-60 overflow-y-auto">
               {dates.map(date => (
                 <SelectItem key={date} value={date}>
                   {date}
