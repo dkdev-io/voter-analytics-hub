@@ -203,7 +203,7 @@ export const VoterAnalytics = () => {
         <div className="text-lg text-gray-700 flex flex-wrap items-center gap-2">
           <span>I want to know how many</span>
           
-          {/* Moved the tactic dropdown to be the first one after the initial text */}
+          {/* Tactic dropdown */}
           <div className="inline-block min-w-[150px]">
             <Select
               value={query.tactic}
@@ -213,7 +213,7 @@ export const VoterAnalytics = () => {
               }}
             >
               <SelectTrigger className="min-w-[150px]">
-                <SelectValue placeholder="____" />
+                <SelectValue placeholder={<span className="font-bold">Tactic</span>} />
               </SelectTrigger>
               <SelectContent className="bg-white z-50">
                 {tactics.map(tactic => (
@@ -225,6 +225,7 @@ export const VoterAnalytics = () => {
             </Select>
           </div>
           
+          {/* Metric/Result Type dropdown */}
           <div className="inline-block min-w-[150px]">
             <Select
               value={query.resultType}
@@ -234,7 +235,7 @@ export const VoterAnalytics = () => {
               }}
             >
               <SelectTrigger className="min-w-[150px]">
-                <SelectValue placeholder="____" />
+                <SelectValue placeholder={<span className="font-bold">Metric</span>} />
               </SelectTrigger>
               <SelectContent className="bg-white z-50">
                 {RESULT_TYPES.map(type => (
@@ -248,6 +249,7 @@ export const VoterAnalytics = () => {
           
           <span>were done by</span>
           
+          {/* Individual/Person dropdown */}
           <div className="inline-block min-w-[180px]">
             <Select
               value={query.person}
@@ -257,7 +259,7 @@ export const VoterAnalytics = () => {
               }}
             >
               <SelectTrigger className="min-w-[180px]">
-                <SelectValue placeholder="____" />
+                <SelectValue placeholder={<span className="font-bold">Individual</span>} />
               </SelectTrigger>
               <SelectContent 
                 className="max-h-[300px] overflow-y-auto bg-white z-50"
@@ -276,6 +278,7 @@ export const VoterAnalytics = () => {
           
           <span>on</span>
           
+          {/* Date dropdown */}
           <div className="inline-block min-w-[150px]">
             <Select
               value={query.date}
@@ -285,7 +288,7 @@ export const VoterAnalytics = () => {
               }}
             >
               <SelectTrigger className="min-w-[150px]">
-                <SelectValue placeholder="____" />
+                <SelectValue placeholder={<span className="font-bold">Date</span>} />
               </SelectTrigger>
               <SelectContent 
                 className="max-h-[300px] overflow-y-auto bg-white z-50"
