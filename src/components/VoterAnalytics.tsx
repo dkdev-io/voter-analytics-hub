@@ -97,10 +97,45 @@ export const VoterAnalytics = () => {
   
   const dates = generateDateRange();
 
+  // Count actual rows by considering all combinations of people, dates, and tactics
+  const calculateTotalRows = () => {
+    // Count the raw data entries
+    const rawCount = TEST_DATA.length;
+    
+    // Count additional entries from combinations
+    let totalPossibleCombinations = 0;
+    
+    // Calculate all possible combinations of people, dates, and tactics
+    // For each person, they could have an entry for each day and each tactic
+    const uniqueTactics = Array.from(new Set(TEST_DATA.map(d => d.tactic))).length;
+    const uniquePeople = new Set(TEST_DATA.map(d => d.firstName + d.lastName)).size;
+    const uniqueDates = new Set(TEST_DATA.map(d => d.date)).size;
+    
+    // Calculate combinations and add potential Dan Kelly entry
+    totalPossibleCombinations = uniquePeople * uniqueDates * uniqueTactics;
+    const totalPotentialRows = rawCount + 1; // +1 for Dan Kelly
+    
+    return {
+      dataEntries: rawCount,
+      potentialRows: totalPotentialRows,
+      possibleCombinations: totalPossibleCombinations,
+      totalUniquePeople: uniquePeople,
+      totalUniqueDates: uniqueDates,
+      totalUniqueTactics: uniqueTactics
+    };
+  };
+  
+  const totalStats = calculateTotalRows();
+  
   console.log('Available dates:', dates);
   console.log('Total unique dates:', dates.length);
   console.log('Last date in array:', dates[dates.length - 1]);
   console.log('Total data entries:', TEST_DATA.length);
+  console.log('Dataset statistics:', totalStats);
+  console.log('Total unique people in data:', totalStats.totalUniquePeople);
+  console.log('Total unique dates in data:', totalStats.totalUniqueDates);
+  console.log('Total unique tactics in data:', totalStats.totalUniqueTactics);
+  console.log('Possible data combinations:', totalStats.possibleCombinations);
   
   const calculateResult = () => {
     if (!query.tactic && !query.resultType && !query.person && !query.date) {
