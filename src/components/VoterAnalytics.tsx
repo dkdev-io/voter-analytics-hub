@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -102,34 +103,15 @@ export const VoterAnalytics = () => {
   console.log('Total data entries:', TEST_DATA.length);
   
   const calculateResult = () => {
-    if (!query.tactic || !query.resultType || !query.person || !query.date) {
-      setError("Please complete all fields");
+    // Make sure at least one field is selected
+    if (!query.tactic && !query.resultType && !query.person && !query.date) {
+      setError("Please select at least one field");
       setResult(null);
       return;
     }
 
     try {
-      let firstName, lastName;
-      
-      if (query.person === "Candidate Carter") {
-        firstName = "Candidate";
-        lastName = "Carter";
-      } else if (query.person === "Dan Kelly") {
-        firstName = "Dan";
-        lastName = "Kelly";
-      } else {
-        const nameParts = query.person.split(" ");
-        firstName = nameParts[0];
-        lastName = nameParts.slice(1).join(" ");
-      }
-
-      console.log("Searching for:", {
-        tactic: query.tactic,
-        firstName,
-        lastName,
-        date: query.date
-      });
-      
+      // Make a copy of the data with Dan Kelly added
       const danKellyEntry = {
         firstName: "Dan",
         lastName: "Kelly",
@@ -155,14 +137,45 @@ export const VoterAnalytics = () => {
       
       const dataToSearch = hasDanKelly ? TEST_DATA : [...TEST_DATA, danKellyEntry];
       
-      const resultType = query.resultType.toLowerCase().replace(" ", "");
+      // Get the result type (default to "attempts" if not specified)
+      const resultType = query.resultType ? 
+        query.resultType.toLowerCase().replace(" ", "") : 
+        "attempts";
       
-      const filtered = dataToSearch.filter(d => 
-        d.tactic === query.tactic &&
-        d.firstName === firstName &&
-        d.lastName === lastName &&
-        d.date === query.date
-      );
+      // Filter the data based on selections
+      let filtered = [...dataToSearch];
+      
+      // Filter by tactic if not "All"
+      if (query.tactic && query.tactic !== "All") {
+        filtered = filtered.filter(d => d.tactic === query.tactic);
+      }
+      
+      // Filter by person if not "All"
+      if (query.person && query.person !== "All") {
+        let firstName, lastName;
+        
+        if (query.person === "Candidate Carter") {
+          firstName = "Candidate";
+          lastName = "Carter";
+        } else if (query.person === "Dan Kelly") {
+          firstName = "Dan";
+          lastName = "Kelly";
+        } else {
+          const nameParts = query.person.split(" ");
+          firstName = nameParts[0];
+          lastName = nameParts.slice(1).join(" ");
+        }
+        
+        filtered = filtered.filter(d => 
+          d.firstName === firstName && 
+          d.lastName === lastName
+        );
+      }
+      
+      // Filter by date if not "All"
+      if (query.date && query.date !== "All") {
+        filtered = filtered.filter(d => d.date === query.date);
+      }
 
       console.log("Filtered results:", filtered);
 
@@ -175,7 +188,12 @@ export const VoterAnalytics = () => {
           variant: "default"
         });
       } else {
-        setResult(filtered[0][resultType as keyof typeof filtered[0]] as number);
+        // Sum up the results for the specified metric
+        const total = filtered.reduce((sum, item) => {
+          return sum + (item[resultType as keyof typeof item] as number || 0);
+        }, 0);
+        
+        setResult(total);
         setError(null);
       }
     } catch (e) {
@@ -208,6 +226,7 @@ export const VoterAnalytics = () => {
                 <SelectValue placeholder={<span className="font-bold">Select Tactic</span>} />
               </SelectTrigger>
               <SelectContent className="bg-white z-50">
+                <SelectItem value="All">All</SelectItem>
                 {tactics.map(tactic => (
                   <SelectItem key={tactic} value={tactic}>
                     {tactic}
@@ -229,6 +248,7 @@ export const VoterAnalytics = () => {
                 <SelectValue placeholder={<span className="font-bold">Select Metric</span>} />
               </SelectTrigger>
               <SelectContent className="bg-white z-50">
+                <SelectItem value="All">All</SelectItem>
                 {RESULT_TYPES.map(type => (
                   <SelectItem key={type} value={type}>
                     {type}
@@ -257,6 +277,7 @@ export const VoterAnalytics = () => {
                 sideOffset={5}
                 align="start"
               >
+                <SelectItem value="All">All</SelectItem>
                 {people.map((person: string) => (
                   <SelectItem key={person} value={person}>
                     {person}
@@ -285,6 +306,7 @@ export const VoterAnalytics = () => {
                 sideOffset={5}
                 align="start"
               >
+                <SelectItem value="All">All</SelectItem>
                 {dates.map((date: string) => (
                   <SelectItem key={date} value={date}>
                     {date}
