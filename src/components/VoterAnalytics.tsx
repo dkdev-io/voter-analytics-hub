@@ -11,7 +11,18 @@ export const VoterAnalytics = () => {
 
   // Extract unique values from the dataset
   const tactics = Array.from(new Set(TEST_DATA.map(d => d.tactic))).sort();
-  const people = Array.from(new Set(TEST_DATA.map(d => `${d.firstName} ${d.lastName}`))).sort();
+  
+  // Improved method to extract unique people by combining firstName and lastName
+  const people = Array.from(new Set(TEST_DATA.map(d => {
+    // Handle the special case for "Candidate Carter"
+    if (d.firstName === "Candidate" && d.lastName === "Carter") {
+      return "Candidate Carter";
+    }
+    return `${d.firstName} ${d.lastName}`;
+  }))).sort();
+  
+  console.log("Total unique people:", people.length);
+  console.log("First few people:", people.slice(0, 5));
   
   // Generate all dates from 2025-01-01 to 2025-01-31
   const generateDateRange = () => {
@@ -134,7 +145,7 @@ export const VoterAnalytics = () => {
             <SelectTrigger>
               <SelectValue placeholder="Select person" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="max-h-60 overflow-y-auto">
               {people.map(person => (
                 <SelectItem key={person} value={person}>
                   {person}
