@@ -203,27 +203,7 @@ export const VoterAnalytics = () => {
         <div className="text-lg text-gray-700 flex flex-wrap items-center gap-2">
           <span>I want to know how many</span>
           
-          <div className="inline-block min-w-[150px]">
-            <Select
-              value={query.resultType}
-              onValueChange={(value) => {
-                setQuery(prev => ({ ...prev, resultType: value }));
-                setError(null);
-              }}
-            >
-              <SelectTrigger className="min-w-[150px]">
-                <SelectValue placeholder="____" />
-              </SelectTrigger>
-              <SelectContent className="bg-white z-50">
-                {RESULT_TYPES.map(type => (
-                  <SelectItem key={type} value={type}>
-                    {type}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          
+          {/* Moved the tactic dropdown to be the first one after the initial text */}
           <div className="inline-block min-w-[150px]">
             <Select
               value={query.tactic}
@@ -239,6 +219,27 @@ export const VoterAnalytics = () => {
                 {tactics.map(tactic => (
                   <SelectItem key={tactic} value={tactic}>
                     {tactic}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="inline-block min-w-[150px]">
+            <Select
+              value={query.resultType}
+              onValueChange={(value) => {
+                setQuery(prev => ({ ...prev, resultType: value }));
+                setError(null);
+              }}
+            >
+              <SelectTrigger className="min-w-[150px]">
+                <SelectValue placeholder="____" />
+              </SelectTrigger>
+              <SelectContent className="bg-white z-50">
+                {RESULT_TYPES.map(type => (
+                  <SelectItem key={type} value={type}>
+                    {type}
                   </SelectItem>
                 ))}
               </SelectContent>
