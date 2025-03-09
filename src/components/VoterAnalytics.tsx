@@ -1,8 +1,10 @@
+
 import { useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { TEST_DATA, RESULT_TYPES, type QueryParams } from '@/types/analytics';
 import { useToast } from "@/hooks/use-toast";
+import { ChevronDown } from "lucide-react";
 
 export const VoterAnalytics = () => {
   const [query, setQuery] = useState<Partial<QueryParams>>({});
@@ -166,10 +168,11 @@ export const VoterAnalytics = () => {
               setError(null);
             }}
           >
-            <SelectTrigger>
+            <SelectTrigger className="relative">
               <SelectValue placeholder="Select person" />
+              <ChevronDown className="absolute right-4 h-4 w-4 opacity-50" />
             </SelectTrigger>
-            <SelectContent className="max-h-60 overflow-y-auto">
+            <SelectContent className="max-h-60 overflow-y-auto bg-white z-50">
               {people.map((person: string) => (
                 <SelectItem key={person} value={person}>
                   {person}
