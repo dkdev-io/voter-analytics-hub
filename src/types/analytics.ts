@@ -1,3 +1,4 @@
+
 export interface VoterContact {
   firstName: string;
   lastName: string;
@@ -22,6 +23,7 @@ export interface QueryParams {
 }
 
 export const RESULT_TYPES = [
+  "Attempts",
   "Contacts", 
   "Not Home", 
   "Refusal", 
