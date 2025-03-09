@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -11,15 +10,12 @@ export const VoterAnalytics = () => {
   const [result, setResult] = useState<number | null>(null);
   const { toast } = useToast();
 
-  // Extract unique values from the dataset
   const tactics = Array.from(new Set(TEST_DATA.map(d => d.tactic))).sort();
   
-  // Fix the method to extract all unique people from the dataset
   const getAllPeople = () => {
     const uniquePeople = new Set<string>();
     
     TEST_DATA.forEach(d => {
-      // Create a consistent full name for each person
       const fullName = `${d.firstName} ${d.lastName}`;
       uniquePeople.add(fullName);
     });
@@ -27,17 +23,15 @@ export const VoterAnalytics = () => {
     return Array.from(uniquePeople).sort();
   };
   
-  // Get the sorted list of all unique people
   const people = getAllPeople();
   
   console.log("Total unique people:", people.length);
   console.log("First few people:", people.slice(0, 5));
   
-  // Generate all dates from 2025-01-01 to 2025-01-31
   const generateDateRange = () => {
     const dates = [];
     const startDate = new Date('2025-01-01');
-    const endDate = new Date('2025-01-31T23:59:59'); // Set time to end of day to include Jan 31
+    const endDate = new Date('2025-01-31T23:59:59');
     
     let currentDate = new Date(startDate);
     while (currentDate <= endDate) {
@@ -46,24 +40,20 @@ export const VoterAnalytics = () => {
       const day = String(currentDate.getDate()).padStart(2, '0');
       dates.push(`${year}-${month}-${day}`);
       
-      // Move to next day
       currentDate.setDate(currentDate.getDate() + 1);
     }
     
     return dates;
   };
   
-  // Use the date range from 01-01 to 01-31 regardless of what's in the dataset
   const dates = generateDateRange();
 
-  // Add console logging for debugging
   console.log('Available dates:', dates);
   console.log('Total unique dates:', dates.length);
   console.log('Last date in array:', dates[dates.length - 1]);
   console.log('Total data entries:', TEST_DATA.length);
   
   const calculateResult = () => {
-    // Check for incomplete query parameters
     if (!query.tactic || !query.resultType || !query.person || !query.date) {
       setError("Please complete all fields");
       setResult(null);
@@ -71,7 +61,6 @@ export const VoterAnalytics = () => {
     }
 
     try {
-      // Handle the special case for "Candidate Carter" and other names
       let firstName, lastName;
       
       if (query.person === "Candidate Carter") {
@@ -80,7 +69,7 @@ export const VoterAnalytics = () => {
       } else {
         const nameParts = query.person.split(" ");
         firstName = nameParts[0];
-        lastName = nameParts.slice(1).join(" "); // Handle multi-word last names
+        lastName = nameParts.slice(1).join(" ");
       }
       
       const resultType = query.resultType.toLowerCase().replace(" ", "");
@@ -92,7 +81,6 @@ export const VoterAnalytics = () => {
         d.date === query.date
       );
 
-      // If no matching data is found, return 0 instead of an error
       if (filtered.length === 0) {
         setResult(0);
         setError(null);
@@ -170,7 +158,12 @@ export const VoterAnalytics = () => {
             <SelectTrigger>
               <SelectValue placeholder="Select person" />
             </SelectTrigger>
-            <SelectContent className="max-h-60 overflow-y-auto bg-white z-50">
+            <SelectContent 
+              className="max-h-[300px] overflow-y-auto bg-white z-50"
+              position="popper"
+              sideOffset={5}
+              align="start"
+            >
               {people.map((person: string) => (
                 <SelectItem key={person} value={person}>
                   {person}
@@ -184,14 +177,18 @@ export const VoterAnalytics = () => {
             onValueChange={(value) => {
               setQuery(prev => ({ ...prev, date: value }));
               setError(null);
-              // Calculate result only after all selections are complete
               setTimeout(() => calculateResult(), 0);
             }}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select date" />
             </SelectTrigger>
-            <SelectContent className="max-h-60 overflow-y-auto bg-white z-50">
+            <SelectContent 
+              className="max-h-[300px] overflow-y-auto bg-white z-50"
+              position="popper"
+              sideOffset={5}
+              align="start"
+            >
               {dates.map((date: string) => (
                 <SelectItem key={date} value={date}>
                   {date}
