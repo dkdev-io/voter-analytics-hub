@@ -1,4 +1,3 @@
-<lov-code>
 export interface VoterContact {
   firstName: string;
   lastName: string;
@@ -1902,4 +1901,10 @@ export const TEST_DATA: VoterContact[] = [
     attempts: 17,
     contacts: 5,
     notHome: 2,
-   
+    refusal: 1,
+    badData: 0,
+    support: 2,
+    oppose: 0,
+    undecided: 0
+  }
+];
