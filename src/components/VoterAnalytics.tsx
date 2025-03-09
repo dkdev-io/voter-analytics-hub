@@ -3,23 +3,32 @@ import { useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { TEST_DATA, RESULT_TYPES, type QueryParams } from '@/types/analytics';
+import { useToast } from "@/hooks/use-toast";
 
 export const VoterAnalytics = () => {
   const [query, setQuery] = useState<Partial<QueryParams>>({});
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<number | null>(null);
+  const { toast } = useToast();
 
   // Extract unique values from the dataset
   const tactics = Array.from(new Set(TEST_DATA.map(d => d.tactic))).sort();
   
-  // Improved method to extract unique people by combining firstName and lastName
-  const people = Array.from(new Set(TEST_DATA.map(d => {
-    // Handle the special case for "Candidate Carter"
-    if (d.firstName === "Candidate" && d.lastName === "Carter") {
-      return "Candidate Carter";
-    }
-    return `${d.firstName} ${d.lastName}`;
-  }))).sort();
+  // Fix the method to extract all unique people from the dataset
+  const getAllPeople = () => {
+    const uniquePeople = new Set();
+    
+    TEST_DATA.forEach(d => {
+      // Create a consistent full name for each person
+      const fullName = `${d.firstName} ${d.lastName}`;
+      uniquePeople.add(fullName);
+    });
+    
+    return Array.from(uniquePeople).sort();
+  };
+  
+  // Get the sorted list of all unique people
+  const people = getAllPeople();
   
   console.log("Total unique people:", people.length);
   console.log("First few people:", people.slice(0, 5));
@@ -62,7 +71,18 @@ export const VoterAnalytics = () => {
     }
 
     try {
-      const [firstName, lastName] = query.person.split(" ");
+      // Handle the special case for "Candidate Carter" and other names
+      let firstName, lastName;
+      
+      if (query.person === "Candidate Carter") {
+        firstName = "Candidate";
+        lastName = "Carter";
+      } else {
+        const nameParts = query.person.split(" ");
+        firstName = nameParts[0];
+        lastName = nameParts.slice(1).join(" "); // Handle multi-word last names
+      }
+      
       const resultType = query.resultType.toLowerCase().replace(" ", "");
       
       const filtered = TEST_DATA.filter(d => 
@@ -76,6 +96,11 @@ export const VoterAnalytics = () => {
       if (filtered.length === 0) {
         setResult(0);
         setError(null);
+        toast({
+          title: "No data found",
+          description: "No matching data for these criteria. Result set to 0.",
+          variant: "default"
+        });
       } else {
         setResult(filtered[0][resultType as keyof typeof filtered[0]] as number);
         setError(null);
@@ -193,3 +218,4 @@ export const VoterAnalytics = () => {
     </div>
   );
 };
+
