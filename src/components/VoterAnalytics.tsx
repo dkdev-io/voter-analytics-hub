@@ -4,7 +4,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { TEST_DATA, RESULT_TYPES, type QueryParams } from '@/types/analytics';
 import { useToast } from "@/hooks/use-toast";
-import { ChevronDown } from "lucide-react";
 
 export const VoterAnalytics = () => {
   const [query, setQuery] = useState<Partial<QueryParams>>({});
@@ -133,7 +132,7 @@ export const VoterAnalytics = () => {
             <SelectTrigger>
               <SelectValue placeholder="Select tactic" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-white z-50">
               {tactics.map(tactic => (
                 <SelectItem key={tactic} value={tactic}>
                   {tactic}
@@ -152,7 +151,7 @@ export const VoterAnalytics = () => {
             <SelectTrigger>
               <SelectValue placeholder="Select result type" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-white z-50">
               {RESULT_TYPES.map(type => (
                 <SelectItem key={type} value={type}>
                   {type}
@@ -168,9 +167,8 @@ export const VoterAnalytics = () => {
               setError(null);
             }}
           >
-            <SelectTrigger className="relative">
+            <SelectTrigger>
               <SelectValue placeholder="Select person" />
-              <ChevronDown className="absolute right-4 h-4 w-4 opacity-50" />
             </SelectTrigger>
             <SelectContent className="max-h-60 overflow-y-auto bg-white z-50">
               {people.map((person: string) => (
@@ -193,7 +191,7 @@ export const VoterAnalytics = () => {
             <SelectTrigger>
               <SelectValue placeholder="Select date" />
             </SelectTrigger>
-            <SelectContent className="max-h-60 overflow-y-auto">
+            <SelectContent className="max-h-60 overflow-y-auto bg-white z-50">
               {dates.map((date: string) => (
                 <SelectItem key={date} value={date}>
                   {date}
