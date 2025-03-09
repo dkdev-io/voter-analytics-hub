@@ -2,6 +2,8 @@
 import { useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Send } from "lucide-react";
 import { TEST_DATA, RESULT_TYPES, type QueryParams } from '@/types/analytics';
 import { useToast } from "@/hooks/use-toast";
 
@@ -225,7 +227,6 @@ export const VoterAnalytics = () => {
             onValueChange={(value) => {
               setQuery(prev => ({ ...prev, date: value }));
               setError(null);
-              setTimeout(() => calculateResult(), 0);
             }}
           >
             <SelectTrigger>
@@ -244,6 +245,16 @@ export const VoterAnalytics = () => {
               ))}
             </SelectContent>
           </Select>
+        </div>
+
+        <div className="flex justify-center mt-6">
+          <Button 
+            onClick={calculateResult}
+            className="px-6 py-2"
+          >
+            <Send className="mr-2 h-4 w-4" />
+            Submit
+          </Button>
         </div>
 
         {error && (
