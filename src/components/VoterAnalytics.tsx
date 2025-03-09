@@ -194,99 +194,114 @@ export const VoterAnalytics = () => {
 
   return (
     <div className="max-w-4xl mx-auto p-8 space-y-8">
-      <h1 className="text-2xl font-semibold text-gray-900 mb-8">Voter Contact Analytics</h1>
+      <h1 className="text-2xl font-semibold text-gray-900 mb-2 text-center">Dashboard</h1>
+      <p className="text-lg text-gray-700 mb-8 text-left">
+        The first user friendly tool to help campaigns analyze their voter contact data.
+      </p>
       
       <div className="space-y-6">
-        <p className="text-lg text-gray-700">
-          I want to know how many
-        </p>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Select
-            value={query.tactic}
-            onValueChange={(value) => {
-              setQuery(prev => ({ ...prev, tactic: value }));
-              setError(null);
-            }}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select tactic" />
-            </SelectTrigger>
-            <SelectContent className="bg-white z-50">
-              {tactics.map(tactic => (
-                <SelectItem key={tactic} value={tactic}>
-                  {tactic}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select
-            value={query.resultType}
-            onValueChange={(value) => {
-              setQuery(prev => ({ ...prev, resultType: value }));
-              setError(null);
-            }}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select result type" />
-            </SelectTrigger>
-            <SelectContent className="bg-white z-50">
-              {RESULT_TYPES.map(type => (
-                <SelectItem key={type} value={type}>
-                  {type}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select
-            value={query.person}
-            onValueChange={(value) => {
-              setQuery(prev => ({ ...prev, person: value }));
-              setError(null);
-            }}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select person" />
-            </SelectTrigger>
-            <SelectContent 
-              className="max-h-[300px] overflow-y-auto bg-white z-50"
-              position="popper"
-              sideOffset={5}
-              align="start"
+        <div className="text-lg text-gray-700 flex flex-wrap items-center gap-2">
+          <span>I want to know how many</span>
+          
+          <div className="inline-block min-w-[150px]">
+            <Select
+              value={query.resultType}
+              onValueChange={(value) => {
+                setQuery(prev => ({ ...prev, resultType: value }));
+                setError(null);
+              }}
             >
-              {people.map((person: string) => (
-                <SelectItem key={person} value={person}>
-                  {person}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select
-            value={query.date}
-            onValueChange={(value) => {
-              setQuery(prev => ({ ...prev, date: value }));
-              setError(null);
-            }}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select date" />
-            </SelectTrigger>
-            <SelectContent 
-              className="max-h-[300px] overflow-y-auto bg-white z-50"
-              position="popper"
-              sideOffset={5}
-              align="start"
+              <SelectTrigger className="min-w-[150px]">
+                <SelectValue placeholder="____" />
+              </SelectTrigger>
+              <SelectContent className="bg-white z-50">
+                {RESULT_TYPES.map(type => (
+                  <SelectItem key={type} value={type}>
+                    {type}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="inline-block min-w-[150px]">
+            <Select
+              value={query.tactic}
+              onValueChange={(value) => {
+                setQuery(prev => ({ ...prev, tactic: value }));
+                setError(null);
+              }}
             >
-              {dates.map((date: string) => (
-                <SelectItem key={date} value={date}>
-                  {date}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+              <SelectTrigger className="min-w-[150px]">
+                <SelectValue placeholder="____" />
+              </SelectTrigger>
+              <SelectContent className="bg-white z-50">
+                {tactics.map(tactic => (
+                  <SelectItem key={tactic} value={tactic}>
+                    {tactic}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <span>were done by</span>
+          
+          <div className="inline-block min-w-[180px]">
+            <Select
+              value={query.person}
+              onValueChange={(value) => {
+                setQuery(prev => ({ ...prev, person: value }));
+                setError(null);
+              }}
+            >
+              <SelectTrigger className="min-w-[180px]">
+                <SelectValue placeholder="____" />
+              </SelectTrigger>
+              <SelectContent 
+                className="max-h-[300px] overflow-y-auto bg-white z-50"
+                position="popper"
+                sideOffset={5}
+                align="start"
+              >
+                {people.map((person: string) => (
+                  <SelectItem key={person} value={person}>
+                    {person}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <span>on</span>
+          
+          <div className="inline-block min-w-[150px]">
+            <Select
+              value={query.date}
+              onValueChange={(value) => {
+                setQuery(prev => ({ ...prev, date: value }));
+                setError(null);
+              }}
+            >
+              <SelectTrigger className="min-w-[150px]">
+                <SelectValue placeholder="____" />
+              </SelectTrigger>
+              <SelectContent 
+                className="max-h-[300px] overflow-y-auto bg-white z-50"
+                position="popper"
+                sideOffset={5}
+                align="start"
+              >
+                {dates.map((date: string) => (
+                  <SelectItem key={date} value={date}>
+                    {date}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <span>.</span>
         </div>
 
         <div className="flex justify-center mt-6">
