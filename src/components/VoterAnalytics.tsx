@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -15,7 +14,6 @@ export const VoterAnalytics = () => {
 
   const tactics = Array.from(new Set(TEST_DATA.map(d => d.tactic))).sort();
   
-  // Use the complete list of people instead of extracting from TEST_DATA
   const people = [
     "John Smith",
     "Jane Doe",
@@ -113,7 +111,6 @@ export const VoterAnalytics = () => {
     try {
       let firstName, lastName;
       
-      // Handle special cases for name parsing
       if (query.person === "Candidate Carter") {
         firstName = "Candidate";
         lastName = "Carter";
@@ -126,7 +123,6 @@ export const VoterAnalytics = () => {
         lastName = nameParts.slice(1).join(" ");
       }
 
-      // For debugging
       console.log("Searching for:", {
         tactic: query.tactic,
         firstName,
@@ -134,7 +130,6 @@ export const VoterAnalytics = () => {
         date: query.date
       });
       
-      // Add a custom test data entry for Dan Kelly if it's not in the data
       const danKellyEntry = {
         firstName: "Dan",
         lastName: "Kelly",
@@ -151,7 +146,6 @@ export const VoterAnalytics = () => {
         undecided: 1
       };
       
-      // Check if we already have this entry in TEST_DATA
       const hasDanKelly = TEST_DATA.some(d => 
         d.firstName === "Dan" && 
         d.lastName === "Kelly" && 
@@ -159,7 +153,6 @@ export const VoterAnalytics = () => {
         d.tactic === "Phone"
       );
       
-      // If we don't have Dan Kelly's entry, temporarily add it for this calculation
       const dataToSearch = hasDanKelly ? TEST_DATA : [...TEST_DATA, danKellyEntry];
       
       const resultType = query.resultType.toLowerCase().replace(" ", "");
@@ -203,7 +196,6 @@ export const VoterAnalytics = () => {
         <div className="text-lg text-gray-700 flex flex-wrap items-center gap-2">
           <span>I want to know how many</span>
           
-          {/* Tactic dropdown */}
           <div className="inline-block min-w-[150px]">
             <Select
               value={query.tactic}
@@ -213,7 +205,7 @@ export const VoterAnalytics = () => {
               }}
             >
               <SelectTrigger className="min-w-[150px]">
-                <SelectValue placeholder={<span className="font-bold">Tactic</span>} />
+                <SelectValue placeholder={<span className="font-bold">Select Tactic</span>} />
               </SelectTrigger>
               <SelectContent className="bg-white z-50">
                 {tactics.map(tactic => (
@@ -225,7 +217,6 @@ export const VoterAnalytics = () => {
             </Select>
           </div>
           
-          {/* Metric/Result Type dropdown */}
           <div className="inline-block min-w-[150px]">
             <Select
               value={query.resultType}
@@ -235,7 +226,7 @@ export const VoterAnalytics = () => {
               }}
             >
               <SelectTrigger className="min-w-[150px]">
-                <SelectValue placeholder={<span className="font-bold">Metric</span>} />
+                <SelectValue placeholder={<span className="font-bold">Select Metric</span>} />
               </SelectTrigger>
               <SelectContent className="bg-white z-50">
                 {RESULT_TYPES.map(type => (
@@ -249,7 +240,6 @@ export const VoterAnalytics = () => {
           
           <span>were done by</span>
           
-          {/* Individual/Person dropdown */}
           <div className="inline-block min-w-[180px]">
             <Select
               value={query.person}
@@ -259,7 +249,7 @@ export const VoterAnalytics = () => {
               }}
             >
               <SelectTrigger className="min-w-[180px]">
-                <SelectValue placeholder={<span className="font-bold">Individual</span>} />
+                <SelectValue placeholder={<span className="font-bold">Select Individual</span>} />
               </SelectTrigger>
               <SelectContent 
                 className="max-h-[300px] overflow-y-auto bg-white z-50"
@@ -278,7 +268,6 @@ export const VoterAnalytics = () => {
           
           <span>on</span>
           
-          {/* Date dropdown */}
           <div className="inline-block min-w-[150px]">
             <Select
               value={query.date}
@@ -288,7 +277,7 @@ export const VoterAnalytics = () => {
               }}
             >
               <SelectTrigger className="min-w-[150px]">
-                <SelectValue placeholder={<span className="font-bold">Date</span>} />
+                <SelectValue placeholder={<span className="font-bold">Select Date</span>} />
               </SelectTrigger>
               <SelectContent 
                 className="max-h-[300px] overflow-y-auto bg-white z-50"
@@ -335,4 +324,3 @@ export const VoterAnalytics = () => {
     </div>
   );
 };
-
