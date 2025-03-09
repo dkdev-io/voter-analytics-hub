@@ -1,3 +1,4 @@
+
 export interface VoterContact {
   firstName: string;
   lastName: string;
@@ -20,6 +21,16 @@ export interface QueryParams {
   person: string;
   date: string;
 }
+
+export const RESULT_TYPES = [
+  "Contacts", 
+  "Not Home", 
+  "Refusal", 
+  "Bad Data", 
+  "Support", 
+  "Oppose", 
+  "Undecided"
+];
 
 export const TEST_DATA: VoterContact[] = [
   {
@@ -1081,4 +1092,10 @@ export const TEST_DATA: VoterContact[] = [
     attempts: 15,
     contacts: 12,
     notHome: 0,
-    ref
+    refusal: 3,
+    badData: 0,
+    support: 5,
+    oppose: 5,
+    undecided: 2
+  }
+];
