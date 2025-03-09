@@ -13,10 +13,28 @@ export const VoterAnalytics = () => {
   const tactics = Array.from(new Set(TEST_DATA.map(d => d.tactic))).sort();
   const people = Array.from(new Set(TEST_DATA.map(d => `${d.firstName} ${d.lastName}`))).sort();
   
-  // Ensure we get all dates and sort them chronologically
-  const dates = Array.from(
-    new Set(TEST_DATA.map(d => d.date))
-  ).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+  // Generate all dates from 2025-01-01 to 2025-01-31
+  const generateDateRange = () => {
+    const dates = [];
+    const startDate = new Date('2025-01-01');
+    const endDate = new Date('2025-01-31');
+    
+    let currentDate = new Date(startDate);
+    while (currentDate <= endDate) {
+      const year = currentDate.getFullYear();
+      const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+      const day = String(currentDate.getDate()).padStart(2, '0');
+      dates.push(`${year}-${month}-${day}`);
+      
+      // Move to next day
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+    
+    return dates;
+  };
+  
+  // Use the date range from 01-01 to 01-31 regardless of what's in the dataset
+  const dates = generateDateRange();
 
   // Add console logging for debugging
   console.log('Available dates:', dates);
