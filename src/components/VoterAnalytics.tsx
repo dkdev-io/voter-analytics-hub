@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -16,7 +17,7 @@ export const VoterAnalytics = () => {
   const generateDateRange = () => {
     const dates = [];
     const startDate = new Date('2025-01-01');
-    const endDate = new Date('2025-01-31');
+    const endDate = new Date('2025-01-31T23:59:59'); // Set time to end of day to include Jan 31
     
     let currentDate = new Date(startDate);
     while (currentDate <= endDate) {
@@ -38,6 +39,7 @@ export const VoterAnalytics = () => {
   // Add console logging for debugging
   console.log('Available dates:', dates);
   console.log('Total unique dates:', dates.length);
+  console.log('Last date in array:', dates[dates.length - 1]);
   console.log('Total data entries:', TEST_DATA.length);
   
   const calculateResult = () => {
