@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -134,9 +135,15 @@ export const VoterAnalytics = () => {
       
       const dataToSearch = hasDanKelly ? TEST_DATA : [...TEST_DATA, danKellyEntry];
       
-      const resultType = query.resultType ? 
-        query.resultType.toLowerCase().replace(" ", "") : 
+      // Map the display result type to the actual property name in the data
+      let resultType = query.resultType ? 
+        query.resultType.toLowerCase().replace(/ /g, "") : 
         "attempts";
+      
+      // Special handling for "Not Home" to map to "notHome" property
+      if (resultType === "nothome") {
+        resultType = "notHome";
+      }
       
       let filtered = [...dataToSearch];
       
@@ -170,6 +177,7 @@ export const VoterAnalytics = () => {
       }
 
       console.log("Filtered results:", filtered);
+      console.log("Result type being used:", resultType);
 
       if (filtered.length === 0) {
         setResult(0);
