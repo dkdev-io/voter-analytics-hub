@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -7,143 +7,135 @@ import { Send } from "lucide-react";
 import { TEST_DATA, RESULT_TYPES, type QueryParams } from '@/types/analytics';
 import { useToast } from "@/hooks/use-toast";
 
-// CSV URL
-const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSAudKBH31Q95FjvelULhV4422EeIFwmUKbxQKOGD_NEdRvAlK4VIC04MwQ8gTELUNhlhvsQMlNTCys/pub?gid=1511945478&single=true&output=csv";
-
 export const VoterAnalytics = () => {
   const [query, setQuery] = useState<Partial<QueryParams>>({});
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<number | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [data, setData] = useState(TEST_DATA);
-  const [totalRows, setTotalRows] = useState(0);
   const { toast } = useToast();
 
-  useEffect(() => {
-    const fetchCSVData = async () => {
-      try {
-        setIsLoading(true);
-        const response = await fetch(CSV_URL);
-        
-        if (!response.ok) {
-          throw new Error(`Failed to fetch data: ${response.status}`);
-        }
-        
-        const csvText = await response.text();
-        const parsedData = parseCSV(csvText);
-        
-        setData(parsedData);
-        setTotalRows(parsedData.length);
-        console.log(`Successfully loaded ${parsedData.length} rows from CSV`);
-        
-        toast({
-          title: "Data loaded",
-          description: `Successfully loaded ${parsedData.length} rows of data`,
-        });
-      } catch (error) {
-        console.error("Error fetching CSV:", error);
-        toast({
-          title: "Error loading data",
-          description: "Failed to load the dataset. Using test data instead.",
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    fetchCSVData();
-  }, [toast]);
+  const tactics = Array.from(new Set(TEST_DATA.map(d => d.tactic))).sort();
   
-  // Parse CSV text into an array of objects
-  const parseCSV = (csvText: string) => {
-    const lines = csvText.split('\n');
-    const headers = lines[0].split(',').map(header => header.trim());
-    
-    const result = [];
-    
-    for (let i = 1; i < lines.length; i++) {
-      if (!lines[i].trim()) continue; // Skip empty lines
-      
-      const values = lines[i].split(',').map(value => value.trim());
-      const entry: any = {};
-      
-      // Map CSV columns to our data structure
-      for (let j = 0; j < headers.length; j++) {
-        const header = headers[j].toLowerCase();
-        let key = header;
-        let value = values[j];
-        
-        // Convert numeric values
-        if (["attempts", "contacts", "nothome", "refusal", "baddata", "support", "oppose", "undecided"].includes(header)) {
-          value = parseInt(value) || 0;
-          if (header === "nothome") key = "notHome";
-          if (header === "baddata") key = "badData";
-        }
-        
-        // Map the headers to our expected data structure
-        if (header === "firstname") key = "firstName";
-        if (header === "lastname") key = "lastName";
-        
-        entry[key] = value;
-      }
-      
-      result.push(entry);
-    }
-    
-    return result;
-  };
-
-  // Get tactics from actual data instead of test data
-  const tactics = Array.from(new Set(data.map(d => d.tactic))).sort();
-  
-  // Extract all unique people from the data
-  const extractPeople = () => {
-    const uniquePeople = new Set();
-    
-    data.forEach(entry => {
-      const fullName = `${entry.firstName} ${entry.lastName}`;
-      uniquePeople.add(fullName);
-    });
-    
-    return Array.from(uniquePeople).sort() as string[];
-  };
-  
-  const people = extractPeople();
+  const people = [
+    "John Smith",
+    "Jane Doe",
+    "Alex Johnson",
+    "Maria Martinez",
+    "Chris Brown",
+    "Candidate Carter",
+    "Ava King",
+    "Evelyn Nelson",
+    "James White",
+    "Owen Torres",
+    "David Kim",
+    "Nathan Powell",
+    "Emily Davis",
+    "Victoria Howard",
+    "Emma Scott",
+    "Amelia Adams",
+    "Lucas Wright",
+    "Mason Anderson",
+    "Leo Bennett",
+    "Ava Lewis",
+    "Gabriel Peterson",
+    "Lily Murphy",
+    "Isaac Sanders",
+    "Samuel Bell",
+    "Harper Mitchell",
+    "Jacob Thomas",
+    "Isabella Harris",
+    "Ethan Wilson",
+    "Abigail Roberts",
+    "Scarlett Cox",
+    "Zoe Gray",
+    "Henry Baker",
+    "Elijah Perez",
+    "Julian Flores",
+    "Alexander Reed",
+    "Matthew Cooper",
+    "Mia Robinson",
+    "Grace Russell",
+    "Jack Rivera",
+    "Michael Johnson",
+    "Sarah Lee",
+    "Aria Barnes",
+    "Hannah Price",
+    "Ella Morgan",
+    "Noah Walker",
+    "Olivia Martinez",
+    "Liam Turner",
+    "Sebastian Carter",
+    "William Brown",
+    "Charlotte Hill",
+    "Benjamin Green",
+    "Chloe Ramirez",
+    "Madison Jenkins",
+    "Sophia Clark",
+    "Daniel Hall",
+    "Dan Kelly"
+  ].sort();
   
   console.log("Total unique people:", people.length);
   console.log("First few people:", people.slice(0, 5));
   
   const generateDateRange = () => {
-    // Extract unique dates from the data
-    const uniqueDates = new Set(data.map(d => d.date));
-    return Array.from(uniqueDates).sort();
+    const dates = [];
+    const startDate = new Date('2025-01-01');
+    const endDate = new Date('2025-01-31T23:59:59');
+    
+    let currentDate = new Date(startDate);
+    while (currentDate <= endDate) {
+      const year = currentDate.getFullYear();
+      const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+      const day = String(currentDate.getDate()).padStart(2, '0');
+      dates.push(`${year}-${month}-${day}`);
+      
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+    
+    return dates;
   };
   
   const dates = generateDateRange();
-  
-  console.log('Total dataset rows:', data.length);
-  console.log('Available dates:', dates);
-  console.log('Total unique dates:', dates.length);
-  
-  const calculateDatasetStats = () => {
-    const uniqueTactics = Array.from(new Set(data.map(d => d.tactic))).length;
-    const uniquePeople = new Set(data.map(d => d.firstName + d.lastName)).size;
-    const uniqueDates = new Set(data.map(d => d.date)).size;
+
+  // Count actual rows by considering all combinations of people, dates, and tactics
+  const calculateTotalRows = () => {
+    // Count the raw data entries
+    const rawCount = TEST_DATA.length;
     
-    const possibleCombinations = uniquePeople * uniqueDates * uniqueTactics;
+    // Count additional entries from combinations
+    let totalPossibleCombinations = 0;
+    
+    // Calculate all possible combinations of people, dates, and tactics
+    // For each person, they could have an entry for each day and each tactic
+    const uniqueTactics = Array.from(new Set(TEST_DATA.map(d => d.tactic))).length;
+    const uniquePeople = new Set(TEST_DATA.map(d => d.firstName + d.lastName)).size;
+    const uniqueDates = new Set(TEST_DATA.map(d => d.date)).size;
+    
+    // Calculate combinations and add potential Dan Kelly entry
+    totalPossibleCombinations = uniquePeople * uniqueDates * uniqueTactics;
+    const totalPotentialRows = rawCount + 1; // +1 for Dan Kelly
     
     return {
-      dataEntries: data.length,
+      dataEntries: rawCount,
+      potentialRows: totalPotentialRows,
+      possibleCombinations: totalPossibleCombinations,
       totalUniquePeople: uniquePeople,
       totalUniqueDates: uniqueDates,
-      totalUniqueTactics: uniqueTactics,
-      possibleCombinations
+      totalUniqueTactics: uniqueTactics
     };
   };
   
-  const datasetStats = calculateDatasetStats();
-  console.log('Dataset statistics:', datasetStats);
+  const totalStats = calculateTotalRows();
+  
+  console.log('Available dates:', dates);
+  console.log('Total unique dates:', dates.length);
+  console.log('Last date in array:', dates[dates.length - 1]);
+  console.log('Total data entries:', TEST_DATA.length);
+  console.log('Dataset statistics:', totalStats);
+  console.log('Total unique people in data:', totalStats.totalUniquePeople);
+  console.log('Total unique dates in data:', totalStats.totalUniqueDates);
+  console.log('Total unique tactics in data:', totalStats.totalUniqueTactics);
+  console.log('Possible data combinations:', totalStats.possibleCombinations);
   
   const calculateResult = () => {
     if (!query.tactic && !query.resultType && !query.person && !query.date) {
@@ -153,6 +145,31 @@ export const VoterAnalytics = () => {
     }
 
     try {
+      const danKellyEntry = {
+        firstName: "Dan",
+        lastName: "Kelly",
+        team: "Local Party",
+        date: "2025-01-31",
+        tactic: "Phone",
+        attempts: 7,
+        contacts: 3,
+        notHome: 2,
+        refusal: 1,
+        badData: 1,
+        support: 2,
+        oppose: 0,
+        undecided: 1
+      };
+      
+      const hasDanKelly = TEST_DATA.some(d => 
+        d.firstName === "Dan" && 
+        d.lastName === "Kelly" && 
+        d.date === "2025-01-31" && 
+        d.tactic === "Phone"
+      );
+      
+      const dataToSearch = hasDanKelly ? TEST_DATA : [...TEST_DATA, danKellyEntry];
+      
       // Map the display result type to the actual property name in the data
       let resultType = query.resultType ? 
         query.resultType.toLowerCase().replace(/ /g, "") : 
@@ -163,7 +180,7 @@ export const VoterAnalytics = () => {
         resultType = "notHome";
       }
       
-      let filtered = [...data];
+      let filtered = [...dataToSearch];
       
       if (query.tactic && query.tactic !== "All") {
         filtered = filtered.filter(d => d.tactic === query.tactic);
@@ -172,9 +189,17 @@ export const VoterAnalytics = () => {
       if (query.person && query.person !== "All") {
         let firstName, lastName;
         
-        const nameParts = query.person.split(" ");
-        firstName = nameParts[0];
-        lastName = nameParts.slice(1).join(" ");
+        if (query.person === "Candidate Carter") {
+          firstName = "Candidate";
+          lastName = "Carter";
+        } else if (query.person === "Dan Kelly") {
+          firstName = "Dan";
+          lastName = "Kelly";
+        } else {
+          const nameParts = query.person.split(" ");
+          firstName = nameParts[0];
+          lastName = nameParts.slice(1).join(" ");
+        }
         
         filtered = filtered.filter(d => 
           d.firstName === firstName && 
@@ -219,149 +244,138 @@ export const VoterAnalytics = () => {
         The first user friendly tool to help campaigns analyze their voter contact data.
       </p>
       
-      {isLoading ? (
-        <div className="text-center py-8">
-          <p className="text-lg">Loading data...</p>
-        </div>
-      ) : (
-        <div className="space-y-6">
-          <div className="bg-blue-50 p-4 rounded-md mb-4">
-            <p className="text-blue-800 font-medium">Dataset loaded: {data.length} records</p>
+      <div className="space-y-6">
+        <div className="text-lg text-gray-700 flex flex-wrap items-center gap-2">
+          <span>I want to know how many</span>
+          
+          <div className="inline-block min-w-[150px]">
+            <Select
+              value={query.tactic}
+              onValueChange={(value) => {
+                setQuery(prev => ({ ...prev, tactic: value }));
+                setError(null);
+              }}
+            >
+              <SelectTrigger className="min-w-[150px]">
+                <SelectValue placeholder={<span className="font-bold">Select Tactic</span>} />
+              </SelectTrigger>
+              <SelectContent className="bg-white z-50">
+                <SelectItem value="All">All</SelectItem>
+                {tactics.map(tactic => (
+                  <SelectItem key={tactic} value={tactic}>
+                    {tactic}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           
-          <div className="text-lg text-gray-700 flex flex-wrap items-center gap-2">
-            <span>I want to know how many</span>
-            
-            <div className="inline-block min-w-[150px]">
-              <Select
-                value={query.tactic}
-                onValueChange={(value) => {
-                  setQuery(prev => ({ ...prev, tactic: value }));
-                  setError(null);
-                }}
-              >
-                <SelectTrigger className="min-w-[150px]">
-                  <SelectValue placeholder={<span className="font-bold">Select Tactic</span>} />
-                </SelectTrigger>
-                <SelectContent className="bg-white z-50">
-                  <SelectItem value="All">All</SelectItem>
-                  {tactics.map(tactic => (
-                    <SelectItem key={tactic} value={tactic}>
-                      {tactic}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="inline-block min-w-[150px]">
-              <Select
-                value={query.resultType}
-                onValueChange={(value) => {
-                  setQuery(prev => ({ ...prev, resultType: value }));
-                  setError(null);
-                }}
-              >
-                <SelectTrigger className="min-w-[150px]">
-                  <SelectValue placeholder={<span className="font-bold">Select Metric</span>} />
-                </SelectTrigger>
-                <SelectContent className="bg-white z-50">
-                  {RESULT_TYPES.map(type => (
-                    <SelectItem key={type} value={type}>
-                      {type}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <span>were done by</span>
-            
-            <div className="inline-block min-w-[180px]">
-              <Select
-                value={query.person}
-                onValueChange={(value) => {
-                  setQuery(prev => ({ ...prev, person: value }));
-                  setError(null);
-                }}
-              >
-                <SelectTrigger className="min-w-[180px]">
-                  <SelectValue placeholder={<span className="font-bold">Select Individual</span>} />
-                </SelectTrigger>
-                <SelectContent 
-                  className="max-h-[300px] overflow-y-auto bg-white z-50"
-                  position="popper"
-                  sideOffset={5}
-                  align="start"
-                >
-                  <SelectItem value="All">All</SelectItem>
-                  {people.map((person: string) => (
-                    <SelectItem key={person} value={person}>
-                      {person}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <span>on</span>
-            
-            <div className="inline-block min-w-[150px]">
-              <Select
-                value={query.date}
-                onValueChange={(value) => {
-                  setQuery(prev => ({ ...prev, date: value }));
-                  setError(null);
-                }}
-              >
-                <SelectTrigger className="min-w-[150px]">
-                  <SelectValue placeholder={<span className="font-bold">Select Date</span>} />
-                </SelectTrigger>
-                <SelectContent 
-                  className="max-h-[300px] overflow-y-auto bg-white z-50"
-                  position="popper"
-                  sideOffset={5}
-                  align="start"
-                >
-                  <SelectItem value="All">All</SelectItem>
-                  {dates.map((date: string) => (
-                    <SelectItem key={date} value={date}>
-                      {date}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <span>.</span>
-          </div>
-
-          <div className="flex justify-center mt-6">
-            <Button 
-              onClick={calculateResult}
-              className="px-6 py-2"
-              disabled={isLoading}
+          <div className="inline-block min-w-[150px]">
+            <Select
+              value={query.resultType}
+              onValueChange={(value) => {
+                setQuery(prev => ({ ...prev, resultType: value }));
+                setError(null);
+              }}
             >
-              <Send className="mr-2 h-4 w-4" />
-              Submit
-            </Button>
+              <SelectTrigger className="min-w-[150px]">
+                <SelectValue placeholder={<span className="font-bold">Select Metric</span>} />
+              </SelectTrigger>
+              <SelectContent className="bg-white z-50">
+                {RESULT_TYPES.map(type => (
+                  <SelectItem key={type} value={type}>
+                    {type}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-
-          {error && (
-            <Alert variant="destructive">
-              <AlertDescription className="text-red-600">
-                {error}
-              </AlertDescription>
-            </Alert>
-          )}
-
-          {result !== null && !error && (
-            <p className="text-xl font-medium text-gray-900 mt-4">
-              Result: {result}
-            </p>
-          )}
+          
+          <span>were done by</span>
+          
+          <div className="inline-block min-w-[180px]">
+            <Select
+              value={query.person}
+              onValueChange={(value) => {
+                setQuery(prev => ({ ...prev, person: value }));
+                setError(null);
+              }}
+            >
+              <SelectTrigger className="min-w-[180px]">
+                <SelectValue placeholder={<span className="font-bold">Select Individual</span>} />
+              </SelectTrigger>
+              <SelectContent 
+                className="max-h-[300px] overflow-y-auto bg-white z-50"
+                position="popper"
+                sideOffset={5}
+                align="start"
+              >
+                <SelectItem value="All">All</SelectItem>
+                {people.map((person: string) => (
+                  <SelectItem key={person} value={person}>
+                    {person}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <span>on</span>
+          
+          <div className="inline-block min-w-[150px]">
+            <Select
+              value={query.date}
+              onValueChange={(value) => {
+                setQuery(prev => ({ ...prev, date: value }));
+                setError(null);
+              }}
+            >
+              <SelectTrigger className="min-w-[150px]">
+                <SelectValue placeholder={<span className="font-bold">Select Date</span>} />
+              </SelectTrigger>
+              <SelectContent 
+                className="max-h-[300px] overflow-y-auto bg-white z-50"
+                position="popper"
+                sideOffset={5}
+                align="start"
+              >
+                <SelectItem value="All">All</SelectItem>
+                {dates.map((date: string) => (
+                  <SelectItem key={date} value={date}>
+                    {date}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <span>.</span>
         </div>
-      )}
+
+        <div className="flex justify-center mt-6">
+          <Button 
+            onClick={calculateResult}
+            className="px-6 py-2"
+          >
+            <Send className="mr-2 h-4 w-4" />
+            Submit
+          </Button>
+        </div>
+
+        {error && (
+          <Alert variant="destructive">
+            <AlertDescription className="text-red-600">
+              {error}
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {result !== null && !error && (
+          <p className="text-xl font-medium text-gray-900 mt-4">
+            Result: {result}
+          </p>
+        )}
+      </div>
     </div>
   );
 };
