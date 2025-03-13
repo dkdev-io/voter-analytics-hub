@@ -1,17 +1,9 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { getTestData, isUsingMockData } from './migrationService';
 
 // Function to fetch tactics from Supabase
 export const fetchTactics = async () => {
   try {
-    // Handle mock data if Supabase is not available
-    if (isUsingMockData()) {
-      const mockData = getTestData();
-      const tactics = Array.from(new Set(mockData.map(item => item.tactic)));
-      return tactics;
-    }
-
     const { data, error } = await supabase
       .from('voter_contacts')
       .select('tactic')
@@ -31,13 +23,6 @@ export const fetchTactics = async () => {
 // Function to fetch teams from Supabase
 export const fetchTeams = async () => {
   try {
-    // Handle mock data if Supabase is not available
-    if (isUsingMockData()) {
-      const mockData = getTestData();
-      const teams = Array.from(new Set(mockData.map(item => item.team)));
-      return teams;
-    }
-
     const { data, error } = await supabase
       .from('voter_contacts')
       .select('team')
@@ -57,19 +42,6 @@ export const fetchTeams = async () => {
 // Function to fetch people by team
 export const fetchPeopleByTeam = async (selectedTeam: string | null) => {
   try {
-    // Handle mock data if Supabase is not available
-    if (isUsingMockData()) {
-      const mockData = getTestData();
-      let filteredData = mockData;
-      
-      if (selectedTeam && selectedTeam !== 'All') {
-        filteredData = mockData.filter(item => item.team === selectedTeam);
-      }
-      
-      const people = filteredData.map(item => `${item.first_name} ${item.last_name}`);
-      return Array.from(new Set(people)).sort();
-    }
-
     let query = supabase
       .from('voter_contacts')
       .select('first_name, last_name, team');
