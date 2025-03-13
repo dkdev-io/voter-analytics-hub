@@ -1,60 +1,95 @@
 
 import { supabase } from '../supabase';
-import { TEST_DATA } from '@/types/analytics';
 
-// Function to migrate test data to Supabase (run once)
+// Mock data for testing when Supabase is not available
+const mockVoterData = [
+  {
+    id: 1,
+    tactic: "Doors",
+    date: "2023-09-01",
+    attempts: 25,
+    contacts: 15,
+    not_home: 8,
+    bad_data: 2,
+    first_name: "Dan",
+    last_name: "Kelly",
+    team: "Field Team"
+  },
+  {
+    id: 2,
+    tactic: "Phones",
+    date: "2023-09-01",
+    attempts: 50,
+    contacts: 30,
+    not_home: 15,
+    bad_data: 5,
+    first_name: "Sarah",
+    last_name: "Johnson",
+    team: "Call Team"
+  },
+  {
+    id: 3,
+    tactic: "Texts",
+    date: "2023-09-02",
+    attempts: 100,
+    contacts: 75,
+    not_home: 20,
+    bad_data: 5,
+    first_name: "Candidate",
+    last_name: "Carter",
+    team: "Digital Team"
+  }
+];
+
+let isMockDataLoaded = false;
+
+// Function to check if data migration is needed and perform if necessary
 export const migrateTestDataToSupabase = async () => {
   try {
-    // Transform TEST_DATA to match Supabase schema
-    const transformedData = TEST_DATA.map(item => ({
-      first_name: item.firstName,
-      last_name: item.lastName,
-      team: item.team,
-      date: item.date,
-      tactic: item.tactic,
-      attempts: item.attempts,
-      contacts: item.contacts,
-      not_home: item.notHome,
-      refusal: item.refusal,
-      bad_data: item.badData,
-      support: item.support,
-      oppose: item.oppose,
-      undecided: item.undecided
-    }));
-
-    // Add Dan Kelly if not already in the data
-    const danKellyExists = TEST_DATA.some(
-      d => d.firstName === "Dan" && d.lastName === "Kelly"
-    );
+    // Check if environment variables are missing
+    const isMissingEnvVars = !import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY;
     
-    if (!danKellyExists) {
-      transformedData.push({
-        first_name: "Dan",
-        last_name: "Kelly",
-        team: "Local Party",
-        date: "2025-01-31",
-        tactic: "Phone",
-        attempts: 7,
-        contacts: 3,
-        not_home: 2,
-        refusal: 1,
-        bad_data: 1,
-        support: 2,
-        oppose: 0,
-        undecided: 1
-      });
+    if (isMissingEnvVars) {
+      console.warn('Using mock data due to missing Supabase environment variables');
+      isMockDataLoaded = true;
+      return true;
     }
-
-    // Insert data into Supabase
-    const { error } = await supabase
+    
+    // Check if data already exists
+    const { data, error } = await supabase
       .from('voter_contacts')
-      .insert(transformedData);
-
+      .select('id')
+      .order('id', { ascending: true });
+      
     if (error) throw error;
     
-    return { success: true };
+    // If no data, insert test data
+    if (data.length === 0) {
+      // Insert test data into Supabase
+      const { error: insertError } = await supabase
+        .from('voter_contacts')
+        .insert(mockVoterData);
+        
+      if (insertError) throw insertError;
+      
+      console.log('Test data migrated to Supabase');
+    } else {
+      console.log('Data already exists in Supabase');
+    }
+    
+    return true;
   } catch (error) {
-    console.error('Error migrating data to Supabase:', error);
-    return { success: false, error };
+    console.error('Error in data migration:', error);
+    throw error;
   }
+};
+
+// Function to get test data for mock mode
+export const getTestData = () => {
+  return mockVoterData;
+};
+
+// Check if we're using mock data
+export const isUsingMockData = () => {
+  return isMockDataLoaded || !import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY;
 };
