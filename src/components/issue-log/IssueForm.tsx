@@ -20,7 +20,8 @@ export const IssueForm = () => {
     console_logs: '',
     theories: '',
     component: '',
-    reference_links: ''
+    reference_links: '',
+    resolution: '' // Added missing resolution property
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -163,6 +164,9 @@ export const IssueForm = () => {
                 placeholder="Links to docs, Stack Overflow, etc."
               />
             </div>
+            
+            {/* Hidden field for resolution, not shown in the form since it's for resolved issues */}
+            <input type="hidden" name="resolution" value={formData.resolution} />
           </CardContent>
           <CardFooter>
             <Button 

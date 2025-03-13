@@ -94,7 +94,8 @@ export const addIssue = async (issue: Omit<Issue, 'id' | 'date_reported' | 'stat
         console_logs: issue.console_logs,
         theories: issue.theories,
         component: issue.component,
-        reference_links: issue.reference_links
+        reference_links: issue.reference_links,
+        resolution: issue.resolution
       })
       .select()
       .single();
