@@ -39,7 +39,7 @@ export const TeamSelector = ({
             ))
           ) : (
             <SelectItem value="no-data" disabled>
-              {isLoading ? "Loading teams..." : "No teams available"}
+              {isLoading ? "Loading teams..." : "No data in database yet"}
             </SelectItem>
           )}
         </SelectContent>

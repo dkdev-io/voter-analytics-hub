@@ -10,14 +10,19 @@ export const fetchTactics = async () => {
       .from('voter_contacts')
       .select('tactic');
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching tactics:', error);
+      throw error;
+    }
+    
+    console.log("Raw tactic data received:", data);
     
     // Extract unique tactics and filter out null/empty values
     const tactics = Array.from(new Set(data.map(item => item.tactic)))
       .filter(Boolean)
       .sort();
       
-    console.log("Tactics fetched:", tactics);
+    console.log("Processed tactics:", tactics.length > 0 ? tactics : "No tactics found");
     return tactics;
   } catch (error) {
     console.error('Error fetching tactics:', error);
@@ -34,14 +39,19 @@ export const fetchTeams = async () => {
       .from('voter_contacts')
       .select('team');
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching teams:', error);
+      throw error;
+    }
+    
+    console.log("Raw team data received:", data);
     
     // Extract unique teams and filter out null/empty values
     const teams = Array.from(new Set(data.map(item => item.team)))
       .filter(Boolean)
       .sort();
       
-    console.log("Teams fetched:", teams.length > 0 ? teams : "No teams found");
+    console.log("Processed teams:", teams.length > 0 ? teams : "No teams found");
     return teams;
   } catch (error) {
     console.error('Error fetching teams:', error);
@@ -63,7 +73,12 @@ export const fetchPeopleByTeam = async (selectedTeam: string | null) => {
     
     const { data, error } = await query;
     
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching people by team:', error);
+      throw error;
+    }
+    
+    console.log("Raw people data received:", data);
     
     if (!data || data.length === 0) {
       console.log("No people data found for team:", selectedTeam);
@@ -119,7 +134,12 @@ export const fetchDates = async () => {
       .from('voter_contacts')
       .select('date');
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching dates:', error);
+      throw error;
+    }
+    
+    console.log("Raw date data received:", data);
     
     if (!data || data.length === 0) {
       console.log("No date data found");
@@ -131,7 +151,7 @@ export const fetchDates = async () => {
       .filter(Boolean)
       .sort();
       
-    console.log("Dates fetched:", dates.length > 0 ? dates : "No dates found");
+    console.log("Processed dates:", dates.length > 0 ? dates : "No dates found");
     return dates;
   } catch (error) {
     console.error('Error fetching dates:', error);
