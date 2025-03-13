@@ -1,17 +1,36 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Send } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { Send, CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
 import { TEST_DATA, RESULT_TYPES, type QueryParams } from '@/types/analytics';
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 export const VoterAnalytics = () => {
   const [query, setQuery] = useState<Partial<QueryParams>>({});
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<number | null>(null);
+  const [date, setDate] = useState<Date | undefined>(undefined);
   const { toast } = useToast();
+
+  // Update query.date when date state changes
+  useEffect(() => {
+    if (date) {
+      const formattedDate = format(date, 'yyyy-MM-dd');
+      setQuery(prev => ({ ...prev, date: formattedDate }));
+    } else {
+      setQuery(prev => {
+        const newQuery = { ...prev };
+        delete newQuery.date;
+        return newQuery;
+      });
+    }
+  }, [date]);
 
   const tactics = Array.from(new Set(TEST_DATA.map(d => d.tactic))).sort();
   
@@ -323,30 +342,48 @@ export const VoterAnalytics = () => {
           <span>on</span>
           
           <div className="inline-block min-w-[150px]">
-            <Select
-              value={query.date}
-              onValueChange={(value) => {
-                setQuery(prev => ({ ...prev, date: value }));
-                setError(null);
-              }}
-            >
-              <SelectTrigger className="min-w-[150px]">
-                <SelectValue placeholder={<span className="font-bold">Select Date</span>} />
-              </SelectTrigger>
-              <SelectContent 
-                className="max-h-[300px] overflow-y-auto bg-white z-50"
-                position="popper"
-                sideOffset={5}
-                align="start"
-              >
-                <SelectItem value="All">All</SelectItem>
-                {dates.map((date: string) => (
-                  <SelectItem key={date} value={date}>
-                    {date}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "min-w-[150px] justify-start text-left font-normal",
+                    !date && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {date ? format(date, "yyyy-MM-dd") : <span className="font-bold">Select Date</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0 z-50">
+                <Calendar
+                  mode="single"
+                  selected={date}
+                  onSelect={(selectedDate) => {
+                    setDate(selectedDate);
+                    setError(null);
+                  }}
+                  initialFocus
+                  className="pointer-events-auto"
+                />
+                <div className="p-2 border-t border-gray-200">
+                  <Button 
+                    variant="ghost" 
+                    className="w-full"
+                    onClick={() => {
+                      setDate(undefined);
+                      setQuery(prev => {
+                        const newQuery = { ...prev };
+                        delete newQuery.date;
+                        return newQuery;
+                      });
+                    }}
+                  >
+                    Clear
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
           
           <span>.</span>
