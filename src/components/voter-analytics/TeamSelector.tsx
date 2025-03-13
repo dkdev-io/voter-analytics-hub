@@ -31,11 +31,15 @@ export const TeamSelector = ({
           align="start"
         >
           <SelectItem value="All">All Teams</SelectItem>
-          {teams.map(team => (
-            <SelectItem key={team} value={team}>
-              {team}
-            </SelectItem>
-          ))}
+          {teams.length > 0 ? (
+            teams.map(team => (
+              <SelectItem key={team} value={team}>
+                {team}
+              </SelectItem>
+            ))
+          ) : (
+            <SelectItem value="no-data" disabled>No data available</SelectItem>
+          )}
         </SelectContent>
       </Select>
     </div>

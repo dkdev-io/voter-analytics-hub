@@ -4,17 +4,20 @@ import { supabase } from '@/integrations/supabase/client';
 // Function to fetch tactics from Supabase
 export const fetchTactics = async () => {
   try {
+    console.log("Fetching tactics...");
     const { data, error } = await supabase
       .from('voter_contacts')
       .select('tactic')
-      .order('tactic');
+      .not('tactic', 'is', null);
 
     if (error) throw error;
     
-    // Extract unique tactics and filter out nulls/empty values
+    // Extract unique tactics
     const tactics = Array.from(new Set(data.map(item => item.tactic)))
-      .filter(Boolean);
+      .filter(Boolean)
+      .sort();
       
+    console.log("Tactics fetched:", tactics);
     return tactics;
   } catch (error) {
     console.error('Error fetching tactics:', error);
@@ -25,17 +28,20 @@ export const fetchTactics = async () => {
 // Function to fetch teams from Supabase
 export const fetchTeams = async () => {
   try {
+    console.log("Fetching teams...");
     const { data, error } = await supabase
       .from('voter_contacts')
       .select('team')
-      .order('team');
+      .not('team', 'is', null);
 
     if (error) throw error;
     
-    // Extract unique teams and filter out nulls/empty values
+    // Extract unique teams
     const teams = Array.from(new Set(data.map(item => item.team)))
-      .filter(Boolean);
+      .filter(Boolean)
+      .sort();
       
+    console.log("Teams fetched:", teams);
     return teams;
   } catch (error) {
     console.error('Error fetching teams:', error);
@@ -46,6 +52,7 @@ export const fetchTeams = async () => {
 // Function to fetch people by team
 export const fetchPeopleByTeam = async (selectedTeam: string | null) => {
   try {
+    console.log("Fetching people for team:", selectedTeam);
     let query = supabase
       .from('voter_contacts')
       .select('first_name, last_name, team');
@@ -80,10 +87,13 @@ export const fetchPeopleByTeam = async (selectedTeam: string | null) => {
     }
     
     // If no team selected, return all people
-    return Array.from(peopleMap.values())
+    const allPeople = Array.from(peopleMap.values())
       .flat()
       .filter((name, index, self) => self.indexOf(name) === index)
       .sort();
+      
+    console.log("People fetched:", allPeople);
+    return allPeople;
   } catch (error) {
     console.error('Error fetching people by team:', error);
     return [];
@@ -93,17 +103,20 @@ export const fetchPeopleByTeam = async (selectedTeam: string | null) => {
 // Function to fetch available dates
 export const fetchDates = async () => {
   try {
+    console.log("Fetching dates...");
     const { data, error } = await supabase
       .from('voter_contacts')
       .select('date')
-      .order('date');
+      .not('date', 'is', null);
 
     if (error) throw error;
     
-    // Extract unique dates and filter out nulls/empty values
+    // Extract unique dates
     const dates = Array.from(new Set(data.map(item => item.date)))
-      .filter(Boolean);
+      .filter(Boolean)
+      .sort();
       
+    console.log("Dates fetched:", dates);
     return dates;
   } catch (error) {
     console.error('Error fetching dates:', error);

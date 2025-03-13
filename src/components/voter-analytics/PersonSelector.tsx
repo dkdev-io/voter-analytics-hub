@@ -33,11 +33,15 @@ export const PersonSelector = ({
           align="start"
         >
           <SelectItem value="All">All Members</SelectItem>
-          {people.map((person: string) => (
-            <SelectItem key={person} value={person}>
-              {person}
-            </SelectItem>
-          ))}
+          {people.length > 0 ? (
+            people.map((person: string) => (
+              <SelectItem key={person} value={person}>
+                {person}
+              </SelectItem>
+            ))
+          ) : (
+            <SelectItem value="no-data" disabled>No data available</SelectItem>
+          )}
         </SelectContent>
       </Select>
     </div>

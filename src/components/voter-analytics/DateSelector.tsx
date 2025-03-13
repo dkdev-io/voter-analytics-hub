@@ -1,6 +1,5 @@
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useState, useEffect } from 'react';
 
 interface DateSelectorProps {
   value: string | undefined;
@@ -32,11 +31,15 @@ export const DateSelector = ({
           align="start"
         >
           <SelectItem value="All">All Dates</SelectItem>
-          {availableDates.map((dateValue: string) => (
-            <SelectItem key={dateValue} value={dateValue}>
-              {dateValue}
-            </SelectItem>
-          ))}
+          {availableDates.length > 0 ? (
+            availableDates.map((dateValue: string) => (
+              <SelectItem key={dateValue} value={dateValue}>
+                {dateValue}
+              </SelectItem>
+            ))
+          ) : (
+            <SelectItem value="no-data" disabled>No data available</SelectItem>
+          )}
         </SelectContent>
       </Select>
     </div>

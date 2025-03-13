@@ -26,11 +26,15 @@ export const TacticSelector = ({
         </SelectTrigger>
         <SelectContent className="bg-white z-50">
           <SelectItem value="All">All</SelectItem>
-          {tactics.map(tactic => (
-            <SelectItem key={tactic} value={tactic}>
-              {tactic}
-            </SelectItem>
-          ))}
+          {tactics.length > 0 ? (
+            tactics.map(tactic => (
+              <SelectItem key={tactic} value={tactic}>
+                {tactic}
+              </SelectItem>
+            ))
+          ) : (
+            <SelectItem value="no-data" disabled>No data available</SelectItem>
+          )}
         </SelectContent>
       </Select>
     </div>
