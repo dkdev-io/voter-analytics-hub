@@ -22,7 +22,7 @@ export const TeamSelector = ({
         disabled={isLoading}
       >
         <SelectTrigger className="min-w-[180px]">
-          <SelectValue placeholder={isLoading ? "Loading..." : <span className="font-bold">Select Team</span>} />
+          <SelectValue placeholder={isLoading ? "Loading..." : "Select Team"} />
         </SelectTrigger>
         <SelectContent 
           className="max-h-[300px] overflow-y-auto bg-white z-50"
@@ -38,7 +38,9 @@ export const TeamSelector = ({
               </SelectItem>
             ))
           ) : (
-            <SelectItem value="no-data" disabled>No data available</SelectItem>
+            <SelectItem value="no-data" disabled>
+              {isLoading ? "Loading teams..." : "No teams available"}
+            </SelectItem>
           )}
         </SelectContent>
       </Select>

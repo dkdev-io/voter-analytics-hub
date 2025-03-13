@@ -22,15 +22,32 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
         console.log("Fetching metadata...");
         
         // Fetch all metadata in parallel
-        const [tacticsList, teamsList, datesList] = await Promise.all([
+        const results = await Promise.allSettled([
           fetchTactics(),
           fetchTeams(),
           fetchDates()
         ]);
         
-        setTactics(tacticsList || []);
-        setTeams(teamsList || []);
-        setAvailableDates(datesList || []);
+        // Process results even if some promises were rejected
+        const [tacticsResult, teamsResult, datesResult] = results;
+        
+        if (tacticsResult.status === 'fulfilled') {
+          setTactics(tacticsResult.value || []);
+        } else {
+          console.error("Error loading tactics:", tacticsResult.reason);
+        }
+        
+        if (teamsResult.status === 'fulfilled') {
+          setTeams(teamsResult.value || []);
+        } else {
+          console.error("Error loading teams:", teamsResult.reason);
+        }
+        
+        if (datesResult.status === 'fulfilled') {
+          setAvailableDates(datesResult.value || []);
+        } else {
+          console.error("Error loading dates:", datesResult.reason);
+        }
       } catch (err) {
         console.error("Error loading initial data:", err);
       } finally {
@@ -46,12 +63,15 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
   // Fetch people based on selected team
   useEffect(() => {
     const loadPeopleByTeam = async () => {
+      if (!isDataMigrated || !selectedTeam) return;
+      
       try {
         setIsLoading(true);
         const people = await fetchPeopleByTeam(selectedTeam);
         setFilteredPeople(people || []);
       } catch (err) {
         console.error("Error loading people by team:", err);
+        setFilteredPeople([]);
       } finally {
         setIsLoading(false);
       }

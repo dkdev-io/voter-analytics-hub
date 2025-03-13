@@ -41,7 +41,7 @@ export const fetchTeams = async () => {
       .filter(Boolean)
       .sort();
       
-    console.log("Teams fetched:", teams);
+    console.log("Teams fetched:", teams.length > 0 ? teams : "No teams found");
     return teams;
   } catch (error) {
     console.error('Error fetching teams:', error);
@@ -65,6 +65,11 @@ export const fetchPeopleByTeam = async (selectedTeam: string | null) => {
     
     if (error) throw error;
     
+    if (!data || data.length === 0) {
+      console.log("No people data found for team:", selectedTeam);
+      return [];
+    }
+    
     // Transform data and extract unique people
     const peopleMap = new Map<string, string[]>();
     
@@ -72,11 +77,13 @@ export const fetchPeopleByTeam = async (selectedTeam: string | null) => {
       if (!entry.first_name || !entry.last_name) return;
       
       const fullName = `${entry.first_name} ${entry.last_name}`;
-      if (!peopleMap.has(entry.team)) {
-        peopleMap.set(entry.team, []);
+      const team = entry.team || 'Unknown';
+      
+      if (!peopleMap.has(team)) {
+        peopleMap.set(team, []);
       }
       
-      const teamMembers = peopleMap.get(entry.team) || [];
+      const teamMembers = peopleMap.get(team) || [];
       if (!teamMembers.includes(fullName)) {
         teamMembers.push(fullName);
       }
@@ -85,6 +92,7 @@ export const fetchPeopleByTeam = async (selectedTeam: string | null) => {
     // Handle team-specific filtering
     if (selectedTeam && selectedTeam !== 'All') {
       const teamMembers = peopleMap.get(selectedTeam) || [];
+      console.log(`Found ${teamMembers.length} team members for ${selectedTeam}`);
       return teamMembers.sort();
     }
     
@@ -94,7 +102,7 @@ export const fetchPeopleByTeam = async (selectedTeam: string | null) => {
       .filter((name, index, self) => self.indexOf(name) === index)
       .sort();
       
-    console.log("People fetched:", allPeople);
+    console.log("People fetched:", allPeople.length > 0 ? `${allPeople.length} people` : "No people found");
     return allPeople;
   } catch (error) {
     console.error('Error fetching people by team:', error);
@@ -113,12 +121,17 @@ export const fetchDates = async () => {
 
     if (error) throw error;
     
+    if (!data || data.length === 0) {
+      console.log("No date data found");
+      return [];
+    }
+    
     // Extract unique dates and filter out null/empty values
     const dates = Array.from(new Set(data.map(item => item.date)))
       .filter(Boolean)
       .sort();
       
-    console.log("Dates fetched:", dates);
+    console.log("Dates fetched:", dates.length > 0 ? dates : "No dates found");
     return dates;
   } catch (error) {
     console.error('Error fetching dates:', error);

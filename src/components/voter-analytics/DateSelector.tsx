@@ -22,7 +22,7 @@ export const DateSelector = ({
         disabled={isLoading}
       >
         <SelectTrigger className="min-w-[180px]">
-          <SelectValue placeholder={isLoading ? "Loading..." : <span className="font-bold">Select Date</span>} />
+          <SelectValue placeholder={isLoading ? "Loading..." : "Select Date"} />
         </SelectTrigger>
         <SelectContent 
           className="max-h-[300px] overflow-y-auto bg-white z-50"
@@ -38,7 +38,9 @@ export const DateSelector = ({
               </SelectItem>
             ))
           ) : (
-            <SelectItem value="no-data" disabled>No data available</SelectItem>
+            <SelectItem value="no-data" disabled>
+              {isLoading ? "Loading dates..." : "No dates available"}
+            </SelectItem>
           )}
         </SelectContent>
       </Select>

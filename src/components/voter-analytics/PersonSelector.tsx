@@ -24,7 +24,7 @@ export const PersonSelector = ({
         disabled={disabled || isLoading}
       >
         <SelectTrigger className="min-w-[180px]">
-          <SelectValue placeholder={<span className="font-bold">Select Individual</span>} />
+          <SelectValue placeholder={isLoading ? "Loading..." : "Select Individual"} />
         </SelectTrigger>
         <SelectContent 
           className="max-h-[300px] overflow-y-auto bg-white z-50"
@@ -33,14 +33,16 @@ export const PersonSelector = ({
           align="start"
         >
           <SelectItem value="All">All Members</SelectItem>
-          {people.length > 0 ? (
+          {people && people.length > 0 ? (
             people.map((person: string) => (
               <SelectItem key={person} value={person}>
                 {person}
               </SelectItem>
             ))
           ) : (
-            <SelectItem value="no-data" disabled>No data available</SelectItem>
+            <SelectItem value="no-data" disabled>
+              {isLoading ? "Loading people..." : disabled ? "Select a team first" : "No people available"}
+            </SelectItem>
           )}
         </SelectContent>
       </Select>
