@@ -30,11 +30,10 @@ export const fetchTactics = async () => {
 export const fetchTeams = async () => {
   try {
     console.log("Fetching teams...");
-    // Query to fetch non-null teams
+    // Using a more direct approach to fetch non-null teams
     const { data, error } = await supabase
       .from('voter_contacts')
-      .select('team')
-      .not('team', 'is', null);
+      .select('team');
 
     if (error) throw error;
     
@@ -106,11 +105,10 @@ export const fetchPeopleByTeam = async (selectedTeam: string | null) => {
 export const fetchDates = async () => {
   try {
     console.log("Fetching dates...");
-    // Query to fetch non-null dates
+    // Using a more direct approach to fetch dates
     const { data, error } = await supabase
       .from('voter_contacts')
-      .select('date')
-      .not('date', 'is', null);
+      .select('date');
 
     if (error) throw error;
     

@@ -22,7 +22,7 @@ export const TeamSelector = ({
         disabled={isLoading}
       >
         <SelectTrigger className="min-w-[180px]">
-          <SelectValue placeholder={<span className="font-bold">Select Team</span>} />
+          <SelectValue placeholder={isLoading ? "Loading..." : <span className="font-bold">Select Team</span>} />
         </SelectTrigger>
         <SelectContent 
           className="max-h-[300px] overflow-y-auto bg-white z-50"
@@ -31,7 +31,7 @@ export const TeamSelector = ({
           align="start"
         >
           <SelectItem value="All">All Teams</SelectItem>
-          {teams.length > 0 ? (
+          {teams && teams.length > 0 ? (
             teams.map(team => (
               <SelectItem key={team} value={team}>
                 {team}

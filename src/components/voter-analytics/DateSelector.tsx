@@ -22,7 +22,7 @@ export const DateSelector = ({
         disabled={isLoading}
       >
         <SelectTrigger className="min-w-[180px]">
-          <SelectValue placeholder={<span className="font-bold">Select Date</span>} />
+          <SelectValue placeholder={isLoading ? "Loading..." : <span className="font-bold">Select Date</span>} />
         </SelectTrigger>
         <SelectContent 
           className="max-h-[300px] overflow-y-auto bg-white z-50"
@@ -31,7 +31,7 @@ export const DateSelector = ({
           align="start"
         >
           <SelectItem value="All">All Dates</SelectItem>
-          {availableDates.length > 0 ? (
+          {availableDates && availableDates.length > 0 ? (
             availableDates.map((dateValue: string) => (
               <SelectItem key={dateValue} value={dateValue}>
                 {dateValue}
