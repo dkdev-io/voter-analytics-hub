@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -7,7 +8,12 @@ import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { RESULT_TYPES, type QueryParams } from '@/types/analytics';
 import { cn } from "@/lib/utils";
-import { fetchTactics, fetchTeams, fetchPeopleByTeam } from '@/lib/voter-data';
+import { 
+  fetchTactics, 
+  fetchTeams, 
+  fetchPeopleByTeam, 
+  fetchDates 
+} from '@/lib/voter-data';
 
 interface QueryBuilderProps {
   query: Partial<QueryParams>;
@@ -29,17 +35,20 @@ export const QueryBuilder = ({
   const [tactics, setTactics] = useState<string[]>([]);
   const [teams, setTeams] = useState<string[]>([]);
   const [filteredPeople, setFilteredPeople] = useState<string[]>([]);
+  const [availableDates, setAvailableDates] = useState<string[]>([]);
 
   useEffect(() => {
     const loadInitialData = async () => {
       try {
         const tacticsList = await fetchTactics();
         const teamsList = await fetchTeams();
+        const datesList = await fetchDates();
         
         setTactics(tacticsList);
         setTeams(teamsList);
+        setAvailableDates(datesList);
       } catch (err) {
-        console.error("Error loading tactics and teams:", err);
+        console.error("Error loading initial data:", err);
       }
     };
     
@@ -58,7 +67,7 @@ export const QueryBuilder = ({
       }
     };
     
-    if (isDataMigrated) {
+    if (isDataMigrated && selectedTeam) {
       loadPeopleByTeam();
     }
   }, [selectedTeam, isDataMigrated]);
@@ -85,6 +94,11 @@ export const QueryBuilder = ({
       });
     }
   }, [selectedTeam, setQuery]);
+
+  const handleDateSelect = (value: string) => {
+    setQuery(prev => ({ ...prev, date: value }));
+    setError(null);
+  };
 
   return (
     <div className="space-y-6">
@@ -143,6 +157,7 @@ export const QueryBuilder = ({
             value={selectedTeam}
             onValueChange={(value) => {
               setSelectedTeam(value);
+              setQuery(prev => ({ ...prev, team: value }));
               setError(null);
             }}
             disabled={isLoading}
@@ -196,50 +211,29 @@ export const QueryBuilder = ({
         
         <span>on</span>
         
-        <div className="inline-block min-w-[150px]">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  "min-w-[150px] justify-start text-left font-normal",
-                  !date && "text-muted-foreground"
-                )}
-                disabled={isLoading}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {date ? format(date, "yyyy-MM-dd") : <span className="font-bold">Select Date</span>}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0 z-50">
-              <Calendar
-                mode="single"
-                selected={date}
-                onSelect={(selectedDate) => {
-                  setDate(selectedDate);
-                  setError(null);
-                }}
-                initialFocus
-                className="pointer-events-auto"
-              />
-              <div className="p-2 border-t border-gray-200">
-                <Button 
-                  variant="ghost" 
-                  className="w-full"
-                  onClick={() => {
-                    setDate(undefined);
-                    setQuery(prev => {
-                      const newQuery = { ...prev };
-                      delete newQuery.date;
-                      return newQuery;
-                    });
-                  }}
-                >
-                  Clear
-                </Button>
-              </div>
-            </PopoverContent>
-          </Popover>
+        <div className="inline-block min-w-[180px]">
+          <Select
+            value={query.date}
+            onValueChange={handleDateSelect}
+            disabled={isLoading}
+          >
+            <SelectTrigger className="min-w-[180px]">
+              <SelectValue placeholder={<span className="font-bold">Select Date</span>} />
+            </SelectTrigger>
+            <SelectContent 
+              className="max-h-[300px] overflow-y-auto bg-white z-50"
+              position="popper"
+              sideOffset={5}
+              align="start"
+            >
+              <SelectItem value="All">All Dates</SelectItem>
+              {availableDates.map((dateValue: string) => (
+                <SelectItem key={dateValue} value={dateValue}>
+                  {dateValue}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         
         <span>.</span>

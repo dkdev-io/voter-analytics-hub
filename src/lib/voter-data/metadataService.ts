@@ -85,3 +85,22 @@ export const fetchPeopleByTeam = async (selectedTeam: string | null) => {
     return [];
   }
 };
+
+// Function to fetch available dates
+export const fetchDates = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('voter_contacts')
+      .select('date')
+      .order('date');
+
+    if (error) throw error;
+    
+    // Extract unique dates
+    const dates = Array.from(new Set(data.map(item => item.date)));
+    return dates;
+  } catch (error) {
+    console.error('Error fetching dates:', error);
+    return [];
+  }
+};
