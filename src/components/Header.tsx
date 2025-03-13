@@ -1,4 +1,3 @@
-
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -8,13 +7,13 @@ import { Menu, LogOut, ClipboardList } from "lucide-react";
 import { useMobile } from "@/hooks/useMobile";
 
 export const Header = () => {
-  const { user, logout } = useAuth();
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const { isMobile } = useMobile();
   const [showMenu, setShowMenu] = useState(false);
 
   const handleLogout = async () => {
-    await logout();
+    await signOut();
     navigate("/");
   };
 
