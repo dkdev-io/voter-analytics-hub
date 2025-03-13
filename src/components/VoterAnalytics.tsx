@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -16,6 +15,7 @@ export const VoterAnalytics = () => {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<number | null>(null);
   const [date, setDate] = useState<Date | undefined>(undefined);
+  const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
   const { toast } = useToast();
 
   // Update query.date when date state changes
@@ -32,69 +32,64 @@ export const VoterAnalytics = () => {
     }
   }, [date]);
 
+  // Reset person selection when team changes
+  useEffect(() => {
+    if (selectedTeam) {
+      setQuery(prev => {
+        const newQuery = { ...prev };
+        delete newQuery.person;
+        return newQuery;
+      });
+    }
+  }, [selectedTeam]);
+
   const tactics = Array.from(new Set(TEST_DATA.map(d => d.tactic))).sort();
   
-  const people = [
-    "John Smith",
-    "Jane Doe",
-    "Alex Johnson",
-    "Maria Martinez",
-    "Chris Brown",
-    "Candidate Carter",
-    "Ava King",
-    "Evelyn Nelson",
-    "James White",
-    "Owen Torres",
-    "David Kim",
-    "Nathan Powell",
-    "Emily Davis",
-    "Victoria Howard",
-    "Emma Scott",
-    "Amelia Adams",
-    "Lucas Wright",
-    "Mason Anderson",
-    "Leo Bennett",
-    "Ava Lewis",
-    "Gabriel Peterson",
-    "Lily Murphy",
-    "Isaac Sanders",
-    "Samuel Bell",
-    "Harper Mitchell",
-    "Jacob Thomas",
-    "Isabella Harris",
-    "Ethan Wilson",
-    "Abigail Roberts",
-    "Scarlett Cox",
-    "Zoe Gray",
-    "Henry Baker",
-    "Elijah Perez",
-    "Julian Flores",
-    "Alexander Reed",
-    "Matthew Cooper",
-    "Mia Robinson",
-    "Grace Russell",
-    "Jack Rivera",
-    "Michael Johnson",
-    "Sarah Lee",
-    "Aria Barnes",
-    "Hannah Price",
-    "Ella Morgan",
-    "Noah Walker",
-    "Olivia Martinez",
-    "Liam Turner",
-    "Sebastian Carter",
-    "William Brown",
-    "Charlotte Hill",
-    "Benjamin Green",
-    "Chloe Ramirez",
-    "Madison Jenkins",
-    "Sophia Clark",
-    "Daniel Hall",
-    "Dan Kelly"
-  ].sort();
+  // Extract unique teams from the data
+  const teams = Array.from(new Set(TEST_DATA.map(d => d.team))).sort();
   
-  console.log("Total unique people:", people.length);
-  console.log("First few people:", people.slice(0, 5));
+  // Get people data and filter by team if a team is selected
+  const getPeopleByTeam = () => {
+    const peopleMap = new Map<string, string[]>();
+    
+    // Group people by team
+    TEST_DATA.forEach(entry => {
+      const fullName = `${entry.firstName} ${entry.lastName}`;
+      if (!peopleMap.has(entry.team)) {
+        peopleMap.set(entry.team, []);
+      }
+      
+      const teamMembers = peopleMap.get(entry.team) || [];
+      if (!teamMembers.includes(fullName)) {
+        teamMembers.push(fullName);
+      }
+    });
+    
+    // Add Dan Kelly if not already in the data
+    const danKellyTeam = "Local Party";
+    if (!peopleMap.has(danKellyTeam)) {
+      peopleMap.set(danKellyTeam, ["Dan Kelly"]);
+    } else {
+      const teamMembers = peopleMap.get(danKellyTeam) || [];
+      if (!teamMembers.includes("Dan Kelly")) {
+        teamMembers.push("Dan Kelly");
+      }
+    }
+    
+    // Filter and sort people by the selected team
+    if (selectedTeam) {
+      const teamMembers = peopleMap.get(selectedTeam) || [];
+      return teamMembers.sort();
+    }
+    
+    // If no team selected, return all people
+    return Array.from(peopleMap.values())
+      .flat()
+      .filter((name, index, self) => self.indexOf(name) === index)
+      .sort();
+  };
+  
+  const filteredPeople = getPeopleByTeam();
   
   const generateDateRange = () => {
     const dates = [];
@@ -314,11 +309,39 @@ export const VoterAnalytics = () => {
           
           <div className="inline-block min-w-[180px]">
             <Select
+              value={selectedTeam}
+              onValueChange={(value) => {
+                setSelectedTeam(value);
+                setError(null);
+              }}
+            >
+              <SelectTrigger className="min-w-[180px]">
+                <SelectValue placeholder={<span className="font-bold">Select Team</span>} />
+              </SelectTrigger>
+              <SelectContent 
+                className="max-h-[300px] overflow-y-auto bg-white z-50"
+                position="popper"
+                sideOffset={5}
+                align="start"
+              >
+                <SelectItem value="All">All Teams</SelectItem>
+                {teams.map(team => (
+                  <SelectItem key={team} value={team}>
+                    {team}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="inline-block min-w-[180px]">
+            <Select
               value={query.person}
               onValueChange={(value) => {
                 setQuery(prev => ({ ...prev, person: value }));
                 setError(null);
               }}
+              disabled={!selectedTeam}
             >
               <SelectTrigger className="min-w-[180px]">
                 <SelectValue placeholder={<span className="font-bold">Select Individual</span>} />
@@ -329,8 +352,8 @@ export const VoterAnalytics = () => {
                 sideOffset={5}
                 align="start"
               >
-                <SelectItem value="All">All</SelectItem>
-                {people.map((person: string) => (
+                <SelectItem value="All">All Members</SelectItem>
+                {filteredPeople.map((person: string) => (
                   <SelectItem key={person} value={person}>
                     {person}
                   </SelectItem>
