@@ -23,8 +23,11 @@ export const VoterAnalytics = () => {
     const initializeData = async () => {
       setIsLoading(true);
       try {
+        console.log("Initializing data migration...");
         // Check if data exists in Supabase
         await migrateTestDataToSupabase();
+        console.log("Data migration completed successfully");
+        
         toast({
           title: "Data Connection",
           description: "Connected to Supabase voter contact database.",
@@ -55,6 +58,8 @@ export const VoterAnalytics = () => {
 
     try {
       setIsLoading(true);
+      console.log("Calculating result for query:", query);
+      
       const { result: calculatedResult, error: calculationError } = await calculateResultFromSupabase(query);
       
       if (calculationError) {

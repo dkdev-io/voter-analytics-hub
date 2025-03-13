@@ -14,6 +14,8 @@ export const TacticSelector = ({
   tactics, 
   isLoading 
 }: TacticSelectorProps) => {
+  console.log("TacticSelector - tactics:", tactics, "isLoading:", isLoading);
+  
   return (
     <div className="inline-block min-w-[150px]">
       <Select

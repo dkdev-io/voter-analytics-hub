@@ -19,7 +19,12 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
     const loadInitialData = async () => {
       try {
         setIsLoading(true);
-        console.log("Fetching metadata...");
+        console.log("Fetching metadata, isDataMigrated:", isDataMigrated);
+        
+        if (!isDataMigrated) {
+          console.log("Data not migrated yet, skipping metadata fetch");
+          return;
+        }
         
         // Fetch all metadata in parallel
         const results = await Promise.allSettled([
@@ -32,18 +37,21 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
         const [tacticsResult, teamsResult, datesResult] = results;
         
         if (tacticsResult.status === 'fulfilled') {
+          console.log("Tactics loaded successfully:", tacticsResult.value);
           setTactics(tacticsResult.value || []);
         } else {
           console.error("Error loading tactics:", tacticsResult.reason);
         }
         
         if (teamsResult.status === 'fulfilled') {
+          console.log("Teams loaded successfully:", teamsResult.value);
           setTeams(teamsResult.value || []);
         } else {
           console.error("Error loading teams:", teamsResult.reason);
         }
         
         if (datesResult.status === 'fulfilled') {
+          console.log("Dates loaded successfully:", datesResult.value);
           setAvailableDates(datesResult.value || []);
         } else {
           console.error("Error loading dates:", datesResult.reason);
@@ -57,6 +65,9 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
     
     if (isDataMigrated) {
       loadInitialData();
+    } else {
+      console.log("Data not migrated, skipping metadata load");
+      setIsLoading(false);
     }
   }, [isDataMigrated]);
 
@@ -67,7 +78,11 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
       
       try {
         setIsLoading(true);
+        console.log("Loading people for team:", selectedTeam);
+        
         const people = await fetchPeopleByTeam(selectedTeam);
+        console.log("People loaded:", people);
+        
         setFilteredPeople(people || []);
       } catch (err) {
         console.error("Error loading people by team:", err);
@@ -79,6 +94,8 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
     
     if (isDataMigrated && selectedTeam) {
       loadPeopleByTeam();
+    } else {
+      console.log("Not loading people: isDataMigrated=", isDataMigrated, "selectedTeam=", selectedTeam);
     }
   }, [selectedTeam, isDataMigrated]);
 

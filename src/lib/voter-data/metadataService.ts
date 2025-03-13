@@ -17,6 +17,16 @@ export const fetchTactics = async () => {
     
     console.log("Raw tactic data received:", data);
     
+    if (!data || data.length === 0) {
+      console.log("No tactic data found");
+      return [];
+    }
+    
+    // Print first row to inspect structure
+    if (data.length > 0) {
+      console.log("Sample data structure:", data[0]);
+    }
+    
     // Extract unique tactics and filter out null/empty values
     const tactics = Array.from(new Set(data.map(item => item.tactic)))
       .filter(Boolean)
@@ -45,6 +55,16 @@ export const fetchTeams = async () => {
     }
     
     console.log("Raw team data received:", data);
+    
+    if (!data || data.length === 0) {
+      console.log("No team data found");
+      return [];
+    }
+    
+    // Print first row to inspect structure
+    if (data.length > 0) {
+      console.log("Sample team data structure:", data[0]);
+    }
     
     // Extract unique teams and filter out null/empty values
     const teams = Array.from(new Set(data.map(item => item.team)))
@@ -83,6 +103,11 @@ export const fetchPeopleByTeam = async (selectedTeam: string | null) => {
     if (!data || data.length === 0) {
       console.log("No people data found for team:", selectedTeam);
       return [];
+    }
+    
+    // Print first row to inspect structure
+    if (data.length > 0) {
+      console.log("Sample people data structure:", data[0]);
     }
     
     // Transform data and extract unique people
@@ -144,6 +169,11 @@ export const fetchDates = async () => {
     if (!data || data.length === 0) {
       console.log("No date data found");
       return [];
+    }
+    
+    // Print first row to inspect structure
+    if (data.length > 0) {
+      console.log("Sample date data structure:", data[0]);
     }
     
     // Extract unique dates and filter out null/empty values
