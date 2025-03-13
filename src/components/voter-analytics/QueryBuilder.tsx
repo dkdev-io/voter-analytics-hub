@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -8,7 +7,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { RESULT_TYPES, type QueryParams } from '@/types/analytics';
 import { cn } from "@/lib/utils";
-import { fetchTactics, fetchTeams, fetchPeopleByTeam } from '@/lib/voterDataService';
+import { fetchTactics, fetchTeams, fetchPeopleByTeam } from '@/lib/voter-data';
 
 interface QueryBuilderProps {
   query: Partial<QueryParams>;
@@ -31,11 +30,9 @@ export const QueryBuilder = ({
   const [teams, setTeams] = useState<string[]>([]);
   const [filteredPeople, setFilteredPeople] = useState<string[]>([]);
 
-  // Initial data load
   useEffect(() => {
     const loadInitialData = async () => {
       try {
-        // Fetch tactics and teams from Supabase
         const tacticsList = await fetchTactics();
         const teamsList = await fetchTeams();
         
@@ -51,7 +48,6 @@ export const QueryBuilder = ({
     }
   }, [isDataMigrated]);
 
-  // Update people when team selection changes
   useEffect(() => {
     const loadPeopleByTeam = async () => {
       try {
@@ -67,7 +63,6 @@ export const QueryBuilder = ({
     }
   }, [selectedTeam, isDataMigrated]);
 
-  // Update query.date when date state changes
   useEffect(() => {
     if (date) {
       const formattedDate = format(date, 'yyyy-MM-dd');
@@ -81,7 +76,6 @@ export const QueryBuilder = ({
     }
   }, [date, setQuery]);
 
-  // Reset person selection when team changes
   useEffect(() => {
     if (selectedTeam) {
       setQuery(prev => {

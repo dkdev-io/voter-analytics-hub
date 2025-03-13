@@ -1,11 +1,13 @@
-
 import { useState, useEffect } from 'react';
 import { QueryBuilder } from './QueryBuilder';
 import { ResultDisplay } from './ResultDisplay';
 import { DataMigrationAlert } from './DataMigrationAlert';
 import { type QueryParams } from '@/types/analytics';
 import { useToast } from "@/hooks/use-toast";
-import { migrateTestDataToSupabase, calculateResultFromSupabase } from '@/lib/voterDataService';
+import { 
+  migrateTestDataToSupabase, 
+  calculateResultFromSupabase 
+} from '@/lib/voter-data';
 
 export const VoterAnalytics = () => {
   const [query, setQuery] = useState<Partial<QueryParams>>({});
