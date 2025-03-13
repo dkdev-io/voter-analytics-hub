@@ -9,12 +9,13 @@ interface AuthGuardProps {
 export const AuthGuard = ({ children }: AuthGuardProps) => {
   const { user, loading } = useAuth();
   const location = useLocation();
+  const skipAuth = localStorage.getItem('skipAuth') === 'true';
 
   if (loading) {
     return <div className="flex justify-center items-center h-screen">Loading...</div>;
   }
 
-  if (!user) {
+  if (!user && !skipAuth) {
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
@@ -23,12 +24,13 @@ export const AuthGuard = ({ children }: AuthGuardProps) => {
 
 export const UnauthGuard = ({ children }: AuthGuardProps) => {
   const { user, loading } = useAuth();
+  const skipAuth = localStorage.getItem('skipAuth') === 'true';
   
   if (loading) {
     return <div className="flex justify-center items-center h-screen">Loading...</div>;
   }
 
-  if (user) {
+  if (user || skipAuth) {
     return <Navigate to="/" replace />;
   }
 

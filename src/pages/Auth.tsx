@@ -59,6 +59,15 @@ const Auth = () => {
     }
   };
 
+  const handleSkipAuth = () => {
+    localStorage.setItem('skipAuth', 'true');
+    toast({
+      title: 'Access Granted',
+      description: 'Proceeding without authentication',
+    });
+    navigate('/');
+  };
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-50">
       <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
@@ -117,6 +126,16 @@ const Auth = () => {
           >
             {isLogin ? "Don't have an account? Sign Up" : 'Already have an account? Login'}
           </button>
+        </div>
+
+        <div className="mt-4 text-center">
+          <Button 
+            variant="outline" 
+            className="w-full mt-2" 
+            onClick={handleSkipAuth}
+          >
+            Skip Authentication
+          </Button>
         </div>
       </div>
     </div>

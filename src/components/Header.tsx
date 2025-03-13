@@ -2,9 +2,21 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from './AuthProvider';
+import { useNavigate } from 'react-router-dom';
 
 const Header = () => {
   const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+  const skipAuth = localStorage.getItem('skipAuth') === 'true';
+
+  const handleSignOut = async () => {
+    if (skipAuth) {
+      localStorage.removeItem('skipAuth');
+      navigate('/auth');
+    } else {
+      await signOut();
+    }
+  };
 
   return (
     <header className="bg-white shadow-sm">
@@ -23,13 +35,13 @@ const Header = () => {
           </nav>
           
           <div>
-            {user ? (
+            {user || skipAuth ? (
               <div className="flex items-center space-x-4">
                 <span className="text-sm text-gray-600">
-                  {user.email}
+                  {user ? user.email : 'Guest User'}
                 </span>
-                <Button variant="outline" onClick={signOut}>
-                  Log Out
+                <Button variant="outline" onClick={handleSignOut}>
+                  {skipAuth ? 'Exit Guest Mode' : 'Log Out'}
                 </Button>
               </div>
             ) : (
