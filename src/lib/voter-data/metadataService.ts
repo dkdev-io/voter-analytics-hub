@@ -11,8 +11,10 @@ export const fetchTactics = async () => {
 
     if (error) throw error;
     
-    // Extract unique tactics
-    const tactics = Array.from(new Set(data.map(item => item.tactic)));
+    // Extract unique tactics and filter out nulls/empty values
+    const tactics = Array.from(new Set(data.map(item => item.tactic)))
+      .filter(Boolean);
+      
     return tactics;
   } catch (error) {
     console.error('Error fetching tactics:', error);
@@ -30,8 +32,10 @@ export const fetchTeams = async () => {
 
     if (error) throw error;
     
-    // Extract unique teams
-    const teams = Array.from(new Set(data.map(item => item.team)));
+    // Extract unique teams and filter out nulls/empty values
+    const teams = Array.from(new Set(data.map(item => item.team)))
+      .filter(Boolean);
+      
     return teams;
   } catch (error) {
     console.error('Error fetching teams:', error);
@@ -96,8 +100,10 @@ export const fetchDates = async () => {
 
     if (error) throw error;
     
-    // Extract unique dates
-    const dates = Array.from(new Set(data.map(item => item.date)));
+    // Extract unique dates and filter out nulls/empty values
+    const dates = Array.from(new Set(data.map(item => item.date)))
+      .filter(Boolean);
+      
     return dates;
   } catch (error) {
     console.error('Error fetching dates:', error);

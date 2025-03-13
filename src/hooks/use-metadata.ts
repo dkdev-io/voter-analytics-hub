@@ -17,9 +17,14 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
   useEffect(() => {
     const loadInitialData = async () => {
       try {
+        console.log("Fetching metadata...");
         const tacticsList = await fetchTactics();
         const teamsList = await fetchTeams();
         const datesList = await fetchDates();
+        
+        console.log("Tactics fetched:", tacticsList);
+        console.log("Teams fetched:", teamsList);
+        console.log("Dates fetched:", datesList);
         
         setTactics(tacticsList);
         setTeams(teamsList);
@@ -39,6 +44,7 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
     const loadPeopleByTeam = async () => {
       try {
         const people = await fetchPeopleByTeam(selectedTeam);
+        console.log("People fetched for team", selectedTeam, ":", people);
         setFilteredPeople(people);
       } catch (err) {
         console.error("Error loading people by team:", err);

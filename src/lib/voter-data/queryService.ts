@@ -5,6 +5,8 @@ import type { QueryParams } from '@/types/analytics';
 // Function to calculate result based on query parameters
 export const calculateResultFromSupabase = async (query: Partial<QueryParams>) => {
   try {
+    console.log("Calculating result with query:", query);
+    
     if (!query.tactic && !query.resultType && !query.person && !query.date) {
       return { error: "Please select at least one field", result: null };
     }
@@ -21,6 +23,10 @@ export const calculateResultFromSupabase = async (query: Partial<QueryParams>) =
       supabaseQuery = supabaseQuery.eq('date', query.date);
     }
     
+    if (query.team && query.team !== 'All') {
+      supabaseQuery = supabaseQuery.eq('team', query.team);
+    }
+    
     if (query.person && query.person !== 'All') {
       const nameParts = query.person.split(" ");
       const firstName = nameParts[0];
@@ -35,6 +41,8 @@ export const calculateResultFromSupabase = async (query: Partial<QueryParams>) =
     const { data, error } = await supabaseQuery;
     
     if (error) throw error;
+    
+    console.log("Query results:", data);
     
     // Map the display result type to the actual property name in the data
     let resultType = query.resultType ? 
