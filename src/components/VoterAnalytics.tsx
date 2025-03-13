@@ -1,4 +1,4 @@
 
-import { VoterAnalytics as VoterAnalyticsRefactored } from './voter-analytics/VoterAnalytics';
+import { VoterAnalytics as VoterAnalyticsComponent } from './voter-analytics/VoterAnalytics';
 
-export const VoterAnalytics = VoterAnalyticsRefactored;
+export const VoterAnalytics = VoterAnalyticsComponent;
