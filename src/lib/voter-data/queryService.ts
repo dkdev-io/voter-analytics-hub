@@ -1,6 +1,6 @@
 
-import { supabase } from '../supabase';
-import { getTestData, isUsingMockData } from './migrationService';
+import { supabase } from '@/integrations/supabase/client';
+import { isUsingMockData, getTestData } from './migrationService';
 import type { QueryParams } from '@/types/analytics';
 
 // Function to calculate result based on query parameters
@@ -10,7 +10,7 @@ export const calculateResultFromSupabase = async (query: Partial<QueryParams>) =
       return { error: "Please select at least one field", result: null };
     }
 
-    // Handle mock data if Supabase is not available
+    // Handle mock data if Supabase connection is not available
     if (isUsingMockData()) {
       return calculateResultFromMockData(query);
     }

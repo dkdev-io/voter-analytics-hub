@@ -1,5 +1,5 @@
 
-import { supabase } from '../supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { getTestData, isUsingMockData } from './migrationService';
 
 // Function to fetch tactics from Supabase
@@ -97,8 +97,8 @@ export const fetchPeopleByTeam = async (selectedTeam: string | null) => {
       }
     });
     
-    // Handle Dan Kelly presence specifically for the filtering case
-    if (selectedTeam) {
+    // Handle team-specific filtering
+    if (selectedTeam && selectedTeam !== 'All') {
       const teamMembers = peopleMap.get(selectedTeam) || [];
       return teamMembers.sort();
     }

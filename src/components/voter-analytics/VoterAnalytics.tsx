@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { QueryBuilder } from './QueryBuilder';
 import { ResultDisplay } from './ResultDisplay';
@@ -22,19 +23,19 @@ export const VoterAnalytics = () => {
     const initializeData = async () => {
       setIsLoading(true);
       try {
-        // Check if data exists and migrate if needed
+        // Check if data exists in Supabase
         await migrateTestDataToSupabase();
         toast({
-          title: "Data Migration",
-          description: "Test data has been migrated to Supabase.",
+          title: "Data Connection",
+          description: "Connected to Supabase voter contact database.",
           variant: "default"
         });
         setIsDataMigrated(true);
       } catch (err) {
-        console.error("Error in data migration:", err);
+        console.error("Error in data connection:", err);
         toast({
           title: "Error",
-          description: "Failed to load data from Supabase.",
+          description: "Failed to connect to Supabase database.",
           variant: "destructive"
         });
       } finally {

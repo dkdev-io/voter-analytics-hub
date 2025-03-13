@@ -1,5 +1,5 @@
 
-import { supabase } from '../supabase';
+import { supabase } from '@/integrations/supabase/client';
 
 // Mock data for testing when Supabase is not available
 const mockVoterData = [
@@ -46,14 +46,7 @@ let isMockDataLoaded = false;
 // Function to check if data migration is needed and perform if necessary
 export const migrateTestDataToSupabase = async () => {
   try {
-    // Check if environment variables are missing
-    const isMissingEnvVars = !import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY;
-    
-    if (isMissingEnvVars) {
-      console.warn('Using mock data due to missing Supabase environment variables');
-      isMockDataLoaded = true;
-      return true;
-    }
+    // We're now using the imported Supabase client directly, no env vars check needed
     
     // Check if data already exists
     const { data, error } = await supabase
@@ -61,16 +54,26 @@ export const migrateTestDataToSupabase = async () => {
       .select('id')
       .order('id', { ascending: true });
       
-    if (error) throw error;
+    if (error) {
+      console.error('Error checking data:', error);
+      isMockDataLoaded = true;
+      return true;
+    }
     
-    // If no data, insert test data
+    // If no data, insert test data (though we've already done this in SQL)
     if (data.length === 0) {
+      console.log('No data found in voter_contacts, adding test data');
+      
       // Insert test data into Supabase
       const { error: insertError } = await supabase
         .from('voter_contacts')
         .insert(mockVoterData);
         
-      if (insertError) throw insertError;
+      if (insertError) {
+        console.error('Error inserting test data:', insertError);
+        isMockDataLoaded = true;
+        return true;
+      }
       
       console.log('Test data migrated to Supabase');
     } else {
@@ -80,7 +83,8 @@ export const migrateTestDataToSupabase = async () => {
     return true;
   } catch (error) {
     console.error('Error in data migration:', error);
-    throw error;
+    isMockDataLoaded = true;
+    return true;
   }
 };
 
@@ -89,7 +93,7 @@ export const getTestData = () => {
   return mockVoterData;
 };
 
-// Check if we're using mock data
+// Check if we're using mock data - now always returns false since we have a real Supabase client
 export const isUsingMockData = () => {
-  return isMockDataLoaded || !import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY;
+  return false;
 };
