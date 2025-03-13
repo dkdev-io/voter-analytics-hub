@@ -5,10 +5,11 @@ import { supabase } from '@/integrations/supabase/client';
 export const fetchTactics = async () => {
   try {
     console.log("Fetching tactics...");
+    // Changed the query to select distinct values
     const { data, error } = await supabase
       .from('voter_contacts')
       .select('tactic')
-      .not('tactic', 'is', null);
+      .is('tactic', null, { negate: true });
 
     if (error) throw error;
     
@@ -29,10 +30,11 @@ export const fetchTactics = async () => {
 export const fetchTeams = async () => {
   try {
     console.log("Fetching teams...");
+    // Changed the query to select distinct values
     const { data, error } = await supabase
       .from('voter_contacts')
       .select('team')
-      .not('team', 'is', null);
+      .is('team', null, { negate: true });
 
     if (error) throw error;
     
@@ -104,10 +106,11 @@ export const fetchPeopleByTeam = async (selectedTeam: string | null) => {
 export const fetchDates = async () => {
   try {
     console.log("Fetching dates...");
+    // Changed the query to select distinct values
     const { data, error } = await supabase
       .from('voter_contacts')
       .select('date')
-      .not('date', 'is', null);
+      .is('date', null, { negate: true });
 
     if (error) throw error;
     

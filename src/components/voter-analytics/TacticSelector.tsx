@@ -33,7 +33,9 @@ export const TacticSelector = ({
               </SelectItem>
             ))
           ) : (
-            <SelectItem value="no-data" disabled>No data available</SelectItem>
+            <SelectItem value="no-data" disabled>
+              {isLoading ? "Loading..." : "No data available"}
+            </SelectItem>
           )}
         </SelectContent>
       </Select>
