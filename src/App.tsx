@@ -1,44 +1,31 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import NotFound from "./pages/NotFound";
-import { AuthProvider } from "./components/AuthProvider";
-import { AuthGuard, UnauthGuard } from "./components/AuthGuard";
-import Header from "./components/Header";
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Index } from './pages/Index';
+import { NotFound } from './pages/NotFound';
+import { Auth } from './pages/Auth';
+import { AuthProvider } from './components/AuthProvider';
+import { AuthGuard } from './components/AuthGuard';
+import { IssueTracker } from './components/issue-log/IssueTracker';
+import './App.css';
 
-const queryClient = new QueryClient();
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <AuthProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Header />
-          <Routes>
-            <Route path="/" element={
+export default function App() {
+  return (
+    <AuthProvider>
+      <Router>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/auth/*" element={<Auth />} />
+          <Route 
+            path="/issues/*" 
+            element={
               <AuthGuard>
-                <Index />
+                <IssueTracker />
               </AuthGuard>
-            } />
-            <Route path="/auth" element={
-              <UnauthGuard>
-                <Auth />
-              </UnauthGuard>
-            } />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </AuthProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
-
-export default App;
+            } 
+          />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Router>
+    </AuthProvider>
+  );
+}

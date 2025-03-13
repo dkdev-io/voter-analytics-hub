@@ -1,59 +1,110 @@
 
-import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { useAuth } from './AuthProvider';
-import { useNavigate } from 'react-router-dom';
+import { useAuth } from "@/hooks/useAuth";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { Menu, LogOut, ClipboardList } from "lucide-react";
+import { useMobile } from "@/hooks/useMobile";
 
-const Header = () => {
-  const { user, signOut } = useAuth();
+export const Header = () => {
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const skipAuth = localStorage.getItem('skipAuth') === 'true';
+  const { isMobile } = useMobile();
+  const [showMenu, setShowMenu] = useState(false);
 
-  const handleSignOut = async () => {
-    if (skipAuth) {
-      localStorage.removeItem('skipAuth');
-      navigate('/auth');
-    } else {
-      await signOut();
-    }
+  const handleLogout = async () => {
+    await logout();
+    navigate("/");
+  };
+
+  const toggleMenu = () => {
+    setShowMenu(!showMenu);
   };
 
   return (
-    <header className="bg-white shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16 items-center">
-          <div className="flex-shrink-0">
-            <Link to="/" className="text-xl font-bold text-gray-900">
-              Dashboard
-            </Link>
-          </div>
-          
-          <nav className="flex space-x-4">
-            <Link to="/" className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md">
-              Home
-            </Link>
-          </nav>
-          
-          <div>
-            {user || skipAuth ? (
-              <div className="flex items-center space-x-4">
-                <span className="text-sm text-gray-600">
-                  {user ? user.email : 'Guest User'}
-                </span>
-                <Button variant="outline" onClick={handleSignOut}>
-                  {skipAuth ? 'Exit Guest Mode' : 'Log Out'}
-                </Button>
+    <header className="bg-white border-b">
+      <div className="container mx-auto py-4 px-4 flex justify-between items-center">
+        <div className="flex items-center">
+          <Link to="/" className="font-bold text-xl">
+            VoterDash
+          </Link>
+        </div>
+
+        {isMobile ? (
+          <div className="relative">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleMenu}
+              aria-label="Toggle menu"
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
+            {showMenu && (
+              <div className="absolute top-full right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
+                <div className="py-1">
+                  {user ? (
+                    <>
+                      <Link
+                        to="/issues"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={toggleMenu}
+                      >
+                        <div className="flex items-center">
+                          <ClipboardList className="h-4 w-4 mr-2" />
+                          Issue Tracker
+                        </div>
+                      </Link>
+                      <button
+                        onClick={() => {
+                          handleLogout();
+                          toggleMenu();
+                        }}
+                        className="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        <div className="flex items-center">
+                          <LogOut className="h-4 w-4 mr-2" />
+                          Logout
+                        </div>
+                      </button>
+                    </>
+                  ) : (
+                    <Link
+                      to="/auth"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={toggleMenu}
+                    >
+                      Login
+                    </Link>
+                  )}
+                </div>
               </div>
+            )}
+          </div>
+        ) : (
+          <div className="flex gap-4 items-center">
+            {user ? (
+              <>
+                <Link to="/issues" className="flex items-center text-sm font-medium text-gray-700 hover:text-gray-900">
+                  <ClipboardList className="h-4 w-4 mr-2" />
+                  Issue Tracker
+                </Link>
+                <Button variant="outline" size="sm" onClick={handleLogout}>
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Logout
+                </Button>
+              </>
             ) : (
               <Link to="/auth">
-                <Button>Login</Button>
+                <Button variant="outline" size="sm">
+                  Login
+                </Button>
               </Link>
             )}
           </div>
-        </div>
+        )}
       </div>
     </header>
   );
-};
-
-export default Header;
+}
