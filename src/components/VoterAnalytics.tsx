@@ -1,14 +1,22 @@
+
 import { useState, useEffect } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { Send, CalendarIcon } from "lucide-react";
+import { Send, CalendarIcon, Database } from "lucide-react";
 import { format } from "date-fns";
-import { TEST_DATA, RESULT_TYPES, type QueryParams } from '@/types/analytics';
+import { RESULT_TYPES, type QueryParams } from '@/types/analytics';
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { 
+  migrateTestDataToSupabase, 
+  fetchTactics, 
+  fetchTeams, 
+  fetchPeopleByTeam,
+  calculateResultFromSupabase 
+} from '@/lib/voterDataService';
 
 export const VoterAnalytics = () => {
   const [query, setQuery] = useState<Partial<QueryParams>>({});
@@ -16,7 +24,73 @@ export const VoterAnalytics = () => {
   const [result, setResult] = useState<number | null>(null);
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
+  const [tactics, setTactics] = useState<string[]>([]);
+  const [teams, setTeams] = useState<string[]>([]);
+  const [filteredPeople, setFilteredPeople] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isDataMigrated, setIsDataMigrated] = useState(false);
   const { toast } = useToast();
+
+  // Initial data load
+  useEffect(() => {
+    const loadInitialData = async () => {
+      setIsLoading(true);
+      try {
+        // Fetch tactics and teams from Supabase
+        const tacticsList = await fetchTactics();
+        const teamsList = await fetchTeams();
+        
+        // If no data in Supabase, migrate the test data
+        if (tacticsList.length === 0 || teamsList.length === 0) {
+          await migrateTestDataToSupabase();
+          toast({
+            title: "Data Migration",
+            description: "Test data has been migrated to Supabase.",
+            variant: "default"
+          });
+          setIsDataMigrated(true);
+          
+          // Refetch after migration
+          const updatedTactics = await fetchTactics();
+          const updatedTeams = await fetchTeams();
+          
+          setTactics(updatedTactics);
+          setTeams(updatedTeams);
+        } else {
+          setTactics(tacticsList);
+          setTeams(teamsList);
+          setIsDataMigrated(true);
+        }
+      } catch (err) {
+        console.error("Error loading initial data:", err);
+        toast({
+          title: "Error",
+          description: "Failed to load data from Supabase.",
+          variant: "destructive"
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadInitialData();
+  }, [toast]);
+
+  // Update people when team selection changes
+  useEffect(() => {
+    const loadPeopleByTeam = async () => {
+      try {
+        const people = await fetchPeopleByTeam(selectedTeam);
+        setFilteredPeople(people);
+      } catch (err) {
+        console.error("Error loading people by team:", err);
+      }
+    };
+    
+    if (isDataMigrated) {
+      loadPeopleByTeam();
+    }
+  }, [selectedTeam, isDataMigrated]);
 
   // Update query.date when date state changes
   useEffect(() => {
@@ -43,54 +117,6 @@ export const VoterAnalytics = () => {
     }
   }, [selectedTeam]);
 
-  const tactics = Array.from(new Set(TEST_DATA.map(d => d.tactic))).sort();
-  
-  // Extract unique teams from the data
-  const teams = Array.from(new Set(TEST_DATA.map(d => d.team))).sort();
-  
-  // Get people data and filter by team if a team is selected
-  const getPeopleByTeam = () => {
-    const peopleMap = new Map<string, string[]>();
-    
-    // Group people by team
-    TEST_DATA.forEach(entry => {
-      const fullName = `${entry.firstName} ${entry.lastName}`;
-      if (!peopleMap.has(entry.team)) {
-        peopleMap.set(entry.team, []);
-      }
-      
-      const teamMembers = peopleMap.get(entry.team) || [];
-      if (!teamMembers.includes(fullName)) {
-        teamMembers.push(fullName);
-      }
-    });
-    
-    // Add Dan Kelly if not already in the data
-    const danKellyTeam = "Local Party";
-    if (!peopleMap.has(danKellyTeam)) {
-      peopleMap.set(danKellyTeam, ["Dan Kelly"]);
-    } else {
-      const teamMembers = peopleMap.get(danKellyTeam) || [];
-      if (!teamMembers.includes("Dan Kelly")) {
-        teamMembers.push("Dan Kelly");
-      }
-    }
-    
-    // Filter and sort people by the selected team
-    if (selectedTeam) {
-      const teamMembers = peopleMap.get(selectedTeam) || [];
-      return teamMembers.sort();
-    }
-    
-    // If no team selected, return all people
-    return Array.from(peopleMap.values())
-      .flat()
-      .filter((name, index, self) => self.indexOf(name) === index)
-      .sort();
-  };
-  
-  const filteredPeople = getPeopleByTeam();
-  
   const generateDateRange = () => {
     const dates = [];
     const startDate = new Date('2025-01-01');
@@ -111,47 +137,7 @@ export const VoterAnalytics = () => {
   
   const dates = generateDateRange();
 
-  // Count actual rows by considering all combinations of people, dates, and tactics
-  const calculateTotalRows = () => {
-    // Count the raw data entries
-    const rawCount = TEST_DATA.length;
-    
-    // Count additional entries from combinations
-    let totalPossibleCombinations = 0;
-    
-    // Calculate all possible combinations of people, dates, and tactics
-    // For each person, they could have an entry for each day and each tactic
-    const uniqueTactics = Array.from(new Set(TEST_DATA.map(d => d.tactic))).length;
-    const uniquePeople = new Set(TEST_DATA.map(d => d.firstName + d.lastName)).size;
-    const uniqueDates = new Set(TEST_DATA.map(d => d.date)).size;
-    
-    // Calculate combinations and add potential Dan Kelly entry
-    totalPossibleCombinations = uniquePeople * uniqueDates * uniqueTactics;
-    const totalPotentialRows = rawCount + 1; // +1 for Dan Kelly
-    
-    return {
-      dataEntries: rawCount,
-      potentialRows: totalPotentialRows,
-      possibleCombinations: totalPossibleCombinations,
-      totalUniquePeople: uniquePeople,
-      totalUniqueDates: uniqueDates,
-      totalUniqueTactics: uniqueTactics
-    };
-  };
-  
-  const totalStats = calculateTotalRows();
-  
-  console.log('Available dates:', dates);
-  console.log('Total unique dates:', dates.length);
-  console.log('Last date in array:', dates[dates.length - 1]);
-  console.log('Total data entries:', TEST_DATA.length);
-  console.log('Dataset statistics:', totalStats);
-  console.log('Total unique people in data:', totalStats.totalUniquePeople);
-  console.log('Total unique dates in data:', totalStats.totalUniqueDates);
-  console.log('Total unique tactics in data:', totalStats.totalUniqueTactics);
-  console.log('Possible data combinations:', totalStats.possibleCombinations);
-  
-  const calculateResult = () => {
+  const calculateResult = async () => {
     if (!query.tactic && !query.resultType && !query.person && !query.date) {
       setError("Please select at least one field");
       setResult(null);
@@ -159,76 +145,16 @@ export const VoterAnalytics = () => {
     }
 
     try {
-      const danKellyEntry = {
-        firstName: "Dan",
-        lastName: "Kelly",
-        team: "Local Party",
-        date: "2025-01-31",
-        tactic: "Phone",
-        attempts: 7,
-        contacts: 3,
-        notHome: 2,
-        refusal: 1,
-        badData: 1,
-        support: 2,
-        oppose: 0,
-        undecided: 1
-      };
+      setIsLoading(true);
+      const { result: calculatedResult, error: calculationError } = await calculateResultFromSupabase(query);
       
-      const hasDanKelly = TEST_DATA.some(d => 
-        d.firstName === "Dan" && 
-        d.lastName === "Kelly" && 
-        d.date === "2025-01-31" && 
-        d.tactic === "Phone"
-      );
-      
-      const dataToSearch = hasDanKelly ? TEST_DATA : [...TEST_DATA, danKellyEntry];
-      
-      // Map the display result type to the actual property name in the data
-      let resultType = query.resultType ? 
-        query.resultType.toLowerCase().replace(/ /g, "") : 
-        "attempts";
-      
-      // Special handling for "Not Home" to map to "notHome" property
-      if (resultType === "nothome") {
-        resultType = "notHome";
+      if (calculationError) {
+        setError(calculationError);
+        setResult(null);
+        return;
       }
       
-      let filtered = [...dataToSearch];
-      
-      if (query.tactic && query.tactic !== "All") {
-        filtered = filtered.filter(d => d.tactic === query.tactic);
-      }
-      
-      if (query.person && query.person !== "All") {
-        let firstName, lastName;
-        
-        if (query.person === "Candidate Carter") {
-          firstName = "Candidate";
-          lastName = "Carter";
-        } else if (query.person === "Dan Kelly") {
-          firstName = "Dan";
-          lastName = "Kelly";
-        } else {
-          const nameParts = query.person.split(" ");
-          firstName = nameParts[0];
-          lastName = nameParts.slice(1).join(" ");
-        }
-        
-        filtered = filtered.filter(d => 
-          d.firstName === firstName && 
-          d.lastName === lastName
-        );
-      }
-      
-      if (query.date && query.date !== "All") {
-        filtered = filtered.filter(d => d.date === query.date);
-      }
-
-      console.log("Filtered results:", filtered);
-      console.log("Result type being used:", resultType);
-
-      if (filtered.length === 0) {
+      if (calculatedResult === 0) {
         setResult(0);
         setError(null);
         toast({
@@ -237,17 +163,15 @@ export const VoterAnalytics = () => {
           variant: "default"
         });
       } else {
-        const total = filtered.reduce((sum, item) => {
-          return sum + (item[resultType as keyof typeof item] as number || 0);
-        }, 0);
-        
-        setResult(total);
+        setResult(calculatedResult);
         setError(null);
       }
     } catch (e) {
       console.error("Error calculating result:", e);
       setError("Unknown error");
       setResult(null);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -257,6 +181,17 @@ export const VoterAnalytics = () => {
       <p className="text-lg text-gray-700 mb-8 text-center italic">
         The first user friendly tool to help campaigns analyze their voter contact data.
       </p>
+      
+      {!isDataMigrated && (
+        <div className="flex justify-center mb-6">
+          <Alert className="bg-blue-50 border-blue-200">
+            <AlertDescription className="text-blue-700 flex items-center">
+              <Database className="mr-2 h-4 w-4" />
+              Connecting to Supabase and migrating data...
+            </AlertDescription>
+          </Alert>
+        </div>
+      )}
       
       <div className="space-y-6">
         <div className="text-lg text-gray-700 flex flex-wrap items-center gap-2">
@@ -269,6 +204,7 @@ export const VoterAnalytics = () => {
                 setQuery(prev => ({ ...prev, tactic: value }));
                 setError(null);
               }}
+              disabled={isLoading}
             >
               <SelectTrigger className="min-w-[150px]">
                 <SelectValue placeholder={<span className="font-bold">Select Tactic</span>} />
@@ -291,6 +227,7 @@ export const VoterAnalytics = () => {
                 setQuery(prev => ({ ...prev, resultType: value }));
                 setError(null);
               }}
+              disabled={isLoading}
             >
               <SelectTrigger className="min-w-[150px]">
                 <SelectValue placeholder={<span className="font-bold">Select Metric</span>} />
@@ -314,6 +251,7 @@ export const VoterAnalytics = () => {
                 setSelectedTeam(value);
                 setError(null);
               }}
+              disabled={isLoading}
             >
               <SelectTrigger className="min-w-[180px]">
                 <SelectValue placeholder={<span className="font-bold">Select Team</span>} />
@@ -341,7 +279,7 @@ export const VoterAnalytics = () => {
                 setQuery(prev => ({ ...prev, person: value }));
                 setError(null);
               }}
-              disabled={!selectedTeam}
+              disabled={!selectedTeam || isLoading}
             >
               <SelectTrigger className="min-w-[180px]">
                 <SelectValue placeholder={<span className="font-bold">Select Individual</span>} />
@@ -373,6 +311,7 @@ export const VoterAnalytics = () => {
                     "min-w-[150px] justify-start text-left font-normal",
                     !date && "text-muted-foreground"
                   )}
+                  disabled={isLoading}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {date ? format(date, "yyyy-MM-dd") : <span className="font-bold">Select Date</span>}
@@ -416,9 +355,22 @@ export const VoterAnalytics = () => {
           <Button 
             onClick={calculateResult}
             className="px-6 py-2"
+            disabled={isLoading}
           >
-            <Send className="mr-2 h-4 w-4" />
-            Submit
+            {isLoading ? (
+              <span className="flex items-center">
+                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Processing...
+              </span>
+            ) : (
+              <>
+                <Send className="mr-2 h-4 w-4" />
+                Submit
+              </>
+            )}
           </Button>
         </div>
 
@@ -431,7 +383,7 @@ export const VoterAnalytics = () => {
         )}
 
         {result !== null && !error && (
-          <p className="text-xl font-medium text-gray-900 mt-4">
+          <p className="text-xl font-medium text-gray-900 mt-4 text-center">
             Result: {result}
           </p>
         )}
