@@ -22,11 +22,11 @@ export const TacticSelector = ({
         disabled={isLoading}
       >
         <SelectTrigger className="min-w-[150px]">
-          <SelectValue placeholder={<span className="font-bold">Select Tactic</span>} />
+          <SelectValue placeholder={isLoading ? "Loading..." : <span className="font-bold">Select Tactic</span>} />
         </SelectTrigger>
         <SelectContent className="bg-white z-50">
           <SelectItem value="All">All</SelectItem>
-          {tactics.length > 0 ? (
+          {tactics && tactics.length > 0 ? (
             tactics.map(tactic => (
               <SelectItem key={tactic} value={tactic}>
                 {tactic}

@@ -12,11 +12,13 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
   const [teams, setTeams] = useState<string[]>([]);
   const [filteredPeople, setFilteredPeople] = useState<string[]>([]);
   const [availableDates, setAvailableDates] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   
   // Fetch initial data
   useEffect(() => {
     const loadInitialData = async () => {
       try {
+        setIsLoading(true);
         console.log("Fetching metadata...");
         
         // Fetch all metadata in parallel
@@ -26,11 +28,13 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
           fetchDates()
         ]);
         
-        setTactics(tacticsList);
-        setTeams(teamsList);
-        setAvailableDates(datesList);
+        setTactics(tacticsList || []);
+        setTeams(teamsList || []);
+        setAvailableDates(datesList || []);
       } catch (err) {
         console.error("Error loading initial data:", err);
+      } finally {
+        setIsLoading(false);
       }
     };
     
@@ -43,10 +47,13 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
   useEffect(() => {
     const loadPeopleByTeam = async () => {
       try {
+        setIsLoading(true);
         const people = await fetchPeopleByTeam(selectedTeam);
-        setFilteredPeople(people);
+        setFilteredPeople(people || []);
       } catch (err) {
         console.error("Error loading people by team:", err);
+      } finally {
+        setIsLoading(false);
       }
     };
     
@@ -59,6 +66,7 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
     tactics,
     teams,
     filteredPeople,
-    availableDates
+    availableDates,
+    isLoading
   };
 };

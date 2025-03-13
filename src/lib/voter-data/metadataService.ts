@@ -5,15 +5,14 @@ import { supabase } from '@/integrations/supabase/client';
 export const fetchTactics = async () => {
   try {
     console.log("Fetching tactics...");
-    // Query to fetch non-null tactics
+    // Query to fetch all tactics
     const { data, error } = await supabase
       .from('voter_contacts')
-      .select('tactic')
-      .not('tactic', 'is', null);
+      .select('tactic');
 
     if (error) throw error;
     
-    // Extract unique tactics
+    // Extract unique tactics and filter out null/empty values
     const tactics = Array.from(new Set(data.map(item => item.tactic)))
       .filter(Boolean)
       .sort();
@@ -30,14 +29,14 @@ export const fetchTactics = async () => {
 export const fetchTeams = async () => {
   try {
     console.log("Fetching teams...");
-    // Using a more direct approach to fetch non-null teams
+    // Fetch all teams
     const { data, error } = await supabase
       .from('voter_contacts')
       .select('team');
 
     if (error) throw error;
     
-    // Extract unique teams
+    // Extract unique teams and filter out null/empty values
     const teams = Array.from(new Set(data.map(item => item.team)))
       .filter(Boolean)
       .sort();
@@ -70,6 +69,8 @@ export const fetchPeopleByTeam = async (selectedTeam: string | null) => {
     const peopleMap = new Map<string, string[]>();
     
     data.forEach(entry => {
+      if (!entry.first_name || !entry.last_name) return;
+      
       const fullName = `${entry.first_name} ${entry.last_name}`;
       if (!peopleMap.has(entry.team)) {
         peopleMap.set(entry.team, []);
@@ -105,14 +106,14 @@ export const fetchPeopleByTeam = async (selectedTeam: string | null) => {
 export const fetchDates = async () => {
   try {
     console.log("Fetching dates...");
-    // Using a more direct approach to fetch dates
+    // Fetch all dates
     const { data, error } = await supabase
       .from('voter_contacts')
       .select('date');
 
     if (error) throw error;
     
-    // Extract unique dates
+    // Extract unique dates and filter out null/empty values
     const dates = Array.from(new Set(data.map(item => item.date)))
       .filter(Boolean)
       .sort();

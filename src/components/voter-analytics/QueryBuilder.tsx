@@ -21,13 +21,15 @@ export const QueryBuilder = ({
   query, 
   setQuery, 
   setError,
-  isLoading,
+  isLoading: parentIsLoading,
   isDataMigrated 
 }: QueryBuilderProps) => {
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
   
   // Use our custom hook to fetch metadata
-  const { tactics, teams, filteredPeople, availableDates } = useMetadata(isDataMigrated, selectedTeam);
+  const { tactics, teams, filteredPeople, availableDates, isLoading: metadataIsLoading } = useMetadata(isDataMigrated, selectedTeam);
+  
+  const isLoading = parentIsLoading || metadataIsLoading;
 
   // Clear person selection when team changes
   useEffect(() => {
