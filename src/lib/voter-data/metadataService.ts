@@ -6,6 +6,7 @@ export const fetchTactics = async (): Promise<string[]> => {
   try {
     const data = getTestData();
     const tactics = [...new Set(data.map(item => item.tactic))];
+    console.log("Fetched tactics:", tactics);
     return tactics;
   } catch (error) {
     console.error('Error fetching tactics:', error);
@@ -18,6 +19,7 @@ export const fetchTeams = async (): Promise<string[]> => {
   try {
     const data = getTestData();
     const teams = [...new Set(data.map(item => item.team))];
+    console.log("Fetched teams:", teams);
     return teams;
   } catch (error) {
     console.error('Error fetching teams:', error);
@@ -34,7 +36,9 @@ export const fetchPeopleByTeam = async (team: string): Promise<string[]> => {
       .map(item => `${item.first_name} ${item.last_name}`);
     
     // Return unique names
-    return [...new Set(filteredPeople)];
+    const uniquePeople = [...new Set(filteredPeople)];
+    console.log(`Fetched people for team ${team}:`, uniquePeople);
+    return uniquePeople;
   } catch (error) {
     console.error('Error fetching people by team:', error);
     return [];
@@ -46,6 +50,7 @@ export const fetchDates = async (): Promise<string[]> => {
   try {
     const data = getTestData();
     const dates = [...new Set(data.map(item => item.date))];
+    console.log("Fetched dates:", dates);
     return dates;
   } catch (error) {
     console.error('Error fetching dates:', error);

@@ -14,6 +14,8 @@ export const TeamSelector = ({
   teams, 
   isLoading 
 }: TeamSelectorProps) => {
+  console.log("TeamSelector rendering with teams:", teams);
+  
   return (
     <div className="inline-block min-w-[180px]">
       <Select
