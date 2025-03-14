@@ -17,12 +17,15 @@ export default function App() {
       <AuthProvider>
         <Router>
           <Routes>
+            {/* Public routes */}
             <Route path="/" element={<Landing />} />
             <Route path="/auth" element={
               <UnauthGuard>
                 <Auth />
               </UnauthGuard>
             } />
+            
+            {/* Protected routes */}
             <Route path="/dashboard" element={
               <AuthGuard>
                 <Index />
@@ -41,8 +44,8 @@ export default function App() {
                 </AuthGuard>
               } 
             />
-            {/* Redirect /dashboard to / when user is not authenticated */}
-            <Route path="/dashboard" element={<Navigate to="/auth" />} />
+            
+            {/* Catch-all route */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Router>
