@@ -12,6 +12,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import './App.css';
 
 export default function App() {
+  console.log('App rendering');
   return (
     <ErrorBoundary>
       <AuthProvider>
@@ -19,21 +20,23 @@ export default function App() {
           <Routes>
             {/* Public routes */}
             <Route path="/" element={<Landing />} />
+            
+            {/* Auth route with UnauthGuard to prevent authenticated users from accessing */}
             <Route path="/auth" element={
               <UnauthGuard>
                 <Auth />
               </UnauthGuard>
             } />
             
-            {/* Protected routes */}
-            <Route path="/dashboard" element={
-              <AuthGuard>
-                <Index />
-              </AuthGuard>
-            } />
+            {/* Protected routes that require authentication */}
             <Route path="/connect-data" element={
               <AuthGuard>
                 <ConnectData />
+              </AuthGuard>
+            } />
+            <Route path="/dashboard" element={
+              <AuthGuard>
+                <Index />
               </AuthGuard>
             } />
             <Route 

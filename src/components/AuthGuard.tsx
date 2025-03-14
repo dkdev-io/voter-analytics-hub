@@ -15,8 +15,9 @@ export const AuthGuard = ({ children }: AuthGuardProps) => {
     return <div className="flex justify-center items-center h-screen">Loading...</div>;
   }
 
+  // If user is not authenticated and skipAuth is not enabled, redirect to auth
   if (!user && !skipAuth) {
-    // Redirect to /auth and store the attempted location
+    console.log('AuthGuard: Redirecting to /auth from', location.pathname);
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
@@ -31,7 +32,9 @@ export const UnauthGuard = ({ children }: AuthGuardProps) => {
     return <div className="flex justify-center items-center h-screen">Loading...</div>;
   }
 
+  // If user is authenticated or skipAuth is enabled, redirect to connect-data
   if (user || skipAuth) {
+    console.log('UnauthGuard: Redirecting to /connect-data');
     return <Navigate to="/connect-data" replace />;
   }
 

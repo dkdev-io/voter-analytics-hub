@@ -42,6 +42,7 @@ const Auth = () => {
           description: 'You have been logged in successfully!',
         });
         
+        console.log('Auth: Login successful, redirecting to', from);
         navigate(from);
       } else {
         // Sign up
@@ -70,6 +71,7 @@ const Auth = () => {
       title: 'Access Granted',
       description: 'Proceeding without authentication',
     });
+    console.log('Auth: Skip auth, redirecting to', from);
     navigate(from);
   };
 
