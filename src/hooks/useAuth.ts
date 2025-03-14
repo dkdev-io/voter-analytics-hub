@@ -9,7 +9,7 @@ export const useAuth = () => {
   const currentPath = window.location.pathname;
   
   // Only log on paths that are not the landing page to avoid redirects
-  if (currentPath !== '/') {
+  if (currentPath !== '/' && currentPath !== '/auth') {
     console.log('useAuth hook called, authenticated:', !!auth.user, 'skipAuth:', localStorage.getItem('skipAuth') === 'true', 'current path:', currentPath);
     
     // Log detailed information about auth state for debugging
