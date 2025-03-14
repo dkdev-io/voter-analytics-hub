@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useCallback } from 'react';
 import { type QueryParams } from '@/types/analytics';
 import { useMetadata } from '@/hooks/use-metadata';
 import { TacticSelector } from './TacticSelector';
@@ -23,9 +23,6 @@ export const QueryBuilder = ({
   isLoading: parentIsLoading,
   isDataMigrated 
 }: QueryBuilderProps) => {
-  // Use query.team directly without duplicating state
-  // This eliminates a major source of the infinite re-render issue
-  
   // Use our custom hook to fetch metadata - pass query.team directly 
   const { tactics, teams, filteredPeople, availableDates, isLoading: metadataIsLoading } = useMetadata(isDataMigrated, query.team || null);
   
@@ -33,54 +30,58 @@ export const QueryBuilder = ({
 
   // Memoize the team change handler
   const handleTeamChange = useCallback((value: string) => {
+    console.log("QueryBuilder: Team changed to:", value, "current:", query.team);
+    
+    // Skip if no actual change to prevent re-renders
+    if (value === query.team) {
+      console.log("QueryBuilder: Team value unchanged, skipping update");
+      return;
+    }
+    
     // Update query with team change and remove person in one update
     setQuery(prev => {
-      // Only update if there's an actual change
-      if (value === prev.team) {
-        return prev;
+      // Create a new query object to trigger state update
+      const newQuery = { ...prev, team: value };
+      
+      // Reset person when team changes
+      if (prev.person) {
+        delete newQuery.person;
       }
       
-      const newQuery = { ...prev, team: value };
-      // Reset person when team changes
-      delete newQuery.person;
       return newQuery;
     });
     
     setError(null);
-  }, [setQuery, setError]);
+  }, [setQuery, setError, query.team]);
 
   // Memoize handlers to prevent recreating functions on each render
   const handleDateSelect = useCallback((value: string) => {
-    setQuery(prev => {
-      if (prev.date === value) return prev;
-      return { ...prev, date: value };
-    });
+    if (value === query.date) return;
+    
+    setQuery(prev => ({ ...prev, date: value }));
     setError(null);
-  }, [setQuery, setError]);
+  }, [setQuery, setError, query.date]);
 
   const handlePersonChange = useCallback((value: string) => {
-    setQuery(prev => {
-      if (prev.person === value) return prev;
-      return { ...prev, person: value };
-    });
+    if (value === query.person) return;
+    
+    setQuery(prev => ({ ...prev, person: value }));
     setError(null);
-  }, [setQuery, setError]);
+  }, [setQuery, setError, query.person]);
 
   const handleTacticChange = useCallback((value: string) => {
-    setQuery(prev => {
-      if (prev.tactic === value) return prev;
-      return { ...prev, tactic: value };
-    });
+    if (value === query.tactic) return;
+    
+    setQuery(prev => ({ ...prev, tactic: value }));
     setError(null);
-  }, [setQuery, setError]);
+  }, [setQuery, setError, query.tactic]);
 
   const handleResultTypeChange = useCallback((value: string) => {
-    setQuery(prev => {
-      if (prev.resultType === value) return prev;
-      return { ...prev, resultType: value };
-    });
+    if (value === query.resultType) return;
+    
+    setQuery(prev => ({ ...prev, resultType: value }));
     setError(null);
-  }, [setQuery, setError]);
+  }, [setQuery, setError, query.resultType]);
 
   return (
     <div className="space-y-6">

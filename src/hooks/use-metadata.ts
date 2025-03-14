@@ -51,21 +51,18 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
         const [tacticsResult, teamsResult, datesResult] = results;
         
         if (tacticsResult.status === 'fulfilled') {
-          console.log("Tactics loaded successfully:", tacticsResult.value);
           setTactics(tacticsResult.value || []);
         } else {
           console.error("Error loading tactics:", tacticsResult.reason);
         }
         
         if (teamsResult.status === 'fulfilled') {
-          console.log("Teams loaded successfully:", teamsResult.value);
           setTeams(teamsResult.value || []);
         } else {
           console.error("Error loading teams:", teamsResult.reason);
         }
         
         if (datesResult.status === 'fulfilled') {
-          console.log("Dates loaded successfully:", datesResult.value);
           setAvailableDates(datesResult.value || []);
         } else {
           console.error("Error loading dates:", datesResult.reason);
@@ -89,16 +86,25 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
     // Skip if conditions aren't met
     if (!isDataMigrated) return;
     
+    // Convert null to empty string for comparison to avoid null !== null issues
+    const prevTeam = previousTeamRef.current;
+    const currentTeam = selectedTeam;
+    
     // Skip if the team hasn't changed (strict equality)
-    if (previousTeamRef.current === selectedTeam) return;
+    if (prevTeam === currentTeam) {
+      console.log("useMetadata: Team unchanged, skipping people fetch", { prevTeam, currentTeam });
+      return;
+    }
+    
+    console.log("useMetadata: Team changed, updating people", { prevTeam, currentTeam });
     
     // Update previous team first to prevent duplicate calls
-    const prevTeam = previousTeamRef.current;
-    previousTeamRef.current = selectedTeam;
+    previousTeamRef.current = currentTeam;
     
     // Clear people if no team is selected
-    if (!selectedTeam) {
+    if (!currentTeam) {
       if (isMountedRef.current && filteredPeople.length > 0) {
+        console.log("useMetadata: Clearing people list since no team selected");
         setFilteredPeople([]);
       }
       return;
@@ -111,8 +117,8 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
       }
       
       try {
-        console.log("Loading people for team:", selectedTeam);
-        const people = await fetchPeopleByTeam(selectedTeam);
+        console.log("Loading people for team:", currentTeam);
+        const people = await fetchPeopleByTeam(currentTeam);
         
         if (isMountedRef.current) {
           console.log("People loaded:", people);
