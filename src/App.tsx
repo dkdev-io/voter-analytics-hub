@@ -13,9 +13,12 @@ import './App.css';
 export default function App() {
   // Clear any auth-related flags on initial app load
   // This prevents unexpected redirection on app startup
-  console.log('App: Initial load, clearing all auth state flags');
-  localStorage.removeItem('skipAuth');
-  sessionStorage.removeItem('completedDataConnection');
+  const isInitialLoad = sessionStorage.getItem('appInitialized') !== 'true';
+  if (isInitialLoad) {
+    console.log('App: Initial load, resetting auth state flags');
+    localStorage.removeItem('skipAuth');
+    sessionStorage.setItem('appInitialized', 'true');
+  }
   
   return (
     <ErrorBoundary>

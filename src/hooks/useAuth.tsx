@@ -2,7 +2,7 @@
 import { useAuth as useAuthProvider } from '@/components/AuthProvider';
 import { useErrorLogger } from './useErrorLogger';
 
-// Add debug logging and enhanced info
+// Add debug logging
 export const useAuth = () => {
   const auth = useAuthProvider();
   const { logAuthFlowIssue } = useErrorLogger();
@@ -10,10 +10,7 @@ export const useAuth = () => {
   
   // Only log on paths that are not the landing page to avoid redirects
   if (currentPath !== '/' && currentPath !== '/auth') {
-    console.log('useAuth hook called, authenticated:', !!auth.user, 
-      'skipAuth:', localStorage.getItem('skipAuth') === 'true', 
-      'current path:', currentPath,
-      'loading:', auth.loading);
+    console.log('useAuth hook called, authenticated:', !!auth.user, 'skipAuth:', localStorage.getItem('skipAuth') === 'true', 'current path:', currentPath);
     
     // Log detailed information about auth state for debugging
     logAuthFlowIssue('useAuth hook', {
@@ -21,7 +18,6 @@ export const useAuth = () => {
       loading: auth.loading,
       skipAuth: localStorage.getItem('skipAuth') === 'true',
       path: currentPath,
-      timestamp: new Date().toISOString(),
     });
   }
   

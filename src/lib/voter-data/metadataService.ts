@@ -5,8 +5,7 @@ import { getTestData } from './migrationService';
 export const fetchTactics = async (): Promise<string[]> => {
   try {
     const data = getTestData();
-    const tactics = [...new Set(data.map(item => item.tactic))].sort();
-    console.log("Fetched tactics:", tactics);
+    const tactics = [...new Set(data.map(item => item.tactic))];
     return tactics;
   } catch (error) {
     console.error('Error fetching tactics:', error);
@@ -18,8 +17,7 @@ export const fetchTactics = async (): Promise<string[]> => {
 export const fetchTeams = async (): Promise<string[]> => {
   try {
     const data = getTestData();
-    const teams = [...new Set(data.map(item => item.team))].sort();
-    console.log("Fetched teams:", teams);
+    const teams = [...new Set(data.map(item => item.team))];
     return teams;
   } catch (error) {
     console.error('Error fetching teams:', error);
@@ -36,9 +34,7 @@ export const fetchPeopleByTeam = async (team: string): Promise<string[]> => {
       .map(item => `${item.first_name} ${item.last_name}`);
     
     // Return unique names
-    const uniquePeople = [...new Set(filteredPeople)].sort();
-    console.log(`Fetched people for team ${team}:`, uniquePeople);
-    return uniquePeople;
+    return [...new Set(filteredPeople)];
   } catch (error) {
     console.error('Error fetching people by team:', error);
     return [];
@@ -49,8 +45,7 @@ export const fetchPeopleByTeam = async (team: string): Promise<string[]> => {
 export const fetchDates = async (): Promise<string[]> => {
   try {
     const data = getTestData();
-    const dates = [...new Set(data.map(item => item.date))].sort();
-    console.log("Fetched dates:", dates);
+    const dates = [...new Set(data.map(item => item.date))];
     return dates;
   } catch (error) {
     console.error('Error fetching dates:', error);

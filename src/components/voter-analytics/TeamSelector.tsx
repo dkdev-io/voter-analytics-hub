@@ -14,8 +14,6 @@ export const TeamSelector = ({
   teams, 
   isLoading 
 }: TeamSelectorProps) => {
-  console.log("TeamSelector rendering with teams:", teams);
-  
   return (
     <div className="inline-block min-w-[180px]">
       <Select
@@ -41,7 +39,7 @@ export const TeamSelector = ({
             ))
           ) : (
             <SelectItem value="no-data" disabled>
-              {isLoading ? "Loading teams..." : "No teams found"}
+              {isLoading ? "Loading teams..." : "No data in database yet"}
             </SelectItem>
           )}
         </SelectContent>

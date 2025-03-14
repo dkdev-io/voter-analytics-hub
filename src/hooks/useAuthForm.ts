@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useErrorLogger } from '@/hooks/useErrorLogger';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 type AuthMode = 'login' | 'signup';
 
@@ -14,12 +14,8 @@ export function useAuthForm(redirectPath: string = '/connect-data') {
   const [error, setError] = useState<string | null>(null);
   const [isLogin, setIsLogin] = useState(true);
   const navigate = useNavigate();
-  const location = useLocation();
   const { toast } = useToast();
   const { logAuthFlowIssue } = useErrorLogger();
-
-  // Get the intended destination from location state, if available
-  const from = location.state?.from || redirectPath;
 
   const toggleAuthMode = () => setIsLogin(!isLogin);
 
@@ -43,8 +39,8 @@ export function useAuthForm(redirectPath: string = '/connect-data') {
           description: 'You have been logged in successfully!',
         });
         
-        console.log('Auth: Login successful, redirecting to', from);
-        // The UnauthGuard will handle redirection
+        console.log('Auth: Login successful, redirecting to', redirectPath);
+        navigate(redirectPath);
       } else {
         // Sign up
         const { error } = await supabase.auth.signUp({
@@ -73,7 +69,7 @@ export function useAuthForm(redirectPath: string = '/connect-data') {
 
   const handleSkipAuth = () => {
     logAuthFlowIssue('Skip Auth button clicked', {
-      redirectTarget: from
+      redirectTarget: redirectPath
     });
     
     localStorage.setItem('skipAuth', 'true');
@@ -81,8 +77,8 @@ export function useAuthForm(redirectPath: string = '/connect-data') {
       title: 'Access Granted',
       description: 'Proceeding without authentication',
     });
-    console.log('Auth: Skip auth, redirecting to', from);
-    navigate(from);
+    console.log('Auth: Skip auth, redirecting to', redirectPath);
+    navigate(redirectPath);
   };
 
   return {

@@ -14,8 +14,6 @@ export const DateSelector = ({
   availableDates,
   isLoading 
 }: DateSelectorProps) => {
-  console.log("DateSelector rendering with dates:", availableDates);
-  
   return (
     <div className="inline-block min-w-[180px]">
       <Select

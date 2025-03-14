@@ -49,15 +49,7 @@ export const QueryBuilder = ({
 
   const handleTeamChange = (value: string) => {
     setSelectedTeam(value);
-    
-    // Update the query separately to prevent multiple re-renders
-    setQuery(prev => {
-      const newQuery = { ...prev, team: value };
-      // Remove person when team changes
-      delete newQuery.person;
-      return newQuery;
-    });
-    
+    setQuery(prev => ({ ...prev, team: value }));
     setError(null);
   };
 
