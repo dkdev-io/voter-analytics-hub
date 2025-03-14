@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,7 +15,10 @@ const Auth = () => {
   const [error, setError] = useState<string | null>(null);
   const [isLogin, setIsLogin] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
+
+  const from = location.state?.from?.pathname || '/connect-data';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,7 +40,7 @@ const Auth = () => {
           description: 'You have been logged in successfully!',
         });
         
-        navigate('/connect-data');
+        navigate(from);
       } else {
         // Sign up
         const { error } = await supabase.auth.signUp({
@@ -65,7 +68,7 @@ const Auth = () => {
       title: 'Access Granted',
       description: 'Proceeding without authentication',
     });
-    navigate('/connect-data');
+    navigate(from);
   };
 
   return (

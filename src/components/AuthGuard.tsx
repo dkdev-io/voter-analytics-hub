@@ -16,6 +16,7 @@ export const AuthGuard = ({ children }: AuthGuardProps) => {
   }
 
   if (!user && !skipAuth) {
+    // Redirect to /auth and store the attempted location
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
