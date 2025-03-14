@@ -60,7 +60,7 @@ export default function App() {
               } 
             />
             
-            {/* Catch-all route */}
+            {/* Catch-all route - redirect to landing page */}
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </Router>

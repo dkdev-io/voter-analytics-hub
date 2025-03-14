@@ -11,6 +11,8 @@ export const AuthGuard = ({ children }: AuthGuardProps) => {
   const { user, loading } = useAuth();
   const location = useLocation();
   const { logAuthFlowIssue } = useErrorLogger();
+  
+  // Always check localStorage directly to avoid stale closures
   const skipAuth = localStorage.getItem('skipAuth') === 'true';
 
   // Log the auth guard activity
@@ -40,6 +42,8 @@ export const UnauthGuard = ({ children }: AuthGuardProps) => {
   const { user, loading } = useAuth();
   const location = useLocation();
   const { logAuthFlowIssue } = useErrorLogger();
+  
+  // Always check localStorage directly to avoid stale closures
   const skipAuth = localStorage.getItem('skipAuth') === 'true';
   
   // Log the unauth guard activity
