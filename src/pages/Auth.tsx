@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -38,7 +37,7 @@ const Auth = () => {
           description: 'You have been logged in successfully!',
         });
         
-        navigate('/');
+        navigate('/connect-data');
       } else {
         // Sign up
         const { error } = await supabase.auth.signUp({
@@ -66,7 +65,7 @@ const Auth = () => {
       title: 'Access Granted',
       description: 'Proceeding without authentication',
     });
-    navigate('/');
+    navigate('/connect-data');
   };
 
   return (

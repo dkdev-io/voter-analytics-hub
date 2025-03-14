@@ -4,6 +4,7 @@ import Index from './pages/Index';
 import NotFound from './pages/NotFound';
 import Auth from './pages/Auth';
 import Landing from './pages/Landing';
+import ConnectData from './pages/ConnectData';
 import { AuthProvider } from './components/AuthProvider';
 import { AuthGuard } from './components/AuthGuard';
 import { IssueTracker } from './components/issue-log/IssueTracker';
@@ -19,6 +20,7 @@ export default function App() {
             <Route path="/" element={<Landing />} />
             <Route path="/dashboard" element={<Index />} />
             <Route path="/auth/*" element={<Auth />} />
+            <Route path="/connect-data" element={<ConnectData />} />
             <Route 
               path="/issues/*" 
               element={
