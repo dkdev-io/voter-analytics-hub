@@ -1,7 +1,6 @@
 
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Index from './pages/Index';
-import NotFound from './pages/NotFound';
 import Auth from './pages/Auth';
 import Landing from './pages/Landing';
 import ConnectData from './pages/ConnectData';
