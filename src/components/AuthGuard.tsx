@@ -2,6 +2,7 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useErrorLogger } from '@/hooks/useErrorLogger';
+import { useToast } from '@/hooks/use-toast';
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -11,6 +12,7 @@ export const AuthGuard = ({ children }: AuthGuardProps) => {
   const { user, loading } = useAuth();
   const location = useLocation();
   const { logAuthFlowIssue } = useErrorLogger();
+  const { toast } = useToast();
   
   // Always check localStorage directly to avoid stale closures
   const skipAuth = localStorage.getItem('skipAuth') === 'true';
@@ -35,6 +37,7 @@ export const AuthGuard = ({ children }: AuthGuardProps) => {
     return <Navigate to="/auth" state={{ from: location.pathname }} replace />;
   }
 
+  // User is authenticated or skipAuth is enabled, show protected content
   return <>{children}</>;
 };
 
@@ -42,6 +45,7 @@ export const UnauthGuard = ({ children }: AuthGuardProps) => {
   const { user, loading } = useAuth();
   const location = useLocation();
   const { logAuthFlowIssue } = useErrorLogger();
+  const { toast } = useToast();
   
   // Always check localStorage directly to avoid stale closures
   const skipAuth = localStorage.getItem('skipAuth') === 'true';
@@ -61,8 +65,13 @@ export const UnauthGuard = ({ children }: AuthGuardProps) => {
   // If user is authenticated or skipAuth is enabled, redirect to connect-data
   if (user || skipAuth) {
     console.log('UnauthGuard: Redirecting to /connect-data');
+    toast({
+      title: "Authentication successful",
+      description: "Redirecting to data connection page",
+    });
     return <Navigate to="/connect-data" replace />;
   }
 
+  // User is not authenticated and skipAuth is not enabled, show auth content
   return <>{children}</>;
 };
