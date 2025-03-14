@@ -1,5 +1,5 @@
 
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Index from './pages/Index';
 import NotFound from './pages/NotFound';
 import Auth from './pages/Auth';
@@ -18,9 +18,17 @@ export default function App() {
         <Router>
           <Routes>
             <Route path="/" element={<Landing />} />
-            <Route path="/dashboard" element={<Index />} />
+            <Route path="/dashboard" element={
+              <AuthGuard>
+                <Index />
+              </AuthGuard>
+            } />
             <Route path="/auth/*" element={<Auth />} />
-            <Route path="/connect-data" element={<ConnectData />} />
+            <Route path="/connect-data" element={
+              <AuthGuard>
+                <ConnectData />
+              </AuthGuard>
+            } />
             <Route 
               path="/issues/*" 
               element={
