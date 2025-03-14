@@ -5,7 +5,7 @@ import { getTestData } from './migrationService';
 export const fetchTactics = async (): Promise<string[]> => {
   try {
     const data = getTestData();
-    const tactics = [...new Set(data.map(item => item.tactic))];
+    const tactics = [...new Set(data.map(item => item.tactic))].sort();
     console.log("Fetched tactics:", tactics);
     return tactics;
   } catch (error) {
@@ -18,7 +18,7 @@ export const fetchTactics = async (): Promise<string[]> => {
 export const fetchTeams = async (): Promise<string[]> => {
   try {
     const data = getTestData();
-    const teams = [...new Set(data.map(item => item.team))];
+    const teams = [...new Set(data.map(item => item.team))].sort();
     console.log("Fetched teams:", teams);
     return teams;
   } catch (error) {
@@ -36,7 +36,7 @@ export const fetchPeopleByTeam = async (team: string): Promise<string[]> => {
       .map(item => `${item.first_name} ${item.last_name}`);
     
     // Return unique names
-    const uniquePeople = [...new Set(filteredPeople)];
+    const uniquePeople = [...new Set(filteredPeople)].sort();
     console.log(`Fetched people for team ${team}:`, uniquePeople);
     return uniquePeople;
   } catch (error) {
@@ -49,7 +49,7 @@ export const fetchPeopleByTeam = async (team: string): Promise<string[]> => {
 export const fetchDates = async (): Promise<string[]> => {
   try {
     const data = getTestData();
-    const dates = [...new Set(data.map(item => item.date))];
+    const dates = [...new Set(data.map(item => item.date))].sort();
     console.log("Fetched dates:", dates);
     return dates;
   } catch (error) {
