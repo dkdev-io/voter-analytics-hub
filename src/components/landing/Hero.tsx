@@ -15,7 +15,7 @@ export const Hero = () => {
           for field operatives that want to spend less time running counts and more time contacting voters.
         </p>
         <Link to="/auth">
-          <Button className="bg-blue-500 text-black hover:bg-blue-600 text-lg px-8 py-6">
+          <Button className="bg-blue-500 hover:bg-blue-600 text-white text-lg px-8 py-6 h-auto">
             Get Started
           </Button>
         </Link>

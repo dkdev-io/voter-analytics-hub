@@ -67,7 +67,7 @@ export const Pricing = () => {
                   ))}
                 </ul>
                 <Link to="/auth">
-                  <Button className="w-full bg-blue-500 text-black hover:bg-blue-600">Get Started</Button>
+                  <Button className="w-full bg-blue-500 hover:bg-blue-600 text-white">Get Started</Button>
                 </Link>
               </CardContent>
             </Card>
