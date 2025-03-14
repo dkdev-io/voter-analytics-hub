@@ -12,7 +12,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import './App.css';
 
 export default function App() {
-  console.log('App rendering');
+  console.log('App rendering, current path:', window.location.pathname);
   return (
     <ErrorBoundary>
       <AuthProvider>
@@ -47,9 +47,6 @@ export default function App() {
                 </AuthGuard>
               } 
             />
-            
-            {/* Redirect dashboard attempts to connect-data when not authenticated */}
-            <Route path="/dashboard" element={<Navigate to="/connect-data" replace />} />
             
             {/* Catch-all route */}
             <Route path="*" element={<NotFound />} />

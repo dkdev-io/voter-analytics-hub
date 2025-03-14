@@ -19,8 +19,10 @@ const Auth = () => {
   const location = useLocation();
   const { toast } = useToast();
 
-  // Always redirect to connect-data after authentication
-  const from = "/connect-data";
+  console.log('Auth component rendered, location state:', location.state);
+
+  // Get the redirect path from location state, default to connect-data
+  const from = location.state?.from || "/connect-data";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
