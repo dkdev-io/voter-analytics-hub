@@ -18,26 +18,37 @@ export const AuthGuard = ({ children }: AuthGuardProps) => {
   const skipAuth = localStorage.getItem('skipAuth') === 'true';
 
   // Log the auth guard activity
+  console.log('AuthGuard: checking auth status', { 
+    user: !!user, 
+    loading, 
+    skipAuth, 
+    path: location.pathname 
+  });
+
   logAuthFlowIssue('AuthGuard', {
     isAuthenticated: !!user,
     loading,
     skipAuth,
-    path: location.pathname,
-    state: location.state
+    path: location.pathname
   });
 
   if (loading) {
-    return <div className="flex justify-center items-center h-screen">Loading...</div>;
+    return <div className="flex justify-center items-center h-screen">Loading authentication...</div>;
   }
 
   // If user is not authenticated and skipAuth is not enabled, redirect to auth
   if (!user && !skipAuth) {
     console.log('AuthGuard: Redirecting to /auth from', location.pathname);
+    toast({
+      title: "Authentication required",
+      description: "Please sign in to continue",
+    });
     // Save the current path to redirect back after auth
     return <Navigate to="/auth" state={{ from: location.pathname }} replace />;
   }
 
   // User is authenticated or skipAuth is enabled, show protected content
+  console.log('AuthGuard: Allowing access to', location.pathname);
   return <>{children}</>;
 };
 
@@ -51,6 +62,13 @@ export const UnauthGuard = ({ children }: AuthGuardProps) => {
   const skipAuth = localStorage.getItem('skipAuth') === 'true';
   
   // Log the unauth guard activity
+  console.log('UnauthGuard: checking auth status', { 
+    user: !!user, 
+    loading, 
+    skipAuth, 
+    path: location.pathname 
+  });
+  
   logAuthFlowIssue('UnauthGuard', {
     isAuthenticated: !!user,
     loading,
@@ -59,7 +77,7 @@ export const UnauthGuard = ({ children }: AuthGuardProps) => {
   });
   
   if (loading) {
-    return <div className="flex justify-center items-center h-screen">Loading...</div>;
+    return <div className="flex justify-center items-center h-screen">Loading authentication...</div>;
   }
 
   // If user is authenticated or skipAuth is enabled, redirect to connect-data
@@ -73,5 +91,6 @@ export const UnauthGuard = ({ children }: AuthGuardProps) => {
   }
 
   // User is not authenticated and skipAuth is not enabled, show auth content
+  console.log('UnauthGuard: Showing auth content at', location.pathname);
   return <>{children}</>;
 };

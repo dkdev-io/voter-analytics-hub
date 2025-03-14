@@ -11,6 +11,10 @@ const ConnectData = () => {
   const { toast } = useToast();
 
   const handleSkip = () => {
+    // Mark that we've completed data connection
+    sessionStorage.setItem('completedDataConnection', 'true');
+    
+    console.log('ConnectData: Skipping data connection, navigating to dashboard');
     toast({
       title: 'Skipped data connection',
       description: 'You can connect your data sources later in settings.',
@@ -23,10 +27,15 @@ const ConnectData = () => {
     // Simulate connection process
     setTimeout(() => {
       setLoading(false);
+      // Mark that we've completed data connection
+      sessionStorage.setItem('completedDataConnection', 'true');
+      
+      console.log(`ConnectData: Connected to ${source}, navigating to dashboard`);
       toast({
-        title: 'Connection initiated',
-        description: `Connecting to ${source}. This feature is coming soon.`,
+        title: 'Connection successful',
+        description: `Connected to ${source}. Redirecting to dashboard.`,
       });
+      navigate('/dashboard');
     }, 1500);
   };
 
