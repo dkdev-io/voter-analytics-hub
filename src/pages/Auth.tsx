@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -18,7 +19,8 @@ const Auth = () => {
   const location = useLocation();
   const { toast } = useToast();
 
-  const from = location.state?.from?.pathname || '/connect-data';
+  // Always redirect to connect-data after authentication
+  const from = "/connect-data";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

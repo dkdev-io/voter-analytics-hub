@@ -32,7 +32,7 @@ export const UnauthGuard = ({ children }: AuthGuardProps) => {
   }
 
   if (user || skipAuth) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/connect-data" replace />;
   }
 
   return <>{children}</>;
