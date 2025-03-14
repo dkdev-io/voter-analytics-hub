@@ -6,7 +6,7 @@ import Auth from './pages/Auth';
 import Landing from './pages/Landing';
 import ConnectData from './pages/ConnectData';
 import { AuthProvider } from './components/AuthProvider';
-import { AuthGuard } from './components/AuthGuard';
+import { AuthGuard, UnauthGuard } from './components/AuthGuard';
 import { IssueTracker } from './components/issue-log/IssueTracker';
 import ErrorBoundary from './components/ErrorBoundary';
 import './App.css';
@@ -23,7 +23,11 @@ export default function App() {
                 <Index />
               </AuthGuard>
             } />
-            <Route path="/auth/*" element={<Auth />} />
+            <Route path="/auth" element={
+              <UnauthGuard>
+                <Auth />
+              </UnauthGuard>
+            } />
             <Route path="/connect-data" element={
               <AuthGuard>
                 <ConnectData />
