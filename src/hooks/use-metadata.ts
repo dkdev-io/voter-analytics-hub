@@ -16,6 +16,8 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
   
   // Fetch initial data
   useEffect(() => {
+    let isMounted = true;
+    
     const loadInitialData = async () => {
       try {
         setIsLoading(true);
@@ -32,6 +34,9 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
           fetchTeams(),
           fetchDates()
         ]);
+        
+        // Prevent state updates if component is unmounted
+        if (!isMounted) return;
         
         // Process results even if some promises were rejected
         const [tacticsResult, teamsResult, datesResult] = results;
@@ -59,7 +64,9 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
       } catch (err) {
         console.error("Error loading initial data:", err);
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     };
     
@@ -69,10 +76,16 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
       console.log("Data not migrated, skipping metadata load");
       setIsLoading(false);
     }
+    
+    return () => {
+      isMounted = false;
+    };
   }, [isDataMigrated]);
 
   // Fetch people based on selected team
   useEffect(() => {
+    let isMounted = true;
+    
     const loadPeopleByTeam = async () => {
       if (!isDataMigrated || !selectedTeam) return;
       
@@ -81,14 +94,18 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
         console.log("Loading people for team:", selectedTeam);
         
         const people = await fetchPeopleByTeam(selectedTeam);
-        console.log("People loaded:", people);
         
-        setFilteredPeople(people || []);
+        if (isMounted) {
+          console.log("People loaded:", people);
+          setFilteredPeople(people || []);
+          setIsLoading(false);
+        }
       } catch (err) {
         console.error("Error loading people by team:", err);
-        setFilteredPeople([]);
-      } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setFilteredPeople([]);
+          setIsLoading(false);
+        }
       }
     };
     
@@ -96,7 +113,14 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
       loadPeopleByTeam();
     } else {
       console.log("Not loading people: isDataMigrated=", isDataMigrated, "selectedTeam=", selectedTeam);
+      if (isMounted && selectedTeam === null) {
+        setFilteredPeople([]);
+      }
     }
+    
+    return () => {
+      isMounted = false;
+    };
   }, [selectedTeam, isDataMigrated]);
 
   return {
