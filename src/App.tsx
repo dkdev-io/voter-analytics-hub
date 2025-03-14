@@ -18,7 +18,7 @@ export default function App() {
       <AuthProvider>
         <Router>
           <Routes>
-            {/* Public routes */}
+            {/* Landing page is the default route */}
             <Route path="/" element={<Landing />} />
             
             {/* Auth route with UnauthGuard to prevent authenticated users from accessing */}
@@ -47,6 +47,9 @@ export default function App() {
                 </AuthGuard>
               } 
             />
+            
+            {/* Redirect dashboard attempts to connect-data when not authenticated */}
+            <Route path="/dashboard" element={<Navigate to="/connect-data" replace />} />
             
             {/* Catch-all route */}
             <Route path="*" element={<NotFound />} />

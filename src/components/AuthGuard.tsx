@@ -18,7 +18,8 @@ export const AuthGuard = ({ children }: AuthGuardProps) => {
   // If user is not authenticated and skipAuth is not enabled, redirect to auth
   if (!user && !skipAuth) {
     console.log('AuthGuard: Redirecting to /auth from', location.pathname);
-    return <Navigate to="/auth" state={{ from: location }} replace />;
+    // Save the current path to redirect back after auth
+    return <Navigate to="/auth" state={{ from: location.pathname }} replace />;
   }
 
   return <>{children}</>;
@@ -26,6 +27,7 @@ export const AuthGuard = ({ children }: AuthGuardProps) => {
 
 export const UnauthGuard = ({ children }: AuthGuardProps) => {
   const { user, loading } = useAuth();
+  const location = useLocation();
   const skipAuth = localStorage.getItem('skipAuth') === 'true';
   
   if (loading) {
