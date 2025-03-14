@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   fetchTactics, 
   fetchTeams, 
@@ -14,33 +14,19 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
   const [availableDates, setAvailableDates] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
-  // Use refs to track component mounted state and prevent unnecessary fetches
-  const isMountedRef = useRef(true);
-  const previousTeamRef = useRef<string | null>(null);
-  const initialLoadCompletedRef = useRef(false);
-  const renderCount = useRef(0);
-  
-  renderCount.current++;
-  console.log(`useMetadata render #${renderCount.current} with selectedTeam:`, selectedTeam, 
-    "prevTeam:", previousTeamRef.current);
-  
-  // Set up cleanup function
+  // Fetch initial data
   useEffect(() => {
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, []);
-  
-  // Fetch initial data only once
-  useEffect(() => {
-    if (!isDataMigrated || initialLoadCompletedRef.current) {
-      return;
-    }
+    let isMounted = true;
     
     const loadInitialData = async () => {
       try {
         setIsLoading(true);
-        console.log("Fetching initial metadata, isDataMigrated:", isDataMigrated);
+        console.log("Fetching metadata, isDataMigrated:", isDataMigrated);
+        
+        if (!isDataMigrated) {
+          console.log("Data not migrated yet, skipping metadata fetch");
+          return;
+        }
         
         // Fetch all metadata in parallel
         const results = await Promise.allSettled([
@@ -50,100 +36,92 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
         ]);
         
         // Prevent state updates if component is unmounted
-        if (!isMountedRef.current) return;
+        if (!isMounted) return;
         
         // Process results even if some promises were rejected
         const [tacticsResult, teamsResult, datesResult] = results;
         
         if (tacticsResult.status === 'fulfilled') {
+          console.log("Tactics loaded successfully:", tacticsResult.value);
           setTactics(tacticsResult.value || []);
         } else {
           console.error("Error loading tactics:", tacticsResult.reason);
         }
         
         if (teamsResult.status === 'fulfilled') {
+          console.log("Teams loaded successfully:", teamsResult.value);
           setTeams(teamsResult.value || []);
         } else {
           console.error("Error loading teams:", teamsResult.reason);
         }
         
         if (datesResult.status === 'fulfilled') {
+          console.log("Dates loaded successfully:", datesResult.value);
           setAvailableDates(datesResult.value || []);
         } else {
           console.error("Error loading dates:", datesResult.reason);
         }
-        
-        initialLoadCompletedRef.current = true;
       } catch (err) {
         console.error("Error loading initial data:", err);
       } finally {
-        if (isMountedRef.current) {
+        if (isMounted) {
           setIsLoading(false);
         }
       }
     };
     
-    loadInitialData();
+    if (isDataMigrated) {
+      loadInitialData();
+    } else {
+      console.log("Data not migrated, skipping metadata load");
+      setIsLoading(false);
+    }
+    
+    return () => {
+      isMounted = false;
+    };
   }, [isDataMigrated]);
 
-  // Fetch people based on selected team with strict equality check
+  // Fetch people based on selected team
   useEffect(() => {
-    // Skip if conditions aren't met
-    if (!isDataMigrated) {
-      console.log("useMetadata: Data not migrated, skipping people fetch");
-      return;
-    }
-    
-    // Compare using strict equality
-    const prevTeam = previousTeamRef.current;
-    const currentTeam = selectedTeam;
-    
-    // Skip if the team hasn't changed (strict equality)
-    if (prevTeam === currentTeam) {
-      console.log("useMetadata: Team unchanged, skipping people fetch", { prevTeam, currentTeam });
-      return;
-    }
-    
-    console.log("useMetadata: Team changed, updating people", { prevTeam, currentTeam });
-    
-    // Update previous team first to prevent duplicate calls
-    previousTeamRef.current = currentTeam;
-    
-    // Clear people if no team is selected
-    if (!currentTeam) {
-      if (isMountedRef.current && filteredPeople.length > 0) {
-        console.log("useMetadata: Clearing people list since no team selected");
-        setFilteredPeople([]);
-      }
-      return;
-    }
+    let isMounted = true;
     
     const loadPeopleByTeam = async () => {
-      // Only set loading if this isn't the first time or if we have previous people
-      if (isMountedRef.current && (prevTeam !== null || filteredPeople.length > 0)) {
-        setIsLoading(true);
-      }
+      if (!isDataMigrated || !selectedTeam) return;
       
       try {
-        console.log("Loading people for team:", currentTeam);
-        const people = await fetchPeopleByTeam(currentTeam);
+        setIsLoading(true);
+        console.log("Loading people for team:", selectedTeam);
         
-        if (isMountedRef.current) {
+        const people = await fetchPeopleByTeam(selectedTeam);
+        
+        if (isMounted) {
           console.log("People loaded:", people);
           setFilteredPeople(people || []);
           setIsLoading(false);
         }
       } catch (err) {
         console.error("Error loading people by team:", err);
-        if (isMountedRef.current) {
+        if (isMounted) {
           setFilteredPeople([]);
           setIsLoading(false);
         }
       }
     };
     
-    loadPeopleByTeam();
-  }, [selectedTeam, isDataMigrated, filteredPeople.length]);
+    if (isDataMigrated && selectedTeam) {
+      loadPeopleByTeam();
+    } else {
+      console.log("Not loading people: isDataMigrated=", isDataMigrated, "selectedTeam=", selectedTeam);
+      if (isMounted && selectedTeam === null) {
+        setFilteredPeople([]);
+      }
+    }
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedTeam, isDataMigrated]);
 
   return {
     tactics,

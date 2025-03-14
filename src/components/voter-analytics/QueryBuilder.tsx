@@ -1,5 +1,6 @@
 
-import { useCallback, useRef } from 'react';
+import { useState, useEffect } from 'react';
+import { format } from "date-fns";
 import { type QueryParams } from '@/types/analytics';
 import { useMetadata } from '@/hooks/use-metadata';
 import { TacticSelector } from './TacticSelector';
@@ -23,73 +24,57 @@ export const QueryBuilder = ({
   isLoading: parentIsLoading,
   isDataMigrated 
 }: QueryBuilderProps) => {
-  console.log("QueryBuilder rendering with query:", query);
+  const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
   
-  // Add a render counter for debugging
-  const renderCount = useRef(0);
-  renderCount.current++;
-  console.log(`QueryBuilder render #${renderCount.current}`);
-  
-  // Use our custom hook to fetch metadata - pass query.team directly 
-  const { tactics, teams, filteredPeople, availableDates, isLoading: metadataIsLoading } = useMetadata(isDataMigrated, query.team || null);
+  // Use our custom hook to fetch metadata
+  const { tactics, teams, filteredPeople, availableDates, isLoading: metadataIsLoading } = useMetadata(isDataMigrated, selectedTeam);
   
   const isLoading = parentIsLoading || metadataIsLoading;
 
-  // Memoize the team change handler
-  const handleTeamChange = useCallback((value: string) => {
-    console.log("QueryBuilder: Team changed to:", value, "current:", query.team);
-    
-    // Skip if no actual change to prevent re-renders
-    if (value === query.team) {
-      console.log("QueryBuilder: Team value unchanged, skipping update");
-      return;
-    }
-    
-    // Update query with team change and remove person in one update
-    setQuery(prev => {
-      // Create a new query object to trigger state update
-      const newQuery = { ...prev, team: value };
-      
-      // Reset person when team changes
-      if (prev.person) {
+  // Clear person selection when team changes
+  useEffect(() => {
+    if (selectedTeam) {
+      setQuery(prev => {
+        const newQuery = { ...prev };
         delete newQuery.person;
-      }
-      
-      console.log("QueryBuilder: Setting new query", newQuery);
+        return newQuery;
+      });
+    }
+  }, [selectedTeam, setQuery]);
+
+  const handleDateSelect = (value: string) => {
+    setQuery(prev => ({ ...prev, date: value }));
+    setError(null);
+  };
+
+  const handleTeamChange = (value: string) => {
+    setSelectedTeam(value);
+    
+    // Update the query separately to prevent multiple re-renders
+    setQuery(prev => {
+      const newQuery = { ...prev, team: value };
+      // Remove person when team changes
+      delete newQuery.person;
       return newQuery;
     });
     
     setError(null);
-  }, [setQuery, setError, query.team]);
+  };
 
-  // Memoize handlers to prevent recreating functions on each render
-  const handleDateSelect = useCallback((value: string) => {
-    if (value === query.date) return;
-    
-    setQuery(prev => ({ ...prev, date: value }));
-    setError(null);
-  }, [setQuery, setError, query.date]);
-
-  const handlePersonChange = useCallback((value: string) => {
-    if (value === query.person) return;
-    
+  const handlePersonChange = (value: string) => {
     setQuery(prev => ({ ...prev, person: value }));
     setError(null);
-  }, [setQuery, setError, query.person]);
+  };
 
-  const handleTacticChange = useCallback((value: string) => {
-    if (value === query.tactic) return;
-    
+  const handleTacticChange = (value: string) => {
     setQuery(prev => ({ ...prev, tactic: value }));
     setError(null);
-  }, [setQuery, setError, query.tactic]);
+  };
 
-  const handleResultTypeChange = useCallback((value: string) => {
-    if (value === query.resultType) return;
-    
+  const handleResultTypeChange = (value: string) => {
     setQuery(prev => ({ ...prev, resultType: value }));
     setError(null);
-  }, [setQuery, setError, query.resultType]);
+  };
 
   return (
     <div className="space-y-6">
@@ -112,7 +97,7 @@ export const QueryBuilder = ({
         <span>were done by</span>
         
         <TeamSelector 
-          value={query.team || null}
+          value={selectedTeam}
           onChange={handleTeamChange}
           teams={teams}
           isLoading={isLoading}
@@ -122,7 +107,7 @@ export const QueryBuilder = ({
           value={query.person}
           onChange={handlePersonChange}
           people={filteredPeople}
-          disabled={!query.team}
+          disabled={!selectedTeam}
           isLoading={isLoading}
         />
         
