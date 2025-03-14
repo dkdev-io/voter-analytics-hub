@@ -23,55 +23,62 @@ export const QueryBuilder = ({
   isLoading: parentIsLoading,
   isDataMigrated 
 }: QueryBuilderProps) => {
-  // Track previous team to prevent unnecessary updates
-  const prevTeamRef = useRef<string | null>(query.team || null);
+  // Use query.team directly without duplicating state
+  // This eliminates a major source of the infinite re-render issue
   
-  // Initialize selectedTeam with query.team if it exists, otherwise null
-  const [selectedTeam, setSelectedTeam] = useState<string | null>(query.team || null);
-  
-  // Use our custom hook to fetch metadata
-  const { tactics, teams, filteredPeople, availableDates, isLoading: metadataIsLoading } = useMetadata(isDataMigrated, selectedTeam);
+  // Use our custom hook to fetch metadata - pass query.team directly 
+  const { tactics, teams, filteredPeople, availableDates, isLoading: metadataIsLoading } = useMetadata(isDataMigrated, query.team || null);
   
   const isLoading = parentIsLoading || metadataIsLoading;
 
-  // Handle team changes - this is a critical path that could cause infinite loops
+  // Memoize the team change handler
   const handleTeamChange = useCallback((value: string) => {
-    // Only update if the team has actually changed
-    if (value !== prevTeamRef.current) {
-      prevTeamRef.current = value;
-      setSelectedTeam(value);
+    // Update query with team change and remove person in one update
+    setQuery(prev => {
+      // Only update if there's an actual change
+      if (value === prev.team) {
+        return prev;
+      }
       
-      // Update query with team change and remove person
-      setQuery(prev => {
-        const newQuery = { ...prev, team: value };
-        delete newQuery.person;
-        return newQuery;
-      });
-      
-      setError(null);
-    }
+      const newQuery = { ...prev, team: value };
+      // Reset person when team changes
+      delete newQuery.person;
+      return newQuery;
+    });
+    
+    setError(null);
   }, [setQuery, setError]);
 
-  // Clear person selection when team changes - removed since we handle this in handleTeamChange
-  
   // Memoize handlers to prevent recreating functions on each render
   const handleDateSelect = useCallback((value: string) => {
-    setQuery(prev => ({ ...prev, date: value }));
+    setQuery(prev => {
+      if (prev.date === value) return prev;
+      return { ...prev, date: value };
+    });
     setError(null);
   }, [setQuery, setError]);
 
   const handlePersonChange = useCallback((value: string) => {
-    setQuery(prev => ({ ...prev, person: value }));
+    setQuery(prev => {
+      if (prev.person === value) return prev;
+      return { ...prev, person: value };
+    });
     setError(null);
   }, [setQuery, setError]);
 
   const handleTacticChange = useCallback((value: string) => {
-    setQuery(prev => ({ ...prev, tactic: value }));
+    setQuery(prev => {
+      if (prev.tactic === value) return prev;
+      return { ...prev, tactic: value };
+    });
     setError(null);
   }, [setQuery, setError]);
 
   const handleResultTypeChange = useCallback((value: string) => {
-    setQuery(prev => ({ ...prev, resultType: value }));
+    setQuery(prev => {
+      if (prev.resultType === value) return prev;
+      return { ...prev, resultType: value };
+    });
     setError(null);
   }, [setQuery, setError]);
 
@@ -96,7 +103,7 @@ export const QueryBuilder = ({
         <span>were done by</span>
         
         <TeamSelector 
-          value={selectedTeam}
+          value={query.team || null}
           onChange={handleTeamChange}
           teams={teams}
           isLoading={isLoading}
@@ -106,7 +113,7 @@ export const QueryBuilder = ({
           value={query.person}
           onChange={handlePersonChange}
           people={filteredPeople}
-          disabled={!selectedTeam}
+          disabled={!query.team}
           isLoading={isLoading}
         />
         

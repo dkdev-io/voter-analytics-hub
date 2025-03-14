@@ -84,28 +84,33 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
     loadInitialData();
   }, [isDataMigrated]);
 
-  // Fetch people based on selected team - with safeguards to prevent unnecessary fetches
+  // Fetch people based on selected team with strict equality check
   useEffect(() => {
-    // Skip if the team hasn't changed or if it's the initial load
-    if (previousTeamRef.current === selectedTeam) {
-      return;
-    }
+    // Skip if conditions aren't met
+    if (!isDataMigrated) return;
     
-    // Early return if conditions aren't met
-    if (!isDataMigrated || !selectedTeam) {
-      if (!selectedTeam && isMountedRef.current) {
+    // Skip if the team hasn't changed (strict equality)
+    if (previousTeamRef.current === selectedTeam) return;
+    
+    // Update previous team first to prevent duplicate calls
+    const prevTeam = previousTeamRef.current;
+    previousTeamRef.current = selectedTeam;
+    
+    // Clear people if no team is selected
+    if (!selectedTeam) {
+      if (isMountedRef.current && filteredPeople.length > 0) {
         setFilteredPeople([]);
       }
-      previousTeamRef.current = selectedTeam;
       return;
     }
     
     const loadPeopleByTeam = async () => {
+      // Only set loading if this isn't the first time or if we have previous people
+      if (isMountedRef.current && (prevTeam !== null || filteredPeople.length > 0)) {
+        setIsLoading(true);
+      }
+      
       try {
-        if (isMountedRef.current) {
-          setIsLoading(true);
-        }
-        
         console.log("Loading people for team:", selectedTeam);
         const people = await fetchPeopleByTeam(selectedTeam);
         
@@ -113,22 +118,18 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
           console.log("People loaded:", people);
           setFilteredPeople(people || []);
           setIsLoading(false);
-          // Only update the previous team ref after successful fetch
-          previousTeamRef.current = selectedTeam;
         }
       } catch (err) {
         console.error("Error loading people by team:", err);
         if (isMountedRef.current) {
           setFilteredPeople([]);
           setIsLoading(false);
-          // Still update the ref to prevent repeated fetch attempts
-          previousTeamRef.current = selectedTeam;
         }
       }
     };
     
     loadPeopleByTeam();
-  }, [selectedTeam, isDataMigrated]);
+  }, [selectedTeam, isDataMigrated, filteredPeople.length]);
 
   return {
     tactics,

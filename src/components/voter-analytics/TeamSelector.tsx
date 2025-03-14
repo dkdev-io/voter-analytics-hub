@@ -15,9 +15,8 @@ export const TeamSelector = ({
   teams, 
   isLoading 
 }: TeamSelectorProps) => {
-  // Memoize the change handler to prevent unnecessary re-renders
+  // Memoize the change handler with strict equality check
   const handleChange = useCallback((newValue: string) => {
-    // Only call onChange if the value has actually changed
     if (newValue !== value) {
       onChange(newValue);
     }
