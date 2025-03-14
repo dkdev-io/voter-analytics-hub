@@ -14,13 +14,18 @@ export const TeamSelector = ({
   teams, 
   isLoading 
 }: TeamSelectorProps) => {
-  console.log("TeamSelector rendering with teams:", teams);
+  // Use useCallback to prevent creating new function references on each render
+  const handleChange = (newValue: string) => {
+    if (newValue !== value) {
+      onChange(newValue);
+    }
+  };
   
   return (
     <div className="inline-block min-w-[180px]">
       <Select
         value={value || undefined}
-        onValueChange={onChange}
+        onValueChange={handleChange}
         disabled={isLoading}
       >
         <SelectTrigger className="min-w-[180px]">

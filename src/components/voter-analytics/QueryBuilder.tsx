@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { format } from "date-fns";
 import { type QueryParams } from '@/types/analytics';
 import { useMetadata } from '@/hooks/use-metadata';
@@ -31,50 +31,58 @@ export const QueryBuilder = ({
   
   const isLoading = parentIsLoading || metadataIsLoading;
 
-  // Clear person selection when team changes
+  // Clear person selection when team changes - use useEffect to avoid renders
   useEffect(() => {
     if (selectedTeam) {
       setQuery(prev => {
-        const newQuery = { ...prev };
-        delete newQuery.person;
-        return newQuery;
+        // Only update if the person property exists
+        if (prev.person) {
+          const newQuery = { ...prev };
+          delete newQuery.person;
+          return newQuery;
+        }
+        return prev;
       });
     }
   }, [selectedTeam, setQuery]);
 
-  const handleDateSelect = (value: string) => {
+  // Memoize handlers to prevent recreating functions on each render
+  const handleDateSelect = useCallback((value: string) => {
     setQuery(prev => ({ ...prev, date: value }));
     setError(null);
-  };
+  }, [setQuery, setError]);
 
-  const handleTeamChange = (value: string) => {
-    setSelectedTeam(value);
-    
-    // Update the query separately to prevent multiple re-renders
-    setQuery(prev => {
-      const newQuery = { ...prev, team: value };
-      // Remove person when team changes
-      delete newQuery.person;
-      return newQuery;
-    });
-    
-    setError(null);
-  };
+  const handleTeamChange = useCallback((value: string) => {
+    // Only update if the value is actually different
+    if (value !== selectedTeam) {
+      setSelectedTeam(value);
+      
+      // Update the query separately to prevent multiple re-renders
+      setQuery(prev => {
+        const newQuery = { ...prev, team: value };
+        // Remove person when team changes
+        delete newQuery.person;
+        return newQuery;
+      });
+      
+      setError(null);
+    }
+  }, [selectedTeam, setQuery, setError]);
 
-  const handlePersonChange = (value: string) => {
+  const handlePersonChange = useCallback((value: string) => {
     setQuery(prev => ({ ...prev, person: value }));
     setError(null);
-  };
+  }, [setQuery, setError]);
 
-  const handleTacticChange = (value: string) => {
+  const handleTacticChange = useCallback((value: string) => {
     setQuery(prev => ({ ...prev, tactic: value }));
     setError(null);
-  };
+  }, [setQuery, setError]);
 
-  const handleResultTypeChange = (value: string) => {
+  const handleResultTypeChange = useCallback((value: string) => {
     setQuery(prev => ({ ...prev, resultType: value }));
     setError(null);
-  };
+  }, [setQuery, setError]);
 
   return (
     <div className="space-y-6">

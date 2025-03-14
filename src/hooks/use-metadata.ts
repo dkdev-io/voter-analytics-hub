@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { 
   fetchTactics, 
   fetchTeams, 
@@ -14,19 +14,28 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
   const [availableDates, setAvailableDates] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
+  // Use a ref to track component mounted state
+  const isMountedRef = useRef(true);
+  
+  // Set up cleanup function
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+  
   // Fetch initial data
   useEffect(() => {
-    let isMounted = true;
+    if (!isDataMigrated) {
+      console.log("Data not migrated yet, skipping metadata fetch");
+      setIsLoading(false);
+      return;
+    }
     
     const loadInitialData = async () => {
       try {
         setIsLoading(true);
         console.log("Fetching metadata, isDataMigrated:", isDataMigrated);
-        
-        if (!isDataMigrated) {
-          console.log("Data not migrated yet, skipping metadata fetch");
-          return;
-        }
         
         // Fetch all metadata in parallel
         const results = await Promise.allSettled([
@@ -36,7 +45,7 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
         ]);
         
         // Prevent state updates if component is unmounted
-        if (!isMounted) return;
+        if (!isMountedRef.current) return;
         
         // Process results even if some promises were rejected
         const [tacticsResult, teamsResult, datesResult] = results;
@@ -64,63 +73,47 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
       } catch (err) {
         console.error("Error loading initial data:", err);
       } finally {
-        if (isMounted) {
+        if (isMountedRef.current) {
           setIsLoading(false);
         }
       }
     };
     
-    if (isDataMigrated) {
-      loadInitialData();
-    } else {
-      console.log("Data not migrated, skipping metadata load");
-      setIsLoading(false);
-    }
-    
-    return () => {
-      isMounted = false;
-    };
+    loadInitialData();
   }, [isDataMigrated]);
 
   // Fetch people based on selected team
   useEffect(() => {
-    let isMounted = true;
+    // Early return if conditions aren't met
+    if (!isDataMigrated || !selectedTeam) {
+      if (!selectedTeam && isMountedRef.current) {
+        setFilteredPeople([]);
+      }
+      return;
+    }
     
     const loadPeopleByTeam = async () => {
-      if (!isDataMigrated || !selectedTeam) return;
-      
       try {
         setIsLoading(true);
         console.log("Loading people for team:", selectedTeam);
         
         const people = await fetchPeopleByTeam(selectedTeam);
         
-        if (isMounted) {
+        if (isMountedRef.current) {
           console.log("People loaded:", people);
           setFilteredPeople(people || []);
           setIsLoading(false);
         }
       } catch (err) {
         console.error("Error loading people by team:", err);
-        if (isMounted) {
+        if (isMountedRef.current) {
           setFilteredPeople([]);
           setIsLoading(false);
         }
       }
     };
     
-    if (isDataMigrated && selectedTeam) {
-      loadPeopleByTeam();
-    } else {
-      console.log("Not loading people: isDataMigrated=", isDataMigrated, "selectedTeam=", selectedTeam);
-      if (isMounted && selectedTeam === null) {
-        setFilteredPeople([]);
-      }
-    }
-    
-    return () => {
-      isMounted = false;
-    };
+    loadPeopleByTeam();
   }, [selectedTeam, isDataMigrated]);
 
   return {
