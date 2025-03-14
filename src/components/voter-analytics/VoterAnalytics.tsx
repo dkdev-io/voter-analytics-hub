@@ -18,27 +18,25 @@ export const VoterAnalytics = () => {
   const [isDataMigrated, setIsDataMigrated] = useState(false);
   const { toast } = useToast();
 
-  // Initial data migration check
+  // Initial data migration check - now just sets isDataMigrated to true
   useEffect(() => {
     const initializeData = async () => {
       setIsLoading(true);
       try {
-        console.log("Initializing data migration...");
-        // Check if data exists in Supabase
+        console.log("Initializing mock data...");
         await migrateTestDataToSupabase();
-        console.log("Data migration completed successfully");
         
         toast({
           title: "Data Connection",
-          description: "Connected to Supabase voter contact database.",
+          description: "Using test data for voter contact queries.",
           variant: "default"
         });
         setIsDataMigrated(true);
       } catch (err) {
-        console.error("Error in data connection:", err);
+        console.error("Error in data initialization:", err);
         toast({
           title: "Error",
-          description: "Failed to connect to Supabase database.",
+          description: "Failed to initialize test data.",
           variant: "destructive"
         });
       } finally {

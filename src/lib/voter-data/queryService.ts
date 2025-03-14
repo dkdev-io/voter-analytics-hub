@@ -1,8 +1,7 @@
 
-import { supabase } from '@/integrations/supabase/client';
 import type { QueryParams } from '@/types/analytics';
+import { getTestData } from './migrationService';
 
-// Function to calculate result based on query parameters
 export const calculateResultFromSupabase = async (query: Partial<QueryParams>) => {
   try {
     console.log("Calculating result with query:", query);
@@ -11,38 +10,39 @@ export const calculateResultFromSupabase = async (query: Partial<QueryParams>) =
       return { error: "Please select at least one field", result: null };
     }
 
-    // Start building the Supabase query
-    let supabaseQuery = supabase.from('voter_contacts').select('*');
+    // Get the mock data
+    const data = getTestData();
+    console.log("Using mock data:", data);
     
-    // Add filters based on query parameters
-    if (query.tactic && query.tactic !== 'All') {
-      supabaseQuery = supabaseQuery.eq('tactic', query.tactic);
-    }
-    
-    if (query.date && query.date !== 'All') {
-      supabaseQuery = supabaseQuery.eq('date', query.date);
-    }
-    
-    if (query.team && query.team !== 'All') {
-      supabaseQuery = supabaseQuery.eq('team', query.team);
-    }
-    
-    if (query.person && query.person !== 'All') {
-      const nameParts = query.person.split(" ");
-      const firstName = nameParts[0];
-      const lastName = nameParts.slice(1).join(" ");
+    // Filter the data based on query parameters
+    const filteredData = data.filter(item => {
+      // Apply tactic filter
+      if (query.tactic && query.tactic !== 'All' && item.tactic !== query.tactic) {
+        return false;
+      }
       
-      supabaseQuery = supabaseQuery
-        .eq('first_name', firstName)
-        .eq('last_name', lastName);
-    }
+      // Apply date filter
+      if (query.date && query.date !== 'All' && item.date !== query.date) {
+        return false;
+      }
+      
+      // Apply team filter
+      if (query.team && query.team !== 'All' && item.team !== query.team) {
+        return false;
+      }
+      
+      // Apply person filter
+      if (query.person && query.person !== 'All') {
+        const fullName = `${item.first_name} ${item.last_name}`;
+        if (fullName !== query.person) {
+          return false;
+        }
+      }
+      
+      return true;
+    });
     
-    // Execute the query
-    const { data, error } = await supabaseQuery;
-    
-    if (error) throw error;
-    
-    console.log("Query results:", data);
+    console.log("Filtered data:", filteredData);
     
     // Map the display result type to the actual property name in the data
     let resultType = query.resultType ? 
@@ -56,10 +56,10 @@ export const calculateResultFromSupabase = async (query: Partial<QueryParams>) =
       resultType = "bad_data";
     }
     
-    if (data.length === 0) {
+    if (filteredData.length === 0) {
       return { result: 0, error: null };
     } else {
-      const total = data.reduce((sum, item) => {
+      const total = filteredData.reduce((sum, item) => {
         return sum + (item[resultType as keyof typeof item] as number || 0);
       }, 0);
       
@@ -67,6 +67,6 @@ export const calculateResultFromSupabase = async (query: Partial<QueryParams>) =
     }
   } catch (error) {
     console.error("Error calculating result:", error);
-    return { error: "Error querying database", result: null };
+    return { error: "Error processing data", result: null };
   }
 };
