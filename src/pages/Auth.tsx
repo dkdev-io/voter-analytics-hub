@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
+import { useErrorLogger } from '@/hooks/useErrorLogger';
 import { CheckCircle } from 'lucide-react';
 
 const Auth = () => {
@@ -18,8 +19,22 @@ const Auth = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
+  const { logAuthFlowIssue } = useErrorLogger();
 
   console.log('Auth component rendered, location state:', location.state);
+  
+  useEffect(() => {
+    // Clear skipAuth on mount to ensure proper authentication
+    if (localStorage.getItem('skipAuth') === 'true') {
+      console.log('Auth: Clearing skipAuth flag on Auth page load');
+      localStorage.removeItem('skipAuth');
+      
+      logAuthFlowIssue('Auth page - cleared skipAuth', {
+        locationState: location.state,
+        previousSkipAuth: true
+      });
+    }
+  }, []);
 
   // Get the redirect path from location state, default to connect-data
   const from = location.state?.from || "/connect-data";
@@ -62,12 +77,21 @@ const Auth = () => {
       }
     } catch (error: any) {
       setError(error.message || 'An unexpected error occurred');
+      logAuthFlowIssue('Auth submission error', {
+        errorMessage: error.message,
+        isLogin,
+        email: email.substring(0, 3) + '***', // Don't log full email for privacy
+      });
     } finally {
       setLoading(false);
     }
   };
 
   const handleSkipAuth = () => {
+    logAuthFlowIssue('Skip Auth button clicked', {
+      redirectTarget: from
+    });
+    
     localStorage.setItem('skipAuth', 'true');
     toast({
       title: 'Access Granted',

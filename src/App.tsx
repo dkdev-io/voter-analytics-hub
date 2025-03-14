@@ -12,7 +12,19 @@ import ErrorBoundary from './components/ErrorBoundary';
 import './App.css';
 
 export default function App() {
-  console.log('App rendering, current path:', window.location.pathname);
+  // Clear skipAuth on initial load when directly accessing protected routes
+  // This prevents bypass of auth when deep linking
+  const currentPath = window.location.pathname;
+  console.log('App rendering, current path:', currentPath);
+  
+  if (currentPath !== '/' && currentPath !== '/auth') {
+    const skipAuth = localStorage.getItem('skipAuth');
+    if (skipAuth === 'true') {
+      console.log('App: Deep linking detected with skipAuth=true. Clearing skipAuth flag.');
+      localStorage.removeItem('skipAuth');
+    }
+  }
+  
   return (
     <ErrorBoundary>
       <AuthProvider>

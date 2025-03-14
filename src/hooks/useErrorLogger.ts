@@ -31,6 +31,39 @@ export function useErrorLogger() {
     }
   };
   
+  // Helper specifically for auth flow debugging
+  const logAuthFlowIssue = async (source: string, metadata: Record<string, any>) => {
+    // Get additional browser state for debugging
+    const authMetadata = {
+      ...metadata,
+      localStorage: {
+        skipAuth: localStorage.getItem('skipAuth'),
+      },
+      sessionStorage: {
+        completedDataConnection: sessionStorage.getItem('completedDataConnection'),
+      },
+      location: {
+        pathname: window.location.pathname,
+        href: window.location.href,
+      }
+    };
+    
+    console.warn(`[AUTH FLOW] ${source}:`, authMetadata);
+    
+    try {
+      await supabase.functions.invoke('slack-error-logger', {
+        body: {
+          message: `Auth Flow Issue: ${source}`,
+          source: 'Auth Flow Debugger',
+          route: location.pathname,
+          metadata: authMetadata
+        }
+      });
+    } catch (loggingError) {
+      console.error('Error while sending auth flow log:', loggingError);
+    }
+  };
+  
   // Utility method to wrap async functions with error logging
   const withErrorLogging = <T extends (...args: any[]) => Promise<any>>(
     fn: T,
@@ -48,6 +81,7 @@ export function useErrorLogger() {
   
   return {
     logError,
+    logAuthFlowIssue,
     withErrorLogging
   };
 }

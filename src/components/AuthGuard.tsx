@@ -1,6 +1,7 @@
 
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useErrorLogger } from '@/hooks/useErrorLogger';
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -9,7 +10,17 @@ interface AuthGuardProps {
 export const AuthGuard = ({ children }: AuthGuardProps) => {
   const { user, loading } = useAuth();
   const location = useLocation();
+  const { logAuthFlowIssue } = useErrorLogger();
   const skipAuth = localStorage.getItem('skipAuth') === 'true';
+
+  // Log the auth guard activity
+  logAuthFlowIssue('AuthGuard', {
+    isAuthenticated: !!user,
+    loading,
+    skipAuth,
+    path: location.pathname,
+    state: location.state
+  });
 
   if (loading) {
     return <div className="flex justify-center items-center h-screen">Loading...</div>;
@@ -28,7 +39,16 @@ export const AuthGuard = ({ children }: AuthGuardProps) => {
 export const UnauthGuard = ({ children }: AuthGuardProps) => {
   const { user, loading } = useAuth();
   const location = useLocation();
+  const { logAuthFlowIssue } = useErrorLogger();
   const skipAuth = localStorage.getItem('skipAuth') === 'true';
+  
+  // Log the unauth guard activity
+  logAuthFlowIssue('UnauthGuard', {
+    isAuthenticated: !!user,
+    loading,
+    skipAuth,
+    path: location.pathname
+  });
   
   if (loading) {
     return <div className="flex justify-center items-center h-screen">Loading...</div>;
