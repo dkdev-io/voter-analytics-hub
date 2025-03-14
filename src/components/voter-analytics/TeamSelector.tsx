@@ -1,4 +1,5 @@
 
+import { useCallback } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface TeamSelectorProps {
@@ -15,11 +16,9 @@ export const TeamSelector = ({
   isLoading 
 }: TeamSelectorProps) => {
   // Use useCallback to prevent creating new function references on each render
-  const handleChange = (newValue: string) => {
-    if (newValue !== value) {
-      onChange(newValue);
-    }
-  };
+  const handleChange = useCallback((newValue: string) => {
+    onChange(newValue);
+  }, [onChange]);
   
   return (
     <div className="inline-block min-w-[180px]">

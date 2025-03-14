@@ -16,6 +16,7 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
   
   // Use a ref to track component mounted state
   const isMountedRef = useRef(true);
+  const previousTeamRef = useRef<string | null>(null);
   
   // Set up cleanup function
   useEffect(() => {
@@ -84,6 +85,14 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
 
   // Fetch people based on selected team
   useEffect(() => {
+    // Skip if team hasn't changed
+    if (previousTeamRef.current === selectedTeam) {
+      return;
+    }
+    
+    // Update previous team ref
+    previousTeamRef.current = selectedTeam;
+    
     // Early return if conditions aren't met
     if (!isDataMigrated || !selectedTeam) {
       if (!selectedTeam && isMountedRef.current) {

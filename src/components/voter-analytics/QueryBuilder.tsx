@@ -1,6 +1,5 @@
 
-import { useState, useEffect, useCallback } from 'react';
-import { format } from "date-fns";
+import { useState, useEffect, useCallback, useRef, memo } from 'react';
 import { type QueryParams } from '@/types/analytics';
 import { useMetadata } from '@/hooks/use-metadata';
 import { TacticSelector } from './TacticSelector';
@@ -24,7 +23,9 @@ export const QueryBuilder = ({
   isLoading: parentIsLoading,
   isDataMigrated 
 }: QueryBuilderProps) => {
-  const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
+  // Use ref to track previous team value
+  const prevTeamRef = useRef<string | null>(null);
+  const [selectedTeam, setSelectedTeam] = useState<string | null>(query.team || null);
   
   // Use our custom hook to fetch metadata
   const { tactics, teams, filteredPeople, availableDates, isLoading: metadataIsLoading } = useMetadata(isDataMigrated, selectedTeam);
@@ -33,11 +34,13 @@ export const QueryBuilder = ({
 
   // Clear person selection when team changes - use useEffect to avoid renders
   useEffect(() => {
-    if (selectedTeam) {
+    if (selectedTeam !== prevTeamRef.current && selectedTeam) {
+      prevTeamRef.current = selectedTeam;
+      
       setQuery(prev => {
-        // Only update if the person property exists
-        if (prev.person) {
-          const newQuery = { ...prev };
+        // Only update if the person property exists or team changed
+        if (prev.person || prev.team !== selectedTeam) {
+          const newQuery = { ...prev, team: selectedTeam };
           delete newQuery.person;
           return newQuery;
         }
@@ -53,21 +56,9 @@ export const QueryBuilder = ({
   }, [setQuery, setError]);
 
   const handleTeamChange = useCallback((value: string) => {
-    // Only update if the value is actually different
-    if (value !== selectedTeam) {
-      setSelectedTeam(value);
-      
-      // Update the query separately to prevent multiple re-renders
-      setQuery(prev => {
-        const newQuery = { ...prev, team: value };
-        // Remove person when team changes
-        delete newQuery.person;
-        return newQuery;
-      });
-      
-      setError(null);
-    }
-  }, [selectedTeam, setQuery, setError]);
+    setSelectedTeam(value);
+    setError(null);
+  }, [setError]);
 
   const handlePersonChange = useCallback((value: string) => {
     setQuery(prev => ({ ...prev, person: value }));
