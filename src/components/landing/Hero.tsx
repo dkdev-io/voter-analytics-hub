@@ -14,7 +14,7 @@ export const Hero = () => {
           scores of spreadsheets, and hours of time spent combing through your vote file. Built by a field operative 
           for field operatives that want to spend less time running counts and more time contacting voters.
         </p>
-        <Link to="/dashboard">
+        <Link to="/auth">
           <Button size="lg" className="bg-blue-500 hover:bg-blue-600 text-white px-8 py-6 h-auto">
             Get Started
           </Button>

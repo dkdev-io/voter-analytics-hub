@@ -28,7 +28,7 @@ export const Navbar = () => {
                   <Link to="/#features" className="py-2" onClick={toggleMenu}>Features</Link>
                   <Link to="/#pricing" className="py-2" onClick={toggleMenu}>Pricing</Link>
                   <Link to="/#more-info" className="py-2" onClick={toggleMenu}>More Info</Link>
-                  <Link to="/dashboard">
+                  <Link to="/auth">
                     <Button className="w-full bg-blue-500 hover:bg-blue-600 text-white">Get Started</Button>
                   </Link>
                 </div>
@@ -41,7 +41,7 @@ export const Navbar = () => {
                 <Link to="/#pricing" className="text-sm font-medium hover:text-blue-500 transition-colors">Pricing</Link>
                 <Link to="/#more-info" className="text-sm font-medium hover:text-blue-500 transition-colors">More Info</Link>
               </nav>
-              <Link to="/dashboard">
+              <Link to="/auth">
                 <Button className="bg-blue-500 hover:bg-blue-600 text-white">Get Started</Button>
               </Link>
             </div>
