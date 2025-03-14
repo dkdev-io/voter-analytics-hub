@@ -15,10 +15,13 @@ export const TeamSelector = ({
   teams, 
   isLoading 
 }: TeamSelectorProps) => {
-  // Use useCallback to prevent creating new function references on each render
+  // Memoize the change handler to prevent unnecessary re-renders
   const handleChange = useCallback((newValue: string) => {
-    onChange(newValue);
-  }, [onChange]);
+    // Only call onChange if the value has actually changed
+    if (newValue !== value) {
+      onChange(newValue);
+    }
+  }, [onChange, value]);
   
   return (
     <div className="inline-block min-w-[180px]">

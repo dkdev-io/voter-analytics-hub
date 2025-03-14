@@ -14,9 +14,10 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
   const [availableDates, setAvailableDates] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
-  // Use a ref to track component mounted state
+  // Use refs to track component mounted state and prevent unnecessary fetches
   const isMountedRef = useRef(true);
   const previousTeamRef = useRef<string | null>(null);
+  const initialLoadCompletedRef = useRef(false);
   
   // Set up cleanup function
   useEffect(() => {
@@ -25,18 +26,16 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
     };
   }, []);
   
-  // Fetch initial data
+  // Fetch initial data only once
   useEffect(() => {
-    if (!isDataMigrated) {
-      console.log("Data not migrated yet, skipping metadata fetch");
-      setIsLoading(false);
+    if (!isDataMigrated || initialLoadCompletedRef.current) {
       return;
     }
     
     const loadInitialData = async () => {
       try {
         setIsLoading(true);
-        console.log("Fetching metadata, isDataMigrated:", isDataMigrated);
+        console.log("Fetching initial metadata, isDataMigrated:", isDataMigrated);
         
         // Fetch all metadata in parallel
         const results = await Promise.allSettled([
@@ -71,6 +70,8 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
         } else {
           console.error("Error loading dates:", datesResult.reason);
         }
+        
+        initialLoadCompletedRef.current = true;
       } catch (err) {
         console.error("Error loading initial data:", err);
       } finally {
@@ -83,41 +84,45 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
     loadInitialData();
   }, [isDataMigrated]);
 
-  // Fetch people based on selected team
+  // Fetch people based on selected team - with safeguards to prevent unnecessary fetches
   useEffect(() => {
-    // Skip if team hasn't changed
+    // Skip if the team hasn't changed or if it's the initial load
     if (previousTeamRef.current === selectedTeam) {
       return;
     }
-    
-    // Update previous team ref
-    previousTeamRef.current = selectedTeam;
     
     // Early return if conditions aren't met
     if (!isDataMigrated || !selectedTeam) {
       if (!selectedTeam && isMountedRef.current) {
         setFilteredPeople([]);
       }
+      previousTeamRef.current = selectedTeam;
       return;
     }
     
     const loadPeopleByTeam = async () => {
       try {
-        setIsLoading(true);
-        console.log("Loading people for team:", selectedTeam);
+        if (isMountedRef.current) {
+          setIsLoading(true);
+        }
         
+        console.log("Loading people for team:", selectedTeam);
         const people = await fetchPeopleByTeam(selectedTeam);
         
         if (isMountedRef.current) {
           console.log("People loaded:", people);
           setFilteredPeople(people || []);
           setIsLoading(false);
+          // Only update the previous team ref after successful fetch
+          previousTeamRef.current = selectedTeam;
         }
       } catch (err) {
         console.error("Error loading people by team:", err);
         if (isMountedRef.current) {
           setFilteredPeople([]);
           setIsLoading(false);
+          // Still update the ref to prevent repeated fetch attempts
+          previousTeamRef.current = selectedTeam;
         }
       }
     };
