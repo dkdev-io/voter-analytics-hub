@@ -18,6 +18,8 @@ export const TeamSelector = ({
   // When value is null, we'll use empty string for comparison
   const currentValue = value || "";
   
+  console.log("TeamSelector rendering with value:", value);
+  
   // Memoize the change handler with strict equality check
   const handleChange = useCallback((newValue: string) => {
     // Only call onChange if the value has actually changed
@@ -25,6 +27,8 @@ export const TeamSelector = ({
     if (newValue !== currentValue) {
       console.log(`TeamSelector: Value changed from "${currentValue}" to "${newValue}"`);
       onChange(newValue);
+    } else {
+      console.log(`TeamSelector: Skipping update - value unchanged "${currentValue}"`);
     }
   }, [onChange, currentValue]);
   

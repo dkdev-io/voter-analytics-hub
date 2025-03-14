@@ -18,6 +18,11 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
   const isMountedRef = useRef(true);
   const previousTeamRef = useRef<string | null>(null);
   const initialLoadCompletedRef = useRef(false);
+  const renderCount = useRef(0);
+  
+  renderCount.current++;
+  console.log(`useMetadata render #${renderCount.current} with selectedTeam:`, selectedTeam, 
+    "prevTeam:", previousTeamRef.current);
   
   // Set up cleanup function
   useEffect(() => {
@@ -84,9 +89,12 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
   // Fetch people based on selected team with strict equality check
   useEffect(() => {
     // Skip if conditions aren't met
-    if (!isDataMigrated) return;
+    if (!isDataMigrated) {
+      console.log("useMetadata: Data not migrated, skipping people fetch");
+      return;
+    }
     
-    // Convert null to empty string for comparison to avoid null !== null issues
+    // Compare using strict equality
     const prevTeam = previousTeamRef.current;
     const currentTeam = selectedTeam;
     

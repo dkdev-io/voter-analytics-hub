@@ -1,5 +1,5 @@
 
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { type QueryParams } from '@/types/analytics';
 import { useMetadata } from '@/hooks/use-metadata';
 import { TacticSelector } from './TacticSelector';
@@ -23,6 +23,13 @@ export const QueryBuilder = ({
   isLoading: parentIsLoading,
   isDataMigrated 
 }: QueryBuilderProps) => {
+  console.log("QueryBuilder rendering with query:", query);
+  
+  // Add a render counter for debugging
+  const renderCount = useRef(0);
+  renderCount.current++;
+  console.log(`QueryBuilder render #${renderCount.current}`);
+  
   // Use our custom hook to fetch metadata - pass query.team directly 
   const { tactics, teams, filteredPeople, availableDates, isLoading: metadataIsLoading } = useMetadata(isDataMigrated, query.team || null);
   
@@ -48,6 +55,7 @@ export const QueryBuilder = ({
         delete newQuery.person;
       }
       
+      console.log("QueryBuilder: Setting new query", newQuery);
       return newQuery;
     });
     
