@@ -18,6 +18,8 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL') || ''
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
     
+    console.log("Starting import-voter-data function with URL:", supabaseUrl);
+    
     // Create a Supabase client
     const supabase = createClient(supabaseUrl, supabaseKey)
     
@@ -34,6 +36,8 @@ serve(async (req) => {
       )
     }
     
+    console.log(`Found ${count} existing records in voter_contacts table`);
+    
     // If we already have data, return success without importing
     if (count && count > 0) {
       // Do a sanity check query to make sure data is actually accessible
@@ -46,6 +50,7 @@ serve(async (req) => {
         console.error('Error fetching test data:', testError);
       } else {
         console.log(`Successfully fetched ${testData.length} test records`);
+        console.log('Sample record:', testData[0]);
       }
       
       return new Response(
@@ -58,86 +63,51 @@ serve(async (req) => {
       )
     }
     
-    // Sample voter contact data - This would be replaced with actual data from Google Sheets
-    const sampleData = [
-      {
-        first_name: "John",
-        last_name: "Smith",
-        team: "Team A",
-        tactic: "Phone",
-        date: "2023-04-01",
-        attempts: 25,
-        contacts: 10,
-        not_home: 8,
-        bad_data: 7,
-        support: 5,
-        oppose: 3,
-        undecided: 2,
+    // Generate more sample data for testing - more variety
+    const sampleData = [];
+    const teams = ["Team A", "Team B", "Team C", "Team D"];
+    const tactics = ["Phone", "Canvas", "SMS", "Email"];
+    const firstNames = ["John", "Jane", "Alice", "Bob", "Carol", "David", "Eva", "Frank"];
+    const lastNames = ["Smith", "Doe", "Johnson", "Brown", "White", "Miller", "Wilson", "Taylor"];
+    const dates = ["2023-04-01", "2023-04-02", "2023-04-03", "2023-04-04", "2023-04-05"];
+    
+    // Generate 50 records with diverse data
+    for (let i = 0; i < 50; i++) {
+      const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+      const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+      const team = teams[Math.floor(Math.random() * teams.length)];
+      const tactic = tactics[Math.floor(Math.random() * tactics.length)];
+      const date = dates[Math.floor(Math.random() * dates.length)];
+      
+      const attempts = Math.floor(Math.random() * 100) + 1;
+      const contacts = Math.floor(Math.random() * attempts) + 1;
+      const notHome = Math.floor(Math.random() * (attempts - contacts));
+      const badData = attempts - contacts - notHome;
+      const support = Math.floor(Math.random() * contacts);
+      const oppose = Math.floor(Math.random() * (contacts - support));
+      const undecided = contacts - support - oppose;
+      
+      sampleData.push({
+        first_name: firstName,
+        last_name: lastName,
+        team: team,
+        tactic: tactic,
+        date: date,
+        attempts: attempts,
+        contacts: contacts,
+        not_home: notHome,
+        bad_data: badData,
+        support: support,
+        oppose: oppose,
+        undecided: undecided,
         refusal: 0
-      },
-      {
-        first_name: "Jane",
-        last_name: "Doe",
-        team: "Team B",
-        tactic: "Canvas",
-        date: "2023-04-02",
-        attempts: 50,
-        contacts: 25,
-        not_home: 15,
-        bad_data: 10,
-        support: 15,
-        oppose: 5,
-        undecided: 5,
-        refusal: 0
-      },
-      {
-        first_name: "Alice",
-        last_name: "Johnson",
-        team: "Team A",
-        tactic: "SMS",
-        date: "2023-04-03",
-        attempts: 75,
-        contacts: 30,
-        not_home: 0,
-        bad_data: 45,
-        support: 20,
-        oppose: 5,
-        undecided: 5,
-        refusal: 0
-      },
-      {
-        first_name: "Bob",
-        last_name: "Brown",
-        team: "Team C",
-        tactic: "Phone",
-        date: "2023-04-01",
-        attempts: 30,
-        contacts: 15,
-        not_home: 10,
-        bad_data: 5,
-        support: 8,
-        oppose: 4,
-        undecided: 3,
-        refusal: 0
-      },
-      {
-        first_name: "Carol",
-        last_name: "White",
-        team: "Team B",
-        tactic: "Canvas",
-        date: "2023-04-03",
-        attempts: 40,
-        contacts: 20,
-        not_home: 10,
-        bad_data: 10,
-        support: 12,
-        oppose: 3,
-        undecided: 5,
-        refusal: 0
-      }
-    ];
+      });
+    }
+    
+    console.log(`Generated ${sampleData.length} sample records for import`);
     
     // Delete any existing data first to prevent conflicts
+    console.log("Clearing existing data before import...");
     const { error: deleteError } = await supabase
       .from('voter_contacts')
       .delete()
@@ -145,9 +115,14 @@ serve(async (req) => {
       
     if (deleteError) {
       console.error('Error deleting existing data:', deleteError);
+      return new Response(
+        JSON.stringify({ error: 'Error deleting existing data', details: deleteError }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      )
     }
     
     // Insert data into Supabase
+    console.log("Inserting sample data...");
     const { data, error: insertError } = await supabase
       .from('voter_contacts')
       .insert(sampleData)
@@ -161,6 +136,8 @@ serve(async (req) => {
       )
     }
     
+    console.log(`Successfully inserted ${data.length} records`);
+    
     // Fetch the inserted data to confirm it worked
     const { data: confirmData, error: confirmError } = await supabase
       .from('voter_contacts')
@@ -170,13 +147,15 @@ serve(async (req) => {
       console.error('Error confirming data insertion:', confirmError);
     } else {
       console.log(`Successfully confirmed ${confirmData.length} records in the database`);
+      console.log('Sample of confirmed data:', confirmData.slice(0, 2));
     }
     
     return new Response(
       JSON.stringify({ 
         success: true, 
         message: `Imported ${sampleData.length} records`,
-        count: confirmData ? confirmData.length : null
+        count: confirmData ? confirmData.length : null,
+        sample: data.slice(0, 3) // Include sample of the imported data in response
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
