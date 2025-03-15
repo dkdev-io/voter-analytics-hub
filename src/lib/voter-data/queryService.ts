@@ -6,7 +6,7 @@ export const calculateResultFromSupabase = async (query: Partial<QueryParams>) =
   try {
     console.log("Calculating result with query:", query);
     
-    if (!query.tactic && !query.resultType && !query.person && !query.date) {
+    if (!query.tactic && !query.resultType && !query.person && !query.date && !query.searchQuery) {
       return { error: "Please select at least one field", result: null };
     }
 
@@ -33,8 +33,12 @@ export const calculateResultFromSupabase = async (query: Partial<QueryParams>) =
       
       // Apply person filter
       if (query.person && query.person !== 'All') {
-        const fullName = `${item.first_name} ${item.last_name}`;
-        if (fullName !== query.person) {
+        // Fixed: Split the person by first and last name and match against item
+        const [firstName, lastName] = (query.person || '').split(' ');
+        if (
+          (firstName && item.first_name !== firstName) || 
+          (lastName && item.last_name !== lastName)
+        ) {
           return false;
         }
       }
