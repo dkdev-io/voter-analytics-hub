@@ -1,4 +1,3 @@
-
 import type { QueryParams, VoterMetrics } from '@/types/analytics';
 import { getTestData } from './migrationService';
 
@@ -12,7 +11,24 @@ export const calculateResultFromSupabase = async (query: Partial<QueryParams>) =
 
     // Get the data from Supabase
     const data = await getTestData();
-    console.log("Using Supabase data:", data);
+    console.log("Raw data count:", data.length);
+    
+    // Display records for Dan Kelly with date 2025-01-31 and tactic Phone
+    if (query.person === "Dan Kelly" && query.date === "2025-01-31" && query.tactic === "Phone") {
+      const relevantData = data.filter(item => 
+        item.first_name === "Dan" && 
+        item.last_name === "Kelly" && 
+        item.date === "2025-01-31" && 
+        item.tactic === "Phone"
+      );
+      console.log("Dan Kelly records for 2025-01-31 with tactic Phone:", relevantData.map(item => 
+        `ID: ${item.id}, Date: ${item.date}, Tactic: ${item.tactic}, Attempts: ${item.attempts}`
+      ));
+      
+      // Expected total should be 17
+      const expectedTotal = relevantData.reduce((sum, item) => sum + (item.attempts || 0), 0);
+      console.log("Expected total for Dan Kelly on 2025-01-31 with tactic Phone:", expectedTotal);
+    }
     
     // Filter the data based on query parameters
     const filteredData = data.filter(item => {
@@ -25,19 +41,10 @@ export const calculateResultFromSupabase = async (query: Partial<QueryParams>) =
         return false;
       }
       
-      // Apply date filter - IMPORTANT FIX: Compare exact date match
-      if (query.date && query.date !== 'All') {
-        const queryDate = query.date; // Make sure dates are in the same format
-        
-        // Special debug for Dan Kelly with date 2025-01-31
-        if (query.person === "Dan Kelly" && query.date === "2025-01-31") {
-          console.log(`Date comparison for Dan Kelly, item date: ${item.date}, query date: ${queryDate}`);
-        }
-        
-        if (item.date !== queryDate) {
-          filterFailReason = `Date mismatch: query=${queryDate}, item=${item.date}`;
-          return false;
-        }
+      // Apply date filter with exact match
+      if (query.date && query.date !== 'All' && item.date !== query.date) {
+        filterFailReason = `Date mismatch: query=${query.date}, item=${item.date}`;
+        return false;
       }
       
       // Apply team filter
@@ -46,21 +53,19 @@ export const calculateResultFromSupabase = async (query: Partial<QueryParams>) =
         return false;
       }
       
-      // Apply person filter
+      // Apply person filter with exact name matching
       if (query.person && query.person !== 'All') {
-        // Split the person by first and last name
         const names = query.person.split(' ');
         const firstName = names[0];
         const lastName = names.length > 1 ? names[1] : '';
         
-        // Check if both first_name and last_name match exactly
         if (item.first_name !== firstName || item.last_name !== lastName) {
           filterFailReason = `Person mismatch: query=${query.person}, item=${item.first_name} ${item.last_name}`;
           return false;
         }
       }
       
-      // Apply search query if provided
+      // Apply search query
       if (query.searchQuery) {
         const searchLower = query.searchQuery.toLowerCase();
         const fullName = `${item.first_name} ${item.last_name}`.toLowerCase();
@@ -75,19 +80,18 @@ export const calculateResultFromSupabase = async (query: Partial<QueryParams>) =
         }
       }
       
-      // Item passed all filters - special debug for specific test case
-      if (query.person === "Dan Kelly" && query.tactic === "Phone") {
-        console.log(`Item passed filters: id=${item.id}, date=${item.date}, attempts=${item.attempts}`);
-      }
-      
       return true;
     });
     
-    // Important debug: Show all filtered data to verify
-    console.log("Filtered data for query:", query);
-    console.log("Filtered data items:", filteredData.map(item => 
-      `ID: ${item.id}, Date: ${item.date}, Attempts: ${item.attempts}, Person: ${item.first_name} ${item.last_name}`
-    ));
+    // Log filtered data for debugging
+    console.log(`Filtered data count: ${filteredData.length}`);
+    
+    if (query.person === "Dan Kelly" && query.tactic === "Phone" && query.date === "2025-01-31") {
+      console.log("CRITICAL DEBUG: Filtered items for Dan Kelly + Phone + 2025-01-31:");
+      filteredData.forEach(item => {
+        console.log(`ID: ${item.id}, Date: ${item.date}, Attempts: ${item.attempts}, Tactic: ${item.tactic}`);
+      });
+    }
     
     // Map the display result type to the actual property name in the data
     let resultType = query.resultType ? 
@@ -104,34 +108,23 @@ export const calculateResultFromSupabase = async (query: Partial<QueryParams>) =
     if (filteredData.length === 0) {
       return { result: 0, error: null };
     } else {
-      // Specific debug for Dan Kelly + Phone case to verify exactly what's being summed
-      if (query.person === "Dan Kelly" && query.tactic === "Phone") {
-        console.log("Values being summed for Dan Kelly + Phone:");
-        let debugTotal = 0;
-        filteredData.forEach(item => {
-          const value = item[resultType as keyof typeof item] as number || 0;
-          debugTotal += value;
-          console.log(`Item ${item.id}: Date=${item.date}, ${resultType}=${value}, Running Total=${debugTotal}`);
-        });
-      }
+      // Calculate the sum
+      let total = 0;
       
-      // FIX: For the specific test case, sum only for the exact date if provided
-      const total = filteredData.reduce((sum, item) => {
-        const value = item[resultType as keyof typeof item] as number || 0;
+      for (const item of filteredData) {
+        const value = Number(item[resultType as keyof typeof item]) || 0;
         
-        // If we have a date in the query and we're doing a dan kelly + phone case, double check
-        if (query.person === "Dan Kelly" && query.tactic === "Phone" && query.date) {
-          if (item.date === query.date) {
-            console.log(`MATCH ${query.date}: Adding ${value} from item ${item.id} to sum=${sum}`);
-            return sum + value;
-          } else {
-            console.log(`SKIP ${item.date} != ${query.date}: Not adding ${value} from item ${item.id}`);
-            return sum;
-          }
+        if (query.person === "Dan Kelly" && query.tactic === "Phone" && query.date === "2025-01-31") {
+          console.log(`Adding ${value} from item ${item.id} to total ${total}`);
         }
         
-        return sum + value;
-      }, 0);
+        total += value;
+      }
+      
+      // One more verification
+      if (query.person === "Dan Kelly" && query.date === "2025-01-31" && query.tactic === "Phone") {
+        console.log(`Final total for Dan Kelly on 2025-01-31 with tactic Phone: ${total}`);
+      }
       
       return { result: total, error: null };
     }
@@ -141,7 +134,6 @@ export const calculateResultFromSupabase = async (query: Partial<QueryParams>) =
   }
 };
 
-// New function to search voter data
 export const searchVoterData = async (searchQuery: string) => {
   try {
     if (!searchQuery.trim()) {
@@ -168,7 +160,6 @@ export const searchVoterData = async (searchQuery: string) => {
   }
 };
 
-// Function to get aggregated metrics for the dashboard charts
 export const fetchVoterMetrics = async (query?: Partial<QueryParams>): Promise<VoterMetrics> => {
   try {
     const data = await getTestData();
