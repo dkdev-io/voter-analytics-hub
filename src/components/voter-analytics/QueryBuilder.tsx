@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { type QueryParams } from '@/types/analytics';
 import { useMetadata } from '@/hooks/use-metadata';
@@ -120,50 +119,42 @@ export const QueryBuilder = ({
 
   return (
     <div className="space-y-6">
-      {/* First row: Show + Tactic + Metric on same line */}
-      <div className="flex flex-wrap items-center gap-2 mb-4">
-        <span className="text-lg text-gray-700">Show</span>
-        
-        <div className="flex flex-wrap items-center gap-2">
-          <TacticSelector 
-            value={safeQuery.tactic}
-            onChange={handleTacticChange}
-            tactics={tactics}
-            isLoading={isLoading}
-          />
-          
-          <ResultTypeSelector 
-            value={safeQuery.resultType}
-            onChange={handleResultTypeChange}
-            isLoading={isLoading}
-          />
-        </div>
+      {/* First row: Show + Tactic + Metric all on same line */}
+      <div className="flex items-center gap-2 mb-4">
+        <span className="text-lg text-gray-700 whitespace-nowrap">Show</span>
+        <TacticSelector 
+          value={safeQuery.tactic}
+          onChange={handleTacticChange}
+          tactics={tactics}
+          isLoading={isLoading}
+        />
+        <ResultTypeSelector 
+          value={safeQuery.resultType}
+          onChange={handleResultTypeChange}
+          isLoading={isLoading}
+        />
       </div>
       
-      {/* Second row: Done by: + Team + Person */}
-      <div className="flex flex-wrap items-center gap-2 mb-4">
-        <span className="text-lg text-gray-700">Done by:</span>
-        
-        <div className="flex flex-wrap items-center gap-2">
-          <TeamSelector 
-            value={selectedTeam}
-            onChange={handleTeamChange}
-            teams={teams}
-            isLoading={isLoading}
-          />
-          
-          <PersonSelector 
-            value={safeQuery.person}
-            onChange={handlePersonChange}
-            people={filteredPeople}
-            disabled={false}
-            isLoading={isLoading}
-          />
-        </div>
+      {/* Second row: By + Team + Person all on same line */}
+      <div className="flex items-center gap-2 mb-4">
+        <span className="text-lg text-gray-700 whitespace-nowrap">By</span>
+        <TeamSelector 
+          value={selectedTeam}
+          onChange={handleTeamChange}
+          teams={teams}
+          isLoading={isLoading}
+        />
+        <PersonSelector 
+          value={safeQuery.person}
+          onChange={handlePersonChange}
+          people={filteredPeople}
+          disabled={false}
+          isLoading={isLoading}
+        />
       </div>
       
       {/* Third row: On + Date */}
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex items-center gap-2">
         <span className="text-lg text-gray-700">On</span>
         
         <DateSelector 
