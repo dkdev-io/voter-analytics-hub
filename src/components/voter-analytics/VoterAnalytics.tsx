@@ -59,7 +59,7 @@ export const VoterAnalytics = () => {
           
           {/* Or divider */}
           <div className="hidden md:flex absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10">
-            <div className="bg-white px-4 py-2 rounded-full border border-gray-200 shadow-sm font-medium text-gray-500">
+            <div className="bg-white px-4 py-2 rounded-full border border-gray-200 shadow-sm font-bold text-gray-500">
               Or
             </div>
           </div>
@@ -85,4 +85,4 @@ export const VoterAnalytics = () => {
       <ResultsSection error={error} result={result} />
     </div>
   );
-};
+}

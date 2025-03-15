@@ -124,38 +124,42 @@ export const QueryBuilder = ({
       <div className="flex flex-wrap items-center gap-2 mb-4">
         <span className="text-lg text-gray-700">Show</span>
         
-        <TacticSelector 
-          value={safeQuery.tactic}
-          onChange={handleTacticChange}
-          tactics={tactics}
-          isLoading={isLoading}
-        />
-        
-        <ResultTypeSelector 
-          value={safeQuery.resultType}
-          onChange={handleResultTypeChange}
-          isLoading={isLoading}
-        />
+        <div className="flex flex-wrap items-center gap-2">
+          <TacticSelector 
+            value={safeQuery.tactic}
+            onChange={handleTacticChange}
+            tactics={tactics}
+            isLoading={isLoading}
+          />
+          
+          <ResultTypeSelector 
+            value={safeQuery.resultType}
+            onChange={handleResultTypeChange}
+            isLoading={isLoading}
+          />
+        </div>
       </div>
       
       {/* Second row: Done by: + Team + Person */}
       <div className="flex flex-wrap items-center gap-2 mb-4">
         <span className="text-lg text-gray-700">Done by:</span>
         
-        <TeamSelector 
-          value={selectedTeam}
-          onChange={handleTeamChange}
-          teams={teams}
-          isLoading={isLoading}
-        />
-        
-        <PersonSelector 
-          value={safeQuery.person}
-          onChange={handlePersonChange}
-          people={filteredPeople}
-          disabled={false}
-          isLoading={isLoading}
-        />
+        <div className="flex flex-wrap items-center gap-2">
+          <TeamSelector 
+            value={selectedTeam}
+            onChange={handleTeamChange}
+            teams={teams}
+            isLoading={isLoading}
+          />
+          
+          <PersonSelector 
+            value={safeQuery.person}
+            onChange={handlePersonChange}
+            people={filteredPeople}
+            disabled={false}
+            isLoading={isLoading}
+          />
+        </div>
       </div>
       
       {/* Third row: On + Date */}
@@ -171,4 +175,4 @@ export const QueryBuilder = ({
       </div>
     </div>
   );
-};
+}
