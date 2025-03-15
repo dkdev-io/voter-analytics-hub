@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Database, ChevronRight, ArrowRight } from 'lucide-react';
+import { Database, ChevronRight, ArrowRight, ArrowLeft } from 'lucide-react';
 
 const ConnectData = () => {
   const [loading, setLoading] = useState(false);
@@ -30,15 +30,29 @@ const ConnectData = () => {
     }, 1500);
   };
 
+  const handleBack = () => {
+    navigate('/dashboard');
+  };
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
       <div className="w-full max-w-3xl p-8 space-y-8 bg-white rounded-lg shadow-lg">
-        <div className="text-center">
+        <div className="flex items-center">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={handleBack} 
+            className="mr-2"
+            aria-label="Go back"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
           <h1 className="text-3xl font-bold text-gray-900">Connect Your Data</h1>
-          <p className="mt-2 text-gray-600">
-            Connect to your voter file or import your data to get started.
-          </p>
         </div>
+        
+        <p className="mt-2 text-gray-600">
+          Connect to your voter file or import your data to get started.
+        </p>
 
         <div className="grid gap-6 md:grid-cols-2">
           <div 
