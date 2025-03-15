@@ -100,9 +100,9 @@ export const getTestData = async (): Promise<any[]> => {
     }
     
     // Generate fake data for testing if no data exists
-    console.log("Still no data after import attempt");
+    console.log("No data found in Supabase, generating fake data");
     
-    const fakeData = generateFakeData(50);
+    const fakeData = generateFakeData(300);
     console.log("Generated fake data for development:", fakeData.slice(0, 2));
     
     testDataCache = fakeData;
@@ -112,7 +112,7 @@ export const getTestData = async (): Promise<any[]> => {
     console.error("Error getting test data:", error);
     
     // Fallback to fake data in case of error
-    const fakeData = generateFakeData(50);
+    const fakeData = generateFakeData(300);
     testDataCache = fakeData;
     lastFetchTime = Date.now();
     return fakeData;
@@ -125,8 +125,18 @@ function generateFakeData(count: number): any[] {
   const tactics = ["Phone", "SMS", "Canvas", "Email"];
   const firstNames = ["John", "Michael", "Sarah", "Emily", "David", "James", "Maria", "Lisa"];
   const lastNames = ["Smith", "Johnson", "Williams", "Brown", "Jones", "Miller", "Davis"];
-  const dates = ["2023-01-01", "2023-02-01", "2023-03-01", "2023-04-01", "2023-05-01", "2025-01-01"];
   
+  // Use the exact dates provided by the user - 2025-01-01 to 2025-01-31
+  const generateDates = () => {
+    const dates: string[] = [];
+    for (let day = 1; day <= 31; day++) {
+      const formattedDay = day.toString().padStart(2, '0');
+      dates.push(`2025-01-${formattedDay}`);
+    }
+    return dates;
+  };
+  
+  const dates = generateDates();
   const data = [];
   
   for (let i = 0; i < count; i++) {
@@ -134,7 +144,10 @@ function generateFakeData(count: number): any[] {
     const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
     const team = teams[Math.floor(Math.random() * teams.length)];
     const tactic = tactics[Math.floor(Math.random() * tactics.length)];
-    const date = dates[Math.floor(Math.random() * dates.length)];
+    
+    // Use only the dates from January 2025 (1-31)
+    const dateIndex = Math.floor(Math.random() * dates.length);
+    const date = dates[dateIndex];
     
     // Ensure contacts + not_home + refusal + bad_data = attempts
     const attempts = 10 + Math.floor(Math.random() * 20); // 10-30 attempts

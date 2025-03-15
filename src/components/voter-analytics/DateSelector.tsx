@@ -14,10 +14,13 @@ export const DateSelector = ({
   availableDates,
   isLoading 
 }: DateSelectorProps) => {
+  // Get unique dates and sort them chronologically
+  const uniqueDates = [...new Set(availableDates)].sort();
+  
   console.log("DateSelector rendering with:", { 
     value, 
-    availableDatesCount: availableDates?.length, 
-    firstFewDates: availableDates?.slice(0, 3),
+    availableDatesCount: uniqueDates?.length, 
+    firstFewDates: uniqueDates?.slice(0, 3),
     isLoading 
   });
   
@@ -38,8 +41,8 @@ export const DateSelector = ({
           align="start"
         >
           <SelectItem value="All">All Dates</SelectItem>
-          {availableDates && availableDates.length > 0 ? (
-            availableDates.map((dateValue: string) => (
+          {uniqueDates && uniqueDates.length > 0 ? (
+            uniqueDates.map((dateValue: string) => (
               <SelectItem key={dateValue} value={dateValue}>
                 {dateValue}
               </SelectItem>

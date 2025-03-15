@@ -133,19 +133,29 @@ export const fetchDates = async (): Promise<string[]> => {
     
     if (!data || data.length === 0) {
       console.log("No data available for dates");
-      // Fallback to default dates if no data is available
-      return ["2023-01-01", "2023-02-01", "2023-03-01", "2023-04-01", "2023-05-01", "2025-01-01"];
+      // Return January 2025 dates as fallback, to match the format in the real data
+      const fallbackDates = [];
+      for (let day = 1; day <= 31; day++) {
+        const formattedDay = day.toString().padStart(2, '0');
+        fallbackDates.push(`2025-01-${formattedDay}`);
+      }
+      return fallbackDates;
     }
     
     // Extract unique dates from the data
     const dates = [...new Set(data.map(item => item.date).filter(Boolean))].sort();
-    console.log("Available dates count:", dates.length);
+    console.log("Available unique dates count:", dates.length);
     console.log("Sample dates:", dates.slice(0, 5));
     
     return dates;
   } catch (error) {
     console.error("Error fetching dates:", error);
-    // Return default dates as fallback
-    return ["2023-01-01", "2023-02-01", "2023-03-01", "2023-04-01", "2023-05-01", "2025-01-01"];
+    // Return January 2025 dates as fallback, to match the format in the real data
+    const fallbackDates = [];
+    for (let day = 1; day <= 31; day++) {
+      const formattedDay = day.toString().padStart(2, '0');
+      fallbackDates.push(`2025-01-${formattedDay}`);
+    }
+    return fallbackDates;
   }
 };
