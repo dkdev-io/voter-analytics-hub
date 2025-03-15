@@ -19,7 +19,8 @@ export const VoterAnalytics = () => {
     setSearchQuery,
     showFilteredData,
     calculateResult,
-    importNewData
+    importNewData,
+    refreshData
   } = useVoterAnalytics();
 
   return (
@@ -45,6 +46,7 @@ export const VoterAnalytics = () => {
           setError={setError}
           isLoading={isLoading}
           isDataMigrated={isDataMigrated}
+          onRefresh={refreshData}
         />
         
         {/* Section 2: Search Field */}

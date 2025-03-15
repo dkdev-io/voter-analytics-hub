@@ -37,6 +37,12 @@ export const useVoterAnalytics = () => {
           });
           
           setIsDataMigrated(true);
+          
+          // If we're connected but no data found, try to import data
+          if (migrateResult.message.includes("no data found")) {
+            console.log("No data found in Supabase, attempting to import...");
+            await importNewData();
+          }
         } else {
           toast({
             title: "Error",
@@ -112,6 +118,43 @@ export const useVoterAnalytics = () => {
     }
   };
 
+  const refreshData = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      console.log("Refreshing data from Supabase...");
+      
+      // Check Supabase connection again
+      const migrateResult = await migrateTestDataToSupabase();
+      
+      if (migrateResult.success) {
+        toast({
+          title: "Data Refresh",
+          description: "Successfully refreshed connection to Supabase.",
+          variant: "default"
+        });
+        
+        return true;
+      } else {
+        toast({
+          title: "Refresh Error",
+          description: "Failed to refresh connection: " + migrateResult.message,
+          variant: "destructive"
+        });
+        return false;
+      }
+    } catch (err) {
+      console.error("Error refreshing data:", err);
+      toast({
+        title: "Refresh Error",
+        description: "Failed to refresh data.",
+        variant: "destructive"
+      });
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [toast]);
+
   const importNewData = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -174,6 +217,7 @@ export const useVoterAnalytics = () => {
     showFilteredData,
     calculateResult,
     importNewData,
+    refreshData,
     dataStats
   };
 };

@@ -11,17 +11,17 @@ export const fetchTactics = async (): Promise<string[]> => {
     if (!data || data.length === 0) {
       console.log("No data available for tactics, using fallback values");
       // Fallback to default tactics if no data is available
-      return ["SMS", "Phone", "Canvas"];
+      return ["SMS", "Phone", "Canvas", "Email"];
     }
     
     // Extract unique tactics from the data
-    const tactics = [...new Set(data.map(item => item.tactic))];
+    const tactics = [...new Set(data.map(item => item.tactic))].filter(Boolean).sort();
     console.log("Available tactics:", tactics);
     return tactics;
   } catch (error) {
     console.error("Error fetching tactics:", error);
     // Return default tactics as fallback
-    return ["SMS", "Phone", "Canvas"];
+    return ["SMS", "Phone", "Canvas", "Email"];
   }
 };
 
@@ -35,7 +35,7 @@ export const fetchTeams = async (): Promise<string[]> => {
     if (!data || data.length === 0) {
       console.log("No data available for teams, using fallback values");
       // Fallback to default teams if no data is available
-      return ["Team Alpha", "Team Beta", "Team Gamma", "Team Delta"];
+      return ["Team Alpha", "Team Beta", "Team Gamma", "Team Delta", "Team Tony"];
     }
     
     // Extract unique teams from the data
@@ -45,7 +45,7 @@ export const fetchTeams = async (): Promise<string[]> => {
   } catch (error) {
     console.error("Error fetching teams:", error);
     // Return default teams as fallback
-    return ["Team Alpha", "Team Beta", "Team Gamma", "Team Delta"];
+    return ["Team Alpha", "Team Beta", "Team Gamma", "Team Delta", "Team Tony"];
   }
 };
 
@@ -59,7 +59,7 @@ export const fetchPeopleByTeam = async (team: string): Promise<string[]> => {
     if (!data || data.length === 0) {
       console.log("No data available for people, using fallback values");
       // Fallback to default people if no data is available
-      return ["Michael Garcia", "Sarah Rodriguez", "David Smith"];
+      return ["Michael Garcia", "Sarah Rodriguez", "David Smith", "John Smith", "Maria Williams"];
     }
     
     // Filter data by team and extract unique full names
@@ -83,7 +83,7 @@ export const fetchPeopleByTeam = async (team: string): Promise<string[]> => {
   } catch (error) {
     console.error(`Error fetching people for team ${team}:`, error);
     // Return default people as fallback
-    return ["Michael Garcia", "Sarah Rodriguez", "David Smith"];
+    return ["Michael Garcia", "Sarah Rodriguez", "David Smith", "John Smith", "Maria Williams"];
   }
 };
 
@@ -97,7 +97,7 @@ export const fetchAllPeople = async (): Promise<string[]> => {
     if (!data || data.length === 0) {
       console.log("No data available for people");
       // Fallback to default people if no data is available
-      return ["Michael Garcia", "Sarah Rodriguez", "David Smith", "Emily Johnson", "Joshua Williams"];
+      return ["Michael Garcia", "Sarah Rodriguez", "David Smith", "Emily Johnson", "Joshua Williams", "John Smith", "Maria Williams"];
     }
     
     // Extract unique full names from the data
@@ -120,7 +120,7 @@ export const fetchAllPeople = async (): Promise<string[]> => {
   } catch (error) {
     console.error("Error fetching all people:", error);
     // Return default people as fallback
-    return ["Michael Garcia", "Sarah Rodriguez", "David Smith", "Emily Johnson", "Joshua Williams"];
+    return ["Michael Garcia", "Sarah Rodriguez", "David Smith", "Emily Johnson", "Joshua Williams", "John Smith", "Maria Williams"];
   }
 };
 
@@ -134,7 +134,7 @@ export const fetchDates = async (): Promise<string[]> => {
     if (!data || data.length === 0) {
       console.log("No data available for dates");
       // Fallback to default dates if no data is available
-      return ["2023-02-01", "2023-03-01", "2023-04-01"];
+      return ["2023-01-01", "2023-02-01", "2023-03-01", "2023-04-01", "2023-05-01", "2025-01-01"];
     }
     
     // Extract unique dates from the data
@@ -147,6 +147,6 @@ export const fetchDates = async (): Promise<string[]> => {
   } catch (error) {
     console.error("Error fetching dates:", error);
     // Return default dates as fallback
-    return ["2023-02-01", "2023-03-01", "2023-04-01"];
+    return ["2023-01-01", "2023-02-01", "2023-03-01", "2023-04-01", "2023-05-01", "2025-01-01"];
   }
 };

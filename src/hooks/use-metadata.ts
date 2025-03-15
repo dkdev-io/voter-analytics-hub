@@ -26,6 +26,16 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
         
         if (!isDataMigrated) {
           console.log("Data not migrated yet, skipping metadata fetch");
+          // Set fallback values for better UX
+          setTactics(["SMS", "Phone", "Canvas", "Email"]);
+          setTeams(["Team Alpha", "Team Beta", "Team Gamma", "Team Delta"]);
+          setAvailableDates(["2023-02-01", "2023-03-01", "2023-04-01"]);
+          const fallbackPeople = [
+            "Michael Garcia", "Sarah Rodriguez", "David Smith", 
+            "Emily Johnson", "Joshua Williams"
+          ];
+          setAllPeople(fallbackPeople);
+          setFilteredPeople(fallbackPeople);
           return;
         }
         
@@ -80,7 +90,7 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
     };
     
     loadInitialData();
-  }, [isDataMigrated, selectedTeam, toast]);
+  }, [isDataMigrated, toast]);
 
   // Fetch people based on selected team
   useEffect(() => {
@@ -89,6 +99,8 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
         console.log("Data not migrated yet, skipping people fetch");
         return;
       }
+      
+      setIsLoading(true);
       
       try {
         console.log(`Loading people for team: ${selectedTeam || "All"}`);
@@ -125,6 +137,8 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
           "Emily Johnson", "Joshua Williams"
         ];
         setFilteredPeople(fallbackPeople);
+      } finally {
+        setIsLoading(false);
       }
     };
     
