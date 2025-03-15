@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { DataMigrationAlert } from "../DataMigrationAlert";
 import { QuerySection } from "./QuerySection";
 import { SearchSection } from "./SearchSection";
-import { DataImportButton } from "../DataImportButton";
 import { useToast } from "@/hooks/use-toast";
 
 interface DashboardHeaderProps {
@@ -31,24 +30,8 @@ export function DashboardHeader({
   calculateResult,
   importNewData
 }: DashboardHeaderProps) {
-  const [showImportButton, setShowImportButton] = useState(true);
   const { toast } = useToast();
   
-  const handleImport = async () => {
-    const success = await importNewData();
-    if (success) {
-      setShowImportButton(false);
-      toast({
-        title: "Data Updated",
-        description: "New dataset has been imported. Please refresh the metadata to see the changes.",
-        variant: "default"
-      });
-      // Reset any selections
-      setQuery({});
-    }
-    return success;
-  };
-
   return (
     <div className="space-y-6 mt-4 mb-8">
       {!isDataMigrated && (
@@ -57,9 +40,6 @@ export function DashboardHeader({
       
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
         <h1 className="text-2xl font-bold">Voter Analytics Dashboard</h1>
-        {showImportButton && (
-          <DataImportButton onImport={handleImport} isLoading={isLoading} />
-        )}
       </div>
       
       <div className="space-y-6">
