@@ -21,9 +21,13 @@ export const calculateResultFromSupabase = async (query: Partial<QueryParams>) =
         return false;
       }
       
-      // Apply date filter
-      if (query.date && query.date !== 'All' && item.date !== query.date) {
-        return false;
+      // Apply date filter - Fix: Handle the date comparison correctly
+      if (query.date && query.date !== 'All') {
+        // Convert formats if needed (2025-01-31 to match with item.date)
+        const queryDate = query.date;
+        if (item.date !== queryDate) {
+          return false;
+        }
       }
       
       // Apply team filter

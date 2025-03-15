@@ -85,6 +85,8 @@ export const useVoterAnalytics = () => {
       
       const { result: calculatedResult, error: calculationError } = await calculateResultFromSupabase(updatedQuery);
       
+      console.log("Calculation result:", calculatedResult, "Error:", calculationError);
+      
       if (calculationError) {
         setError(calculationError);
         setResult(null);
