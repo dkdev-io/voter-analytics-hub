@@ -38,8 +38,8 @@ export const fetchTeams = async (): Promise<string[]> => {
       return ["Team Alpha", "Team Beta", "Team Gamma", "Team Delta", "Team Tony"];
     }
     
-    // Extract unique teams from the data
-    const teams = [...new Set(data.map(item => item.team))].filter(Boolean).sort();
+    // Extract unique teams from the data - ensure we use the actual data
+    const teams = [...new Set(data.map(item => item.team).filter(Boolean))].sort();
     console.log("Available teams:", teams);
     return teams;
   } catch (error) {
@@ -138,12 +138,11 @@ export const fetchDates = async (): Promise<string[]> => {
     }
     
     // Extract unique dates from the data
-    const dates = [...new Set(data.map(item => item.date))].filter(Boolean);
-    const sortedDates = dates.sort(); // Sort dates in ascending order
-    console.log("Available dates count:", sortedDates.length);
-    console.log("Sample dates:", sortedDates.slice(0, 5));
+    const dates = [...new Set(data.map(item => item.date).filter(Boolean))].sort();
+    console.log("Available dates count:", dates.length);
+    console.log("Sample dates:", dates.slice(0, 5));
     
-    return sortedDates;
+    return dates;
   } catch (error) {
     console.error("Error fetching dates:", error);
     // Return default dates as fallback

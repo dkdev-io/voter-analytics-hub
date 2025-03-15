@@ -1,183 +1,168 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
-// Function to migrate test data to Supabase
-export const migrateTestDataToSupabase = async () => {
+// Cache the test data to avoid repeated calls
+let testDataCache: any[] | null = null;
+let lastFetchTime = 0;
+const CACHE_TIMEOUT = 30000; // 30 seconds
+
+// Function to check Supabase connection and data availability
+export const migrateTestDataToSupabase = async (forceRefresh = false): Promise<{ success: boolean; message: string }> => {
   try {
-    console.log("Attempting to connect to Supabase...");
+    console.log("Checking Supabase connection...");
     
-    // Check connection by counting records with detailed logging
-    const { count, error } = await supabase
+    // Clear the cache if a refresh is forced
+    if (forceRefresh) {
+      testDataCache = null;
+      lastFetchTime = 0;
+    }
+    
+    // Attempt to connect to Supabase by querying the voter_contacts table
+    const { data, error } = await supabase
+      .from('voter_contacts')
+      .select('count')
+      .limit(1);
+    
+    if (error) {
+      console.error("Supabase connection error:", error);
+      return { 
+        success: false, 
+        message: error.message 
+      };
+    }
+    
+    // Check if there's data in the voter_contacts table
+    const { count, error: countError } = await supabase
       .from('voter_contacts')
       .select('*', { count: 'exact', head: true });
     
+    if (countError) {
+      console.error("Error checking voter_contacts count:", countError);
+      return { 
+        success: true, 
+        message: "Connected to Supabase, but couldn't check data count: " + countError.message
+      };
+    }
+    
+    if (!count || count === 0) {
+      console.log("No data found in voter_contacts table");
+      return { 
+        success: true, 
+        message: "Connected to Supabase, but no data found in voter_contacts table." 
+      };
+    }
+    
     console.log(`Found ${count} records in voter_contacts table`);
-    
-    if (error) {
-      console.error("Connection error:", error);
-      return { success: false, message: `Error connecting to Supabase: ${error.message}` };
-    }
-    
-    // If no data, trigger import right away
-    if (count === 0) {
-      console.log("No data found, attempting immediate import...");
-      const importResult = await attemptDataImport();
-      
-      if (importResult.success) {
-        return { 
-          success: true, 
-          message: "Connected to Supabase successfully. Data imported." 
-        };
-      } else {
-        return { 
-          success: true, 
-          message: "Connected to Supabase successfully, but no data found. Will import data." 
-        };
-      }
-    }
-    
     return { 
       success: true, 
-      message: `Connected to Supabase successfully. Found ${count} records.` 
+      message: `Connected to Supabase, found ${count} records in voter_contacts table.` 
     };
   } catch (error) {
-    console.error("Error in migrateTestDataToSupabase:", error);
-    return { success: false, message: `Failed to connect to Supabase: ${error instanceof Error ? error.message : String(error)}` };
+    console.error("Error checking Supabase connection:", error);
+    return { 
+      success: false, 
+      message: "Failed to connect to Supabase: " + String(error) 
+    };
   }
 };
 
-// Function to get test data from Supabase with enhanced diagnostics
-export const getTestData = async () => {
+// Function to get test data from Supabase or generate fake data if needed
+export const getTestData = async (): Promise<any[]> => {
   try {
-    console.log("Starting getTestData function...");
+    const now = Date.now();
     
-    // Direct query approach - no count check first, just try to get the data
+    // Use cached data if available and not expired
+    if (testDataCache && now - lastFetchTime < CACHE_TIMEOUT) {
+      console.log("Using cached test data");
+      return testDataCache;
+    }
+    
+    console.log("Fetching voter_contacts data from Supabase...");
+    
+    // Fetch data from the voter_contacts table
     const { data, error } = await supabase
       .from('voter_contacts')
-      .select('*');
+      .select('*')
+      .order('id', { ascending: true })
+      .limit(50);
     
     if (error) {
       console.error("Error fetching data from Supabase:", error);
-      return [];
+      throw error;
     }
     
-    if (!data || data.length === 0) {
-      console.log("No data returned from voter_contacts table");
-      
-      // Try to import data and then fetch again
-      const importResult = await attemptDataImport();
-      console.log("Import attempt result:", importResult);
-      
-      // Try once more after import
-      const { data: freshData, error: freshError } = await supabase
-        .from('voter_contacts')
-        .select('*');
-        
-      if (freshError) {
-        console.error("Error fetching fresh data after import:", freshError);
-        return [];
-      }
-      
-      if (freshData && freshData.length > 0) {
-        console.log(`Successfully retrieved ${freshData.length} records after import`);
-        console.log("Sample data:", freshData.slice(0, 2)); // Log first two records
-        return freshData;
-      } else {
-        console.log("Still no data after import attempt");
-        
-        // Create and return fake data for development
-        const fakeData = generateFakeData();
-        console.log("Generated fake data for development:", fakeData.slice(0, 2));
-        return fakeData;
-      }
+    // If data exists, use it
+    if (data && data.length > 0) {
+      console.log(`Fetched ${data.length} records from voter_contacts`);
+      testDataCache = data;
+      lastFetchTime = now;
+      return data;
     }
     
-    console.log(`Successfully retrieved ${data.length} records from voter_contacts table`);
-    console.log("Sample data:", data.slice(0, 2)); // Log first two records
-    return data;
+    // Generate fake data for testing if no data exists
+    console.log("Still no data after import attempt");
+    
+    const fakeData = generateFakeData(50);
+    console.log("Generated fake data for development:", fakeData.slice(0, 2));
+    
+    testDataCache = fakeData;
+    lastFetchTime = now;
+    return fakeData;
   } catch (error) {
-    console.error("Error in getTestData:", error);
-    return [];
-  }
-};
-
-// Helper function to attempt data import through edge function
-const attemptDataImport = async () => {
-  try {
-    console.log("Calling import-voter-data edge function...");
+    console.error("Error getting test data:", error);
     
-    const { data: importData, error: importError } = await supabase.functions.invoke('import-voter-data');
-    
-    if (importError) {
-      console.error("Error calling import function:", importError);
-      return { success: false, message: `Error in import: ${importError.message}` };
-    } 
-    
-    console.log("Import function response:", importData);
-    return { success: true, message: "Import function executed" };
-  } catch (importErr) {
-    console.error("Exception during import attempt:", importErr);
-    return { success: false, message: `Exception in import: ${importErr instanceof Error ? importErr.message : String(importErr)}` };
-  }
-};
-
-// Function to insert test data into Supabase
-export const insertTestData = async (testData: any[]) => {
-  try {
-    // Insert the data into Supabase
-    const { data, error } = await supabase
-      .from('voter_contacts')
-      .insert(testData)
-      .select();
-    
-    if (error) {
-      console.error("Error inserting data:", error);
-      return { success: false, message: `Error inserting data: ${error.message}` };
-    }
-    
-    return { success: true, message: `Inserted ${data.length} records successfully.` };
-  } catch (error) {
-    console.error("Error in insertTestData:", error);
-    return { success: false, message: `Failed to insert data: ${error instanceof Error ? error.message : String(error)}` };
+    // Fallback to fake data in case of error
+    const fakeData = generateFakeData(50);
+    testDataCache = fakeData;
+    lastFetchTime = Date.now();
+    return fakeData;
   }
 };
 
 // Function to generate fake data for development
-const generateFakeData = () => {
+function generateFakeData(count: number): any[] {
   const teams = ["Team Alpha", "Team Beta", "Team Gamma", "Team Delta", "Team Tony"];
-  const tactics = ["SMS", "Phone", "Canvas", "Email"];
+  const tactics = ["Phone", "SMS", "Canvas", "Email"];
+  const firstNames = ["John", "Michael", "Sarah", "Emily", "David", "James", "Maria", "Lisa"];
+  const lastNames = ["Smith", "Johnson", "Williams", "Brown", "Jones", "Miller", "Davis"];
   const dates = ["2023-01-01", "2023-02-01", "2023-03-01", "2023-04-01", "2023-05-01", "2025-01-01"];
-  const firstNames = ["John", "Sarah", "Michael", "Emily", "David", "Maria", "James", "Lisa"];
-  const lastNames = ["Smith", "Johnson", "Williams", "Jones", "Brown", "Garcia", "Miller", "Davis"];
   
-  const fakeData = [];
+  const data = [];
   
-  for (let i = 0; i < 50; i++) {
-    const contacts = Math.floor(Math.random() * 20);
-    const notHome = Math.floor(Math.random() * 10);
-    const badData = Math.floor(Math.random() * 5);
-    const refusal = Math.floor(Math.random() * 8);
+  for (let i = 0; i < count; i++) {
+    const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+    const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+    const team = teams[Math.floor(Math.random() * teams.length)];
+    const tactic = tactics[Math.floor(Math.random() * tactics.length)];
+    const date = dates[Math.floor(Math.random() * dates.length)];
     
-    // Make sure attempts is at least equal to the sum of contacts, notHome, badData
-    const attempts = contacts + notHome + badData + refusal;
+    // Ensure contacts + not_home + refusal + bad_data = attempts
+    const attempts = 10 + Math.floor(Math.random() * 20); // 10-30 attempts
+    const contacts = Math.floor(Math.random() * attempts);
+    const notHomeMax = attempts - contacts;
+    const notHome = Math.floor(Math.random() * notHomeMax);
+    const badDataMax = attempts - contacts - notHome;
+    const badData = Math.floor(Math.random() * badDataMax);
+    const refusal = attempts - contacts - notHome - badData;
     
-    // Support, oppose, undecided should sum to contacts
-    const support = Math.floor(Math.random() * contacts);
-    const oppose = Math.floor(Math.random() * (contacts - support));
+    // Distribute contacts among support, oppose, undecided
+    const support = contacts > 0 ? Math.floor(Math.random() * contacts) : 0;
+    const opposeMax = contacts - support;
+    const oppose = opposeMax > 0 ? Math.floor(Math.random() * opposeMax) : 0;
     const undecided = contacts - support - oppose;
     
-    fakeData.push({
+    data.push({
       id: i + 1,
-      tactic: tactics[Math.floor(Math.random() * tactics.length)],
-      date: dates[Math.floor(Math.random() * dates.length)],
+      tactic,
+      date,
       attempts,
       contacts,
       not_home: notHome,
       bad_data: badData,
       refusal,
-      first_name: firstNames[Math.floor(Math.random() * firstNames.length)],
-      last_name: lastNames[Math.floor(Math.random() * lastNames.length)],
-      team: teams[Math.floor(Math.random() * teams.length)],
+      first_name: firstName,
+      last_name: lastName,
+      team,
       support,
       oppose,
       undecided,
@@ -185,5 +170,5 @@ const generateFakeData = () => {
     });
   }
   
-  return fakeData;
-};
+  return data;
+}

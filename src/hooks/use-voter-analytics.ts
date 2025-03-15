@@ -124,7 +124,7 @@ export const useVoterAnalytics = () => {
       console.log("Refreshing data from Supabase...");
       
       // Check Supabase connection again
-      const migrateResult = await migrateTestDataToSupabase();
+      const migrateResult = await migrateTestDataToSupabase(true); // Pass true to force refresh
       
       if (migrateResult.success) {
         toast({
@@ -182,6 +182,9 @@ export const useVoterAnalytics = () => {
         });
         
         setDataStats(data.stats);
+        
+        // Refresh the data after successful import
+        await refreshData();
         return true;
       } else {
         toast({
@@ -202,7 +205,7 @@ export const useVoterAnalytics = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [toast]);
+  }, [toast, refreshData]);
 
   return {
     query,
