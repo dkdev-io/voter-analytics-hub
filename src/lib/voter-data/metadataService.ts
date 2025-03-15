@@ -25,6 +25,20 @@ export const fetchTeams = async (): Promise<string[]> => {
   }
 };
 
+// Get all people regardless of team
+export const fetchAllPeople = async (): Promise<string[]> => {
+  try {
+    const data = getTestData();
+    const people = data.map(item => `${item.first_name} ${item.last_name}`);
+    
+    // Return unique names
+    return [...new Set(people)];
+  } catch (error) {
+    console.error('Error fetching all people:', error);
+    return [];
+  }
+};
+
 // Get all people belonging to a specific team
 export const fetchPeopleByTeam = async (team: string): Promise<string[]> => {
   try {

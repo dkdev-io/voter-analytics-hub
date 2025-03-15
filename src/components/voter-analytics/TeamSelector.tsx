@@ -17,7 +17,7 @@ export const TeamSelector = ({
   return (
     <div className="inline-block min-w-[180px]">
       <Select
-        value={value || undefined}
+        value={value || "All"}
         onValueChange={onChange}
         disabled={isLoading}
       >

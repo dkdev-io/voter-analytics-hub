@@ -27,7 +27,7 @@ export const QueryBuilder = ({
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
   
   // Use our custom hook to fetch metadata
-  const { tactics, teams, filteredPeople, availableDates, isLoading: metadataIsLoading } = useMetadata(isDataMigrated, selectedTeam);
+  const { tactics, teams, filteredPeople, allPeople, availableDates, isLoading: metadataIsLoading } = useMetadata(isDataMigrated, selectedTeam);
   
   const isLoading = parentIsLoading || metadataIsLoading;
 
@@ -48,7 +48,7 @@ export const QueryBuilder = ({
   };
 
   const handleTeamChange = (value: string) => {
-    setSelectedTeam(value);
+    setSelectedTeam(value === "All" ? null : value);
     setQuery(prev => ({ ...prev, team: value }));
     setError(null);
   };
@@ -67,6 +67,9 @@ export const QueryBuilder = ({
     setQuery(prev => ({ ...prev, resultType: value }));
     setError(null);
   };
+
+  // Determine which people list to use - if a team is selected, use filtered people, otherwise use all people
+  const peopleToShow = selectedTeam ? filteredPeople : allPeople;
 
   return (
     <div className="space-y-6">
@@ -98,8 +101,8 @@ export const QueryBuilder = ({
         <PersonSelector 
           value={query.person}
           onChange={handlePersonChange}
-          people={filteredPeople}
-          disabled={!selectedTeam}
+          people={peopleToShow}
+          disabled={false}
           isLoading={isLoading}
         />
         

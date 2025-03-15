@@ -21,7 +21,7 @@ export const PersonSelector = ({
       <Select
         value={value}
         onValueChange={onChange}
-        disabled={disabled || isLoading}
+        disabled={isLoading}
       >
         <SelectTrigger className="min-w-[180px]">
           <SelectValue placeholder={isLoading ? "Loading..." : "Select Individual"} />
@@ -41,7 +41,7 @@ export const PersonSelector = ({
             ))
           ) : (
             <SelectItem value="no-data" disabled>
-              {isLoading ? "Loading people..." : disabled ? "Select a team first" : "No data in database yet"}
+              {isLoading ? "Loading people..." : "No data in database yet"}
             </SelectItem>
           )}
         </SelectContent>
