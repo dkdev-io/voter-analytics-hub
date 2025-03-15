@@ -57,6 +57,10 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
 
         if (allPeopleResult.status === 'fulfilled') {
           setAllPeople(allPeopleResult.value || []);
+          // Initialize filteredPeople with all people when no team is selected
+          if (!selectedTeam || selectedTeam === "All") {
+            setFilteredPeople(allPeopleResult.value || []);
+          }
         } else {
           console.error("Error loading all people:", allPeopleResult.reason);
         }
@@ -72,7 +76,7 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
     } else {
       setIsLoading(false);
     }
-  }, [isDataMigrated]);
+  }, [isDataMigrated, selectedTeam]);
 
   // Fetch people based on selected team
   useEffect(() => {
@@ -83,11 +87,21 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
         setIsLoading(true);
         
         if (selectedTeam && selectedTeam !== "All") {
+          // If a specific team is selected, fetch people from that team
           const people = await fetchPeopleByTeam(selectedTeam);
           setFilteredPeople(people || []);
         } else {
-          // If "All" is selected or no team is selected, use all people
-          setFilteredPeople(allPeople);
+          // If "All" is selected or no team is selected, use allPeople
+          // Make sure we have allPeople data before setting it
+          if (allPeople.length > 0) {
+            setFilteredPeople(allPeople);
+          } else {
+            // If allPeople is empty, fetch all people again
+            const allPeopleData = await fetchAllPeople();
+            setFilteredPeople(allPeopleData || []);
+            // Also update allPeople state
+            if (allPeopleData) setAllPeople(allPeopleData);
+          }
         }
       } catch (err) {
         console.error("Error loading people by team:", err);

@@ -24,7 +24,7 @@ export const QueryBuilder = ({
   isLoading: parentIsLoading,
   isDataMigrated 
 }: QueryBuilderProps) => {
-  const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
+  const [selectedTeam, setSelectedTeam] = useState<string | null>(query.team === "All" ? null : query.team || null);
   
   // Use our custom hook to fetch metadata
   const { 
@@ -79,13 +79,12 @@ export const QueryBuilder = ({
     setError(null);
   };
 
-  // Determine which people list to use - if a team is selected, use filtered people, otherwise use all people
-  const peopleToShow = selectedTeam ? filteredPeople : allPeople;
-
   console.log("Selected team:", selectedTeam);
   console.log("Teams available:", teams);
-  console.log("People to show:", peopleToShow);
+  console.log("People to show:", filteredPeople);
+  console.log("People count:", filteredPeople.length);
   console.log("All people:", allPeople);
+  console.log("All people count:", allPeople.length);
   console.log("Available dates:", availableDates);
 
   return (
@@ -118,7 +117,7 @@ export const QueryBuilder = ({
         <PersonSelector 
           value={query.person}
           onChange={handlePersonChange}
-          people={peopleToShow}
+          people={filteredPeople}
           disabled={false}
           isLoading={isLoading}
         />

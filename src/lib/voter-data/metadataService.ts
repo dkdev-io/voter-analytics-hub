@@ -93,8 +93,10 @@ export const fetchAllPeople = async (): Promise<string[]> => {
     
     // Extract unique full names from the data
     const allPeople = data.map(item => `${item.first_name} ${item.last_name}`);
+    // Make sure we get unique names only
     const uniquePeople = [...new Set(allPeople)];
-    console.log("All people:", uniquePeople);
+    console.log("All people count:", uniquePeople.length);
+    console.log("Sample people:", uniquePeople.slice(0, 5));
     return uniquePeople;
   } catch (error) {
     console.error("Error fetching all people:", error);
