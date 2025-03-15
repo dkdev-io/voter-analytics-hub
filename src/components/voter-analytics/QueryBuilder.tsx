@@ -20,14 +20,20 @@ interface QueryBuilderProps {
 }
 
 export const QueryBuilder = ({ 
-  query, 
+  query = {}, // Default value
   setQuery, 
   setError,
   isLoading: parentIsLoading,
   isDataMigrated,
   onRefresh
 }: QueryBuilderProps) => {
-  const [selectedTeam, setSelectedTeam] = useState<string | null>(query.team === "All" ? null : query.team || null);
+  // Ensure query is never undefined
+  const safeQuery = query || {};
+  
+  // Default to null if team is undefined or "All"
+  const [selectedTeam, setSelectedTeam] = useState<string | null>(
+    safeQuery.team && safeQuery.team !== "All" ? safeQuery.team : null
+  );
   
   // Use our custom hook to fetch metadata
   const { 
@@ -44,7 +50,7 @@ export const QueryBuilder = ({
 
   // Clear person selection when team changes
   useEffect(() => {
-    if (selectedTeam !== query.team) {
+    if (selectedTeam !== safeQuery.team) {
       setQuery(prev => {
         const newQuery = { ...prev };
         // Only reset person when team changes
@@ -54,7 +60,7 @@ export const QueryBuilder = ({
         return newQuery;
       });
     }
-  }, [selectedTeam, setQuery, query.team]);
+  }, [selectedTeam, setQuery, safeQuery.team]);
 
   const handleDateSelect = (value: string) => {
     console.log("Date selected:", value);
@@ -103,7 +109,7 @@ export const QueryBuilder = ({
     availableDatesCount: availableDates.length,
     dates: availableDates.slice(0, 5),
     people: filteredPeople.slice(0, 5),
-    query,
+    query: safeQuery,
     isLoading
   });
 
@@ -126,14 +132,14 @@ export const QueryBuilder = ({
         <span>I want to know how many</span>
         
         <TacticSelector 
-          value={query.tactic}
+          value={safeQuery.tactic}
           onChange={handleTacticChange}
           tactics={tactics}
           isLoading={isLoading}
         />
         
         <ResultTypeSelector 
-          value={query.resultType}
+          value={safeQuery.resultType}
           onChange={handleResultTypeChange}
           isLoading={isLoading}
         />
@@ -148,7 +154,7 @@ export const QueryBuilder = ({
         />
         
         <PersonSelector 
-          value={query.person}
+          value={safeQuery.person}
           onChange={handlePersonChange}
           people={filteredPeople}
           disabled={false}
@@ -158,7 +164,7 @@ export const QueryBuilder = ({
         <span>on</span>
         
         <DateSelector 
-          value={query.date}
+          value={safeQuery.date}
           onChange={handleDateSelect}
           availableDates={availableDates}
           isLoading={isLoading}

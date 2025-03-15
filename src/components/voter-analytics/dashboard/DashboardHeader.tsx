@@ -52,7 +52,7 @@ export function DashboardHeader({
   return (
     <div className="space-y-6 mt-4 mb-8">
       {!isDataMigrated && (
-        <DataMigrationAlert isLoading={isLoading} />
+        <DataMigrationAlert />
       )}
       
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
@@ -64,7 +64,7 @@ export function DashboardHeader({
       
       <div className="space-y-6">
         <QuerySection 
-          query={query} 
+          query={query || {}} 
           setQuery={setQuery} 
           setError={setError} 
           isLoading={isLoading} 
@@ -76,8 +76,7 @@ export function DashboardHeader({
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
           isLoading={isLoading}
-          calculateResult={calculateResult}
-          error={error}
+          onSubmit={calculateResult}
         />
       </div>
     </div>

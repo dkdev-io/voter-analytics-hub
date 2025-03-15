@@ -21,7 +21,7 @@ export function QuerySection({
   return (
     <div className="bg-white rounded-lg shadow-sm p-6">
       <QueryBuilder
-        query={query}
+        query={query || {}} // Ensure query is never undefined
         setQuery={setQuery}
         setError={setError}
         isLoading={isLoading}
