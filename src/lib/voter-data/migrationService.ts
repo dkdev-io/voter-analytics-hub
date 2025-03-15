@@ -121,10 +121,69 @@ export const getTestData = async (): Promise<any[]> => {
 
 // Function to generate fake data for development
 function generateFakeData(count: number): any[] {
-  const teams = ["Team Alpha", "Team Beta", "Team Gamma", "Team Delta", "Team Tony"];
+  // Define the exact teams from the dataset
+  const teams = ["Team Tony", "Local Party", "Candidate"];
   const tactics = ["Phone", "SMS", "Canvas", "Email"];
-  const firstNames = ["John", "Michael", "Sarah", "Emily", "David", "James", "Maria", "Lisa"];
-  const lastNames = ["Smith", "Johnson", "Williams", "Brown", "Jones", "Miller", "Davis"];
+  
+  // Create the exact people data structure from the dataset
+  const peopleData = [
+    { firstName: "John", lastName: "Smith", team: "Team Tony" },
+    { firstName: "Jane", lastName: "Doe", team: "Team Tony" },
+    { firstName: "Alex", lastName: "Johnson", team: "Team Tony" },
+    { firstName: "Maria", lastName: "Martinez", team: "Team Tony" },
+    { firstName: "Chris", lastName: "Brown", team: "Team Tony" },
+    { firstName: "Candidate", lastName: "Carter", team: "Candidate" },
+    { firstName: "Ava", lastName: "King", team: "Local Party" },
+    { firstName: "Evelyn", lastName: "Nelson", team: "Local Party" },
+    { firstName: "James", lastName: "White", team: "Local Party" },
+    { firstName: "Owen", lastName: "Torres", team: "Local Party" },
+    { firstName: "David", lastName: "Kim", team: "Local Party" },
+    { firstName: "Nathan", lastName: "Powell", team: "Local Party" },
+    { firstName: "Emily", lastName: "Davis", team: "Local Party" },
+    { firstName: "Victoria", lastName: "Howard", team: "Local Party" },
+    { firstName: "Emma", lastName: "Scott", team: "Local Party" },
+    { firstName: "Amelia", lastName: "Adams", team: "Local Party" },
+    { firstName: "Lucas", lastName: "Wright", team: "Local Party" },
+    { firstName: "Mason", lastName: "Anderson", team: "Local Party" },
+    { firstName: "Leo", lastName: "Bennett", team: "Local Party" },
+    { firstName: "Ava", lastName: "Lewis", team: "Local Party" },
+    { firstName: "Gabriel", lastName: "Peterson", team: "Local Party" },
+    { firstName: "Lily", lastName: "Murphy", team: "Local Party" },
+    { firstName: "Isaac", lastName: "Sanders", team: "Local Party" },
+    { firstName: "Samuel", lastName: "Bell", team: "Local Party" },
+    { firstName: "Harper", lastName: "Mitchell", team: "Local Party" },
+    { firstName: "Jacob", lastName: "Thomas", team: "Local Party" },
+    { firstName: "Isabella", lastName: "Harris", team: "Local Party" },
+    { firstName: "Ethan", lastName: "Wilson", team: "Local Party" },
+    { firstName: "Abigail", lastName: "Roberts", team: "Local Party" },
+    { firstName: "Scarlett", lastName: "Cox", team: "Local Party" },
+    { firstName: "Zoe", lastName: "Gray", team: "Local Party" },
+    { firstName: "Henry", lastName: "Baker", team: "Local Party" },
+    { firstName: "Elijah", lastName: "Perez", team: "Local Party" },
+    { firstName: "Julian", lastName: "Flores", team: "Local Party" },
+    { firstName: "Alexander", lastName: "Reed", team: "Local Party" },
+    { firstName: "Matthew", lastName: "Cooper", team: "Local Party" },
+    { firstName: "Mia", lastName: "Robinson", team: "Local Party" },
+    { firstName: "Grace", lastName: "Russell", team: "Local Party" },
+    { firstName: "Jack", lastName: "Rivera", team: "Local Party" },
+    { firstName: "Michael", lastName: "Johnson", team: "Local Party" },
+    { firstName: "Sarah", lastName: "Lee", team: "Local Party" },
+    { firstName: "Aria", lastName: "Barnes", team: "Local Party" },
+    { firstName: "Hannah", lastName: "Price", team: "Local Party" },
+    { firstName: "Ella", lastName: "Morgan", team: "Local Party" },
+    { firstName: "Noah", lastName: "Walker", team: "Local Party" },
+    { firstName: "Olivia", lastName: "Martinez", team: "Local Party" },
+    { firstName: "Liam", lastName: "Turner", team: "Local Party" },
+    { firstName: "Sebastian", lastName: "Carter", team: "Local Party" },
+    { firstName: "William", lastName: "Brown", team: "Local Party" },
+    { firstName: "Charlotte", lastName: "Hill", team: "Local Party" },
+    { firstName: "Benjamin", lastName: "Green", team: "Local Party" },
+    { firstName: "Chloe", lastName: "Ramirez", team: "Local Party" },
+    { firstName: "Madison", lastName: "Jenkins", team: "Local Party" },
+    { firstName: "Sophia", lastName: "Clark", team: "Local Party" },
+    { firstName: "Daniel", lastName: "Hall", team: "Local Party" },
+    { firstName: "Dan", lastName: "Kelly", team: "Local Party" }
+  ];
   
   // Use the exact dates provided by the user - 2025-01-01 to 2025-01-31
   const generateDates = () => {
@@ -140,9 +199,10 @@ function generateFakeData(count: number): any[] {
   const data = [];
   
   for (let i = 0; i < count; i++) {
-    const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
-    const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
-    const team = teams[Math.floor(Math.random() * teams.length)];
+    // Get a random person from the peopleData array
+    const personIndex = Math.floor(Math.random() * peopleData.length);
+    const person = peopleData[personIndex];
+    
     const tactic = tactics[Math.floor(Math.random() * tactics.length)];
     
     // Use only the dates from January 2025 (1-31)
@@ -173,9 +233,9 @@ function generateFakeData(count: number): any[] {
       not_home: notHome,
       bad_data: badData,
       refusal,
-      first_name: firstName,
-      last_name: lastName,
-      team,
+      first_name: person.firstName,
+      last_name: person.lastName,
+      team: person.team,
       support,
       oppose,
       undecided,

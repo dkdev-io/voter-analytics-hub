@@ -35,7 +35,7 @@ export const fetchTeams = async (): Promise<string[]> => {
     if (!data || data.length === 0) {
       console.log("No data available for teams, using fallback values");
       // Fallback to default teams if no data is available
-      return ["Team Alpha", "Team Beta", "Team Gamma", "Team Delta", "Team Tony"];
+      return ["Team Tony", "Local Party", "Candidate"];
     }
     
     // Extract unique teams from the data - ensure we use the actual data
@@ -45,7 +45,7 @@ export const fetchTeams = async (): Promise<string[]> => {
   } catch (error) {
     console.error("Error fetching teams:", error);
     // Return default teams as fallback
-    return ["Team Alpha", "Team Beta", "Team Gamma", "Team Delta", "Team Tony"];
+    return ["Team Tony", "Local Party", "Candidate"];
   }
 };
 
@@ -58,8 +58,14 @@ export const fetchPeopleByTeam = async (team: string): Promise<string[]> => {
     
     if (!data || data.length === 0) {
       console.log("No data available for people, using fallback values");
-      // Fallback to default people if no data is available
-      return ["Michael Garcia", "Sarah Rodriguez", "David Smith", "John Smith", "Maria Williams"];
+      if (team === "Team Tony") {
+        return ["John Smith", "Jane Doe", "Alex Johnson", "Maria Martinez", "Chris Brown"];
+      } else if (team === "Candidate") {
+        return ["Candidate Carter"];
+      } else {
+        // Local Party or any other team
+        return ["Ava King", "Evelyn Nelson", "James White", "Owen Torres", "David Kim"];
+      }
     }
     
     // Filter data by team and extract unique full names
@@ -82,8 +88,15 @@ export const fetchPeopleByTeam = async (team: string): Promise<string[]> => {
     return uniquePeople;
   } catch (error) {
     console.error(`Error fetching people for team ${team}:`, error);
-    // Return default people as fallback
-    return ["Michael Garcia", "Sarah Rodriguez", "David Smith", "John Smith", "Maria Williams"];
+    // Return appropriate fallback people based on the team
+    if (team === "Team Tony") {
+      return ["John Smith", "Jane Doe", "Alex Johnson", "Maria Martinez", "Chris Brown"];
+    } else if (team === "Candidate") {
+      return ["Candidate Carter"];
+    } else {
+      // Local Party or any other team
+      return ["Ava King", "Evelyn Nelson", "James White", "Owen Torres", "David Kim"];
+    }
   }
 };
 
@@ -96,8 +109,11 @@ export const fetchAllPeople = async (): Promise<string[]> => {
     
     if (!data || data.length === 0) {
       console.log("No data available for people");
-      // Fallback to default people if no data is available
-      return ["Michael Garcia", "Sarah Rodriguez", "David Smith", "Emily Johnson", "Joshua Williams", "John Smith", "Maria Williams"];
+      // Fallback to default people that match the dataset
+      return [
+        "John Smith", "Jane Doe", "Alex Johnson", "Maria Martinez", "Chris Brown",
+        "Candidate Carter", "Ava King", "Evelyn Nelson", "James White", "Owen Torres"
+      ];
     }
     
     // Extract unique full names from the data
@@ -119,8 +135,11 @@ export const fetchAllPeople = async (): Promise<string[]> => {
     return uniquePeople;
   } catch (error) {
     console.error("Error fetching all people:", error);
-    // Return default people as fallback
-    return ["Michael Garcia", "Sarah Rodriguez", "David Smith", "Emily Johnson", "Joshua Williams", "John Smith", "Maria Williams"];
+    // Return default people that match the dataset as fallback
+    return [
+      "John Smith", "Jane Doe", "Alex Johnson", "Maria Martinez", "Chris Brown",
+      "Candidate Carter", "Ava King", "Evelyn Nelson", "James White", "Owen Torres"
+    ];
   }
 };
 
