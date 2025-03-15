@@ -1,6 +1,7 @@
 
 import React, { useEffect } from 'react';
 import { useErrorLogger } from '@/hooks/useErrorLogger';
+import { addIssue } from '@/lib/issue-log/issueLogService';
 
 interface ResultsSectionProps {
   error: string | null;
@@ -26,6 +27,26 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ error, result, q
         expected: 17,
         timestamp: new Date().toISOString()
       }).catch(err => console.error("Failed to log Dan Kelly result:", err));
+      
+      // Also log to issue tracker if result doesn't match expected
+      if (result !== 17) {
+        const issueData = {
+          title: "Dan Kelly Query Returns Incorrect Value",
+          description: `Query for Dan Kelly's phone attempts on 2025-01-31 returned ${result} instead of expected 17.`,
+          expected_behavior: "Query should return 17",
+          actual_behavior: `Query returned ${result}`,
+          console_logs: JSON.stringify({
+            query: query,
+            result: result
+          }, null, 2),
+          theories: "Multiple Dan Kelly records may exist in the test data with different values.",
+          component: "VoterAnalytics, QueryService"
+        };
+        
+        addIssue(issueData)
+          .then(() => console.log("Successfully added Dan Kelly issue to tracker"))
+          .catch(err => console.error("Failed to add Dan Kelly issue to tracker:", err));
+      }
     }
   }, [result, query, logDataIssue]);
 
