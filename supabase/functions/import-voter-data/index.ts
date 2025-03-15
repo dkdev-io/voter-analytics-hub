@@ -36,8 +36,24 @@ serve(async (req) => {
     
     // If we already have data, return success without importing
     if (count && count > 0) {
+      // Do a sanity check query to make sure data is actually accessible
+      const { data: testData, error: testError } = await supabase
+        .from('voter_contacts')
+        .select('*')
+        .limit(5);
+      
+      if (testError) {
+        console.error('Error fetching test data:', testError);
+      } else {
+        console.log(`Successfully fetched ${testData.length} test records`);
+      }
+      
       return new Response(
-        JSON.stringify({ success: true, message: `Data already exists (${count} records)` }),
+        JSON.stringify({ 
+          success: true, 
+          message: `Data already exists (${count} records)`,
+          sample: testData || []
+        }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
@@ -48,7 +64,7 @@ serve(async (req) => {
         first_name: "John",
         last_name: "Smith",
         team: "Team A",
-        tactic: "Phone Banking",
+        tactic: "Phone",
         date: "2023-04-01",
         attempts: 25,
         contacts: 10,
@@ -63,7 +79,7 @@ serve(async (req) => {
         first_name: "Jane",
         last_name: "Doe",
         team: "Team B",
-        tactic: "Canvassing",
+        tactic: "Canvas",
         date: "2023-04-02",
         attempts: 50,
         contacts: 25,
@@ -78,7 +94,7 @@ serve(async (req) => {
         first_name: "Alice",
         last_name: "Johnson",
         team: "Team A",
-        tactic: "Texting",
+        tactic: "SMS",
         date: "2023-04-03",
         attempts: 75,
         contacts: 30,
@@ -93,7 +109,7 @@ serve(async (req) => {
         first_name: "Bob",
         last_name: "Brown",
         team: "Team C",
-        tactic: "Phone Banking",
+        tactic: "Phone",
         date: "2023-04-01",
         attempts: 30,
         contacts: 15,
@@ -108,7 +124,7 @@ serve(async (req) => {
         first_name: "Carol",
         last_name: "White",
         team: "Team B",
-        tactic: "Canvassing",
+        tactic: "Canvas",
         date: "2023-04-03",
         attempts: 40,
         contacts: 20,
@@ -121,10 +137,21 @@ serve(async (req) => {
       }
     ];
     
-    // Insert data into Supabase
-    const { error: insertError } = await supabase
+    // Delete any existing data first to prevent conflicts
+    const { error: deleteError } = await supabase
       .from('voter_contacts')
-      .insert(sampleData);
+      .delete()
+      .neq('id', 0); // This will delete all records
+      
+    if (deleteError) {
+      console.error('Error deleting existing data:', deleteError);
+    }
+    
+    // Insert data into Supabase
+    const { data, error: insertError } = await supabase
+      .from('voter_contacts')
+      .insert(sampleData)
+      .select();
     
     if (insertError) {
       console.error('Error inserting data:', insertError);
@@ -134,8 +161,23 @@ serve(async (req) => {
       )
     }
     
+    // Fetch the inserted data to confirm it worked
+    const { data: confirmData, error: confirmError } = await supabase
+      .from('voter_contacts')
+      .select('*');
+      
+    if (confirmError) {
+      console.error('Error confirming data insertion:', confirmError);
+    } else {
+      console.log(`Successfully confirmed ${confirmData.length} records in the database`);
+    }
+    
     return new Response(
-      JSON.stringify({ success: true, message: `Imported ${sampleData.length} records` }),
+      JSON.stringify({ 
+        success: true, 
+        message: `Imported ${sampleData.length} records`,
+        count: confirmData ? confirmData.length : null
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (error) {
