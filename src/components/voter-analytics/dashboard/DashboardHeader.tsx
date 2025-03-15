@@ -52,7 +52,7 @@ export function DashboardHeader({
   return (
     <div className="space-y-6 mt-4 mb-8">
       {!isDataMigrated && (
-        <DataMigrationAlert />
+        <DataMigrationAlert isDataMigrated={isDataMigrated} />
       )}
       
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
