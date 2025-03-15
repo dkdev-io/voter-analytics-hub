@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
 // Cache the test data to avoid repeated calls
@@ -108,7 +109,14 @@ export const getTestData = async (): Promise<any[]> => {
     const fakeData = generateFakeData(300);
     console.log("Generated fake data for development:", fakeData.slice(0, 2));
     
-    // Manually add a specific record for Dan Kelly with Phone on 2025-01-31 with attempts=17
+    // Remove ALL existing Dan Kelly records to avoid duplicates
+    const cleanedData = fakeData.filter(record => 
+      !(record.first_name === "Dan" && record.last_name === "Kelly")
+    );
+    
+    console.log(`Removed ${fakeData.length - cleanedData.length} duplicate Dan Kelly records`);
+    
+    // Create a SINGLE Dan Kelly record for Phone on 2025-01-31 with attempts=17
     const danKellyRecord = {
       id: 9999,  // Special ID for testing
       tactic: "Phone",
@@ -126,14 +134,6 @@ export const getTestData = async (): Promise<any[]> => {
       undecided: 2,
       created_at: new Date().toISOString()
     };
-    
-    // Remove any existing Dan Kelly Phone 2025-01-31 records to avoid duplicates
-    const cleanedData = fakeData.filter(record => 
-      !(record.first_name === "Dan" && 
-        record.last_name === "Kelly" && 
-        record.tactic === "Phone" && 
-        record.date === "2025-01-31")
-    );
     
     // Add our special test record
     cleanedData.push(danKellyRecord);

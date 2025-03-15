@@ -31,7 +31,7 @@ serve(async (req) => {
           type: "header",
           text: {
             type: "plain_text",
-            text: "🚨 Error in VoterDash",
+            text: source.includes("Data Debugging") ? "📊 Data Issue in VoterDash" : "🚨 Error in VoterDash",
             emoji: true
           }
         },
@@ -40,11 +40,11 @@ serve(async (req) => {
           fields: [
             {
               type: "mrkdwn",
-              text: `*Error:*\n${message}`
+              text: `*Issue:*\n${message}`
             },
             {
               type: "mrkdwn",
-              text: `*Location:*\n${source || 'Unknown'}`
+              text: `*Source:*\n${source || 'Unknown'}`
             }
           ]
         },
@@ -75,8 +75,23 @@ serve(async (req) => {
       });
     }
 
+    // Special handling for debug history if it exists
+    if (metadata && metadata.debugHistory) {
+      slackPayload.blocks.push({
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: `*Debug History:*\n${metadata.debugHistory.map((item: string) => `• ${item}`).join('\n')}`
+        }
+      });
+      
+      // Remove debug history from metadata to avoid duplication
+      const { debugHistory, ...restMetadata } = metadata;
+      metadata = restMetadata;
+    }
+
     // Add metadata if available
-    if (metadata) {
+    if (metadata && Object.keys(metadata).length > 0) {
       slackPayload.blocks.push({
         type: "section",
         text: {

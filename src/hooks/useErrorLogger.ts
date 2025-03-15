@@ -64,6 +64,33 @@ export function useErrorLogger() {
     }
   };
   
+  // New function to log data issues specifically for the Dan Kelly debugging
+  const logDataIssue = async (source: string, metadata: Record<string, any>) => {
+    console.warn(`[DATA ISSUE] ${source}:`, metadata);
+    
+    try {
+      await supabase.functions.invoke('slack-error-logger', {
+        body: {
+          message: `Data Issue: ${source}`,
+          source: 'Data Debugging',
+          route: location.pathname,
+          metadata: {
+            ...metadata,
+            debugHistory: [
+              "Previous attempts: Initial query returned 151 for Dan Kelly (all records)",
+              "Added filtering by tactic: returned 25 for Dan Kelly + Phone",
+              "Added exact date filtering: returned 85 for Dan Kelly + Phone + 2025-01-31",
+              "Added special case for Dan Kelly: still returning incorrect values",
+              "Current issue: Test data generation appears to be creating multiple Dan Kelly records"
+            ]
+          }
+        }
+      });
+    } catch (loggingError) {
+      console.error('Error while sending data issue log:', loggingError);
+    }
+  };
+  
   // Utility method to wrap async functions with error logging
   const withErrorLogging = <T extends (...args: any[]) => Promise<any>>(
     fn: T,
@@ -82,6 +109,7 @@ export function useErrorLogger() {
   return {
     logError,
     logAuthFlowIssue,
+    logDataIssue,
     withErrorLogging
   };
 }
