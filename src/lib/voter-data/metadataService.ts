@@ -5,7 +5,8 @@ import { getTestData } from './migrationService';
 export const fetchTactics = async (): Promise<string[]> => {
   try {
     const data = getTestData();
-    const tactics = [...new Set(data.map(item => item.tactic))];
+    const tactics = [...new Set(data.map(item => item.tactic))].sort();
+    console.log("Fetched tactics:", tactics);
     return tactics;
   } catch (error) {
     console.error('Error fetching tactics:', error);
@@ -17,7 +18,8 @@ export const fetchTactics = async (): Promise<string[]> => {
 export const fetchTeams = async (): Promise<string[]> => {
   try {
     const data = getTestData();
-    const teams = [...new Set(data.map(item => item.team))];
+    const teams = [...new Set(data.map(item => item.team))].sort();
+    console.log("Fetched teams:", teams);
     return teams;
   } catch (error) {
     console.error('Error fetching teams:', error);
@@ -31,8 +33,10 @@ export const fetchAllPeople = async (): Promise<string[]> => {
     const data = getTestData();
     const people = data.map(item => `${item.first_name} ${item.last_name}`);
     
-    // Return unique names
-    return [...new Set(people)];
+    // Return unique names, sorted alphabetically
+    const uniquePeople = [...new Set(people)].sort();
+    console.log("Fetched all people:", uniquePeople);
+    return uniquePeople;
   } catch (error) {
     console.error('Error fetching all people:', error);
     return [];
@@ -43,12 +47,15 @@ export const fetchAllPeople = async (): Promise<string[]> => {
 export const fetchPeopleByTeam = async (team: string): Promise<string[]> => {
   try {
     const data = getTestData();
-    const filteredPeople = data
-      .filter(item => team === 'All' || item.team === team)
-      .map(item => `${item.first_name} ${item.last_name}`);
     
-    // Return unique names
-    return [...new Set(filteredPeople)];
+    // Filter by the specified team
+    const teamData = data.filter(item => item.team === team);
+    const filteredPeople = teamData.map(item => `${item.first_name} ${item.last_name}`);
+    
+    // Return unique names, sorted alphabetically
+    const uniquePeople = [...new Set(filteredPeople)].sort();
+    console.log(`Fetched people for team ${team}:`, uniquePeople);
+    return uniquePeople;
   } catch (error) {
     console.error('Error fetching people by team:', error);
     return [];
@@ -59,7 +66,8 @@ export const fetchPeopleByTeam = async (team: string): Promise<string[]> => {
 export const fetchDates = async (): Promise<string[]> => {
   try {
     const data = getTestData();
-    const dates = [...new Set(data.map(item => item.date))];
+    const dates = [...new Set(data.map(item => item.date))].sort();
+    console.log("Fetched dates:", dates);
     return dates;
   } catch (error) {
     console.error('Error fetching dates:', error);

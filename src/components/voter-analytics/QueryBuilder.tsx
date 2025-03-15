@@ -27,20 +27,30 @@ export const QueryBuilder = ({
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
   
   // Use our custom hook to fetch metadata
-  const { tactics, teams, filteredPeople, allPeople, availableDates, isLoading: metadataIsLoading } = useMetadata(isDataMigrated, selectedTeam);
+  const { 
+    tactics, 
+    teams, 
+    filteredPeople, 
+    allPeople, 
+    availableDates, 
+    isLoading: metadataIsLoading 
+  } = useMetadata(isDataMigrated, selectedTeam);
   
   const isLoading = parentIsLoading || metadataIsLoading;
 
   // Clear person selection when team changes
   useEffect(() => {
-    if (selectedTeam) {
+    if (selectedTeam !== query.team) {
       setQuery(prev => {
         const newQuery = { ...prev };
-        delete newQuery.person;
+        // Only reset person when team changes
+        if (selectedTeam !== prev.team) {
+          delete newQuery.person;
+        }
         return newQuery;
       });
     }
-  }, [selectedTeam, setQuery]);
+  }, [selectedTeam, setQuery, query.team]);
 
   const handleDateSelect = (value: string) => {
     setQuery(prev => ({ ...prev, date: value }));
@@ -48,7 +58,8 @@ export const QueryBuilder = ({
   };
 
   const handleTeamChange = (value: string) => {
-    setSelectedTeam(value === "All" ? null : value);
+    const teamValue = value === "All" ? null : value;
+    setSelectedTeam(teamValue);
     setQuery(prev => ({ ...prev, team: value }));
     setError(null);
   };
@@ -70,6 +81,12 @@ export const QueryBuilder = ({
 
   // Determine which people list to use - if a team is selected, use filtered people, otherwise use all people
   const peopleToShow = selectedTeam ? filteredPeople : allPeople;
+
+  console.log("Selected team:", selectedTeam);
+  console.log("Teams available:", teams);
+  console.log("People to show:", peopleToShow);
+  console.log("All people:", allPeople);
+  console.log("Available dates:", availableDates);
 
   return (
     <div className="space-y-6">

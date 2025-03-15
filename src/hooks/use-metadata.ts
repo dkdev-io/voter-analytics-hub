@@ -26,7 +26,7 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
           return;
         }
         
-        // Fetch all metadata in parallel
+        // Fetch all metadata in parallel for better performance
         const results = await Promise.allSettled([
           fetchTactics(),
           fetchTeams(),
@@ -77,14 +77,18 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
   // Fetch people based on selected team
   useEffect(() => {
     const loadPeopleByTeam = async () => {
-      if (!isDataMigrated || !selectedTeam) return;
+      if (!isDataMigrated) return;
       
       try {
         setIsLoading(true);
         
-        const people = await fetchPeopleByTeam(selectedTeam);
-        
-        setFilteredPeople(people || []);
+        if (selectedTeam && selectedTeam !== "All") {
+          const people = await fetchPeopleByTeam(selectedTeam);
+          setFilteredPeople(people || []);
+        } else {
+          // If "All" is selected or no team is selected, use all people
+          setFilteredPeople(allPeople);
+        }
       } catch (err) {
         console.error("Error loading people by team:", err);
         setFilteredPeople([]);
@@ -93,12 +97,12 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
       }
     };
     
-    if (isDataMigrated && selectedTeam) {
+    if (isDataMigrated) {
       loadPeopleByTeam();
     } else {
       setFilteredPeople([]);
     }
-  }, [selectedTeam, isDataMigrated]);
+  }, [selectedTeam, isDataMigrated, allPeople]);
 
   return {
     tactics,
