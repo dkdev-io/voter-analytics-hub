@@ -176,6 +176,7 @@ export const fetchVoterMetrics = async (query?: Partial<QueryParams>): Promise<V
         refusal: 0,
         badData: 0
       },
+      teamAttempts: {},
       byDate: []
     };
     
@@ -221,6 +222,13 @@ export const fetchVoterMetrics = async (query?: Partial<QueryParams>): Promise<V
       metrics.notReached.notHome += item.not_home || 0;
       metrics.notReached.refusal += item.refusal || 0;
       metrics.notReached.badData += item.bad_data || 0;
+      
+      // Aggregate attempts by team
+      const teamName = item.team;
+      if (!metrics.teamAttempts![teamName]) {
+        metrics.teamAttempts![teamName] = 0;
+      }
+      metrics.teamAttempts![teamName] += item.attempts || 0;
     });
     
     return metrics;
@@ -231,6 +239,7 @@ export const fetchVoterMetrics = async (query?: Partial<QueryParams>): Promise<V
       tactics: { sms: 0, phone: 0, canvas: 0 },
       contacts: { support: 0, oppose: 0, undecided: 0 },
       notReached: { notHome: 0, refusal: 0, badData: 0 },
+      teamAttempts: {},
       byDate: []
     };
   }

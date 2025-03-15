@@ -1,4 +1,3 @@
-
 export interface QueryParams {
   tactic?: string;
   resultType?: string;
@@ -43,6 +42,15 @@ export const CHART_COLORS = {
     ATTEMPTS: '#38D167',   // Green
     CONTACTS: '#3B82F6',   // Blue
     ISSUES: '#F97316',     // Orange
+  },
+  // Team colors (greens)
+  TEAM: {
+    TEAM_1: '#8AE8A4', // Light green
+    TEAM_2: '#38D167', // Medium green
+    TEAM_3: '#0D7335', // Dark green
+    TEAM_4: '#B6F2C7', // Lighter green
+    TEAM_5: '#65E88F', // Light medium green
+    DEFAULT: '#4ADA75', // Default green
   }
 };
 
@@ -62,6 +70,9 @@ export interface VoterMetrics {
     notHome: number;
     refusal: number;
     badData: number;
+  };
+  teamAttempts?: {
+    [key: string]: number;
   };
   byDate?: Array<{
     date: string;

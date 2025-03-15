@@ -5,6 +5,7 @@ import { fetchVoterMetrics } from '@/lib/voter-data';
 import { TacticsPieChart } from './charts/TacticsPieChart';
 import { ContactsPieChart } from './charts/ContactsPieChart';
 import { NotReachedPieChart } from './charts/NotReachedPieChart';
+import { TeamsPieChart } from './charts/TeamsPieChart';
 import { ActivityLineChart } from './charts/ActivityLineChart';
 import { CHART_COLORS } from '@/types/analytics';
 
@@ -22,10 +23,12 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
   const [tacticsData, setTacticsData] = useState<any[]>([]);
   const [contactsData, setContactsData] = useState<any[]>([]);
   const [notReachedData, setNotReachedData] = useState<any[]>([]);
+  const [teamsData, setTeamsData] = useState<any[]>([]);
   const [lineChartData, setLineChartData] = useState<any[]>([]);
   const [totalAttempts, setTotalAttempts] = useState(0);
   const [totalContacts, setTotalContacts] = useState(0);
   const [totalNotReached, setTotalNotReached] = useState(0);
+  const [totalTeamAttempts, setTotalTeamAttempts] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -57,6 +60,21 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
           { name: 'Bad Data', value: metrics.notReached.badData || 0, color: CHART_COLORS.NOT_REACHED.BAD_DATA }
         ];
         
+        // Chart 4: Team Attempts
+        const teamsAttempts = metrics.teamAttempts || {};
+        const teamKeys = Object.keys(teamsAttempts);
+        const teamChartData = teamKeys.map((team, index) => {
+          // Cycle through green colors
+          const colorKey = `TEAM_${(index % 5) + 1}` as keyof typeof CHART_COLORS.TEAM;
+          const color = CHART_COLORS.TEAM[colorKey] || CHART_COLORS.TEAM.DEFAULT;
+          
+          return {
+            name: team,
+            value: teamsAttempts[team] || 0,
+            color
+          };
+        });
+        
         // Line chart data
         const lineData = metrics.byDate || [];
         
@@ -64,14 +82,17 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
         const totalTactics = tacticsChartData.reduce((sum, item) => sum + item.value, 0);
         const totalContactsValue = contactsChartData.reduce((sum, item) => sum + item.value, 0);
         const totalNotReachedValue = notReachedChartData.reduce((sum, item) => sum + item.value, 0);
+        const totalTeamAttemptsValue = teamChartData.reduce((sum, item) => sum + item.value, 0);
         
         setTacticsData(tacticsChartData);
         setContactsData(contactsChartData);
         setNotReachedData(notReachedChartData);
+        setTeamsData(teamChartData);
         setLineChartData(lineData);
         setTotalAttempts(totalTactics);
         setTotalContacts(totalContactsValue);
         setTotalNotReached(totalNotReachedValue);
+        setTotalTeamAttempts(totalTeamAttemptsValue);
       } catch (error) {
         console.error('Error loading chart data:', error);
       } finally {
@@ -86,8 +107,8 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
     return (
       <div className="bg-white p-6 rounded-lg shadow-md">
         <h2 className="text-xl font-semibold mb-4">Analytics</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {[1, 2, 3].map((i) => (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map((i) => (
             <div key={i} className="h-64 bg-gray-100 animate-pulse rounded"></div>
           ))}
         </div>
@@ -100,7 +121,7 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
     <div className="bg-white p-6 rounded-lg shadow-md">
       <h2 className="text-xl font-semibold mb-4">Analytics {showFilteredData ? '(Filtered Results)' : '(Overall)'}</h2>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {/* Chart 1: Tactics Distribution */}
         <TacticsPieChart data={tacticsData} total={totalAttempts} />
         
@@ -109,6 +130,9 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
         
         {/* Chart 3: Not Reached Breakdown */}
         <NotReachedPieChart data={notReachedData} total={totalNotReached} />
+        
+        {/* Chart 4: Team Attempts */}
+        <TeamsPieChart data={teamsData} total={totalTeamAttempts} />
       </div>
       
       {/* Line chart showing attempts, contacts, and issues by date */}
