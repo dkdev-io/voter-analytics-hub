@@ -109,14 +109,13 @@ export const QueryBuilder = ({
   };
 
   const handleRefresh = async () => {
-    setIsLoading(true);
     try {
       if (onRefresh) {
         await onRefresh();
       }
       await refreshMetadata();
-    } finally {
-      setIsLoading(false);
+    } catch (error) {
+      console.error("Error refreshing data:", error);
     }
   };
 
