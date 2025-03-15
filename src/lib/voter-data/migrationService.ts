@@ -35,62 +35,41 @@ export const getTestData = async () => {
   try {
     console.log("Starting getTestData function...");
     
-    // First, check if we have access to the table at all
-    const { count, error: countError } = await supabase
-      .from('voter_contacts')
-      .select('*', { count: 'exact', head: true });
-      
-    if (countError) {
-      console.error("Error checking data count:", countError);
-      return [];
-    }
-    
-    console.log(`Count check shows ${count} records in voter_contacts table`);
-    
-    if (count === 0) {
-      console.log("No data found in table, attempting import...");
-      await attemptDataImport();
-    }
-    
-    // Query all records from the voter_contacts table
-    const { data, error, status } = await supabase
+    // Direct query approach - no count check first, just try to get the data
+    const { data, error } = await supabase
       .from('voter_contacts')
       .select('*');
     
     if (error) {
-      console.error("Error fetching data from Supabase:", error, "Status:", status);
+      console.error("Error fetching data from Supabase:", error);
       return [];
     }
     
     if (!data || data.length === 0) {
-      console.log("No data returned after query");
+      console.log("No data returned from voter_contacts table");
       
-      // Check again after importing
-      if (count === 0) {
-        const importResult = await attemptDataImport();
-        console.log("Import attempt result:", importResult);
+      // Try to import data and then fetch again
+      const importResult = await attemptDataImport();
+      console.log("Import attempt result:", importResult);
+      
+      // Try once more after import
+      const { data: freshData, error: freshError } = await supabase
+        .from('voter_contacts')
+        .select('*');
         
-        // Try fetching one more time after import
-        const { data: freshData, error: freshError } = await supabase
-          .from('voter_contacts')
-          .select('*');
-          
-        if (freshError) {
-          console.error("Error fetching fresh data after import:", freshError);
-          return [];
-        }
-        
-        if (freshData && freshData.length > 0) {
-          console.log(`Successfully retrieved ${freshData.length} records after import`);
-          console.log("Sample data:", freshData.slice(0, 2)); // Log first two records
-          return freshData;
-        } else {
-          console.log("Still no data after import attempt");
-          return [];
-        }
+      if (freshError) {
+        console.error("Error fetching fresh data after import:", freshError);
+        return [];
       }
       
-      return [];
+      if (freshData && freshData.length > 0) {
+        console.log(`Successfully retrieved ${freshData.length} records after import`);
+        console.log("Sample data:", freshData.slice(0, 2)); // Log first two records
+        return freshData;
+      } else {
+        console.log("Still no data after import attempt");
+        return [];
+      }
     }
     
     console.log(`Successfully retrieved ${data.length} records from voter_contacts table`);

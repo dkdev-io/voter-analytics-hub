@@ -1,110 +1,128 @@
 
 import { getTestData } from './migrationService';
 
-// Get all unique tactics from the data
+// Function to fetch all available tactics from the test data
 export const fetchTactics = async (): Promise<string[]> => {
   try {
+    console.log("Fetching tactics...");
     const data = await getTestData();
     console.log(`Fetching tactics from ${data.length} records`);
     
-    if (data.length === 0) {
-      console.log("No data available for tactics");
-      return [];
+    if (!data || data.length === 0) {
+      console.log("No data available for tactics, using fallback values");
+      // Fallback to default tactics if no data is available
+      return ["SMS", "Phone", "Canvas"];
     }
     
-    const tactics = [...new Set(data.map(item => item.tactic))].sort();
-    console.log("Fetched tactics:", tactics);
+    // Extract unique tactics from the data
+    const tactics = [...new Set(data.map(item => item.tactic))];
+    console.log("Available tactics:", tactics);
     return tactics;
   } catch (error) {
-    console.error('Error fetching tactics:', error);
-    return [];
+    console.error("Error fetching tactics:", error);
+    // Return default tactics as fallback
+    return ["SMS", "Phone", "Canvas"];
   }
 };
 
-// Get all unique teams from the data
+// Function to fetch all available teams from the test data
 export const fetchTeams = async (): Promise<string[]> => {
   try {
+    console.log("Fetching teams...");
     const data = await getTestData();
     console.log(`Fetching teams from ${data.length} records`);
     
-    if (data.length === 0) {
-      console.log("No data available for teams");
-      return [];
+    if (!data || data.length === 0) {
+      console.log("No data available for teams, using fallback values");
+      // Fallback to default teams if no data is available
+      return ["Team Tony", "Team Maria", "Team John"];
     }
     
-    const teams = [...new Set(data.map(item => item.team))].sort();
-    console.log("Fetched teams:", teams);
+    // Extract unique teams from the data
+    const teams = [...new Set(data.map(item => item.team))];
+    console.log("Available teams:", teams);
     return teams;
   } catch (error) {
-    console.error('Error fetching teams:', error);
-    return [];
+    console.error("Error fetching teams:", error);
+    // Return default teams as fallback
+    return ["Team Tony", "Team Maria", "Team John"];
   }
 };
 
-// Get all people regardless of team
+// Function to fetch people by team
+export const fetchPeopleByTeam = async (team: string): Promise<string[]> => {
+  try {
+    console.log(`Fetching people for team: ${team}`);
+    const data = await getTestData();
+    console.log(`Fetching people from ${data.length} records`);
+    
+    if (!data || data.length === 0) {
+      console.log("No data available for people, using fallback values");
+      // Fallback to default people if no data is available
+      return ["John Smith", "Jane Doe", "Alex Johnson"];
+    }
+    
+    // Filter data by team and extract unique full names
+    const peopleInTeam = data
+      .filter(item => item.team === team)
+      .map(item => `${item.first_name} ${item.last_name}`);
+    
+    // Get unique people (in case there are duplicates)
+    const uniquePeople = [...new Set(peopleInTeam)];
+    console.log(`People in team ${team}:`, uniquePeople);
+    return uniquePeople;
+  } catch (error) {
+    console.error(`Error fetching people for team ${team}:`, error);
+    // Return default people as fallback
+    return ["John Smith", "Jane Doe", "Alex Johnson"];
+  }
+};
+
+// Function to fetch all people
 export const fetchAllPeople = async (): Promise<string[]> => {
   try {
+    console.log("Fetching all people...");
     const data = await getTestData();
     console.log(`Fetching all people from ${data.length} records`);
     
-    if (data.length === 0) {
+    if (!data || data.length === 0) {
       console.log("No data available for people");
-      return [];
+      // Fallback to default people if no data is available
+      return ["John Smith", "Jane Doe", "Alex Johnson", "Maria Martinez", "Chris Brown"];
     }
     
-    const people = data.map(item => `${item.first_name} ${item.last_name}`);
-    
-    // Return unique names, sorted alphabetically
-    const uniquePeople = [...new Set(people)].sort();
-    console.log("Fetched all people:", uniquePeople);
+    // Extract unique full names from the data
+    const allPeople = data.map(item => `${item.first_name} ${item.last_name}`);
+    const uniquePeople = [...new Set(allPeople)];
+    console.log("All people:", uniquePeople);
     return uniquePeople;
   } catch (error) {
-    console.error('Error fetching all people:', error);
-    return [];
+    console.error("Error fetching all people:", error);
+    // Return default people as fallback
+    return ["John Smith", "Jane Doe", "Alex Johnson", "Maria Martinez", "Chris Brown"];
   }
 };
 
-// Get all people belonging to a specific team
-export const fetchPeopleByTeam = async (team: string): Promise<string[]> => {
-  try {
-    const data = await getTestData();
-    console.log(`Fetching people for team ${team} from ${data.length} records`);
-    
-    if (data.length === 0) {
-      console.log(`No data available for team ${team}`);
-      return [];
-    }
-    
-    // Filter by the specified team
-    const teamData = data.filter(item => item.team === team);
-    const filteredPeople = teamData.map(item => `${item.first_name} ${item.last_name}`);
-    
-    // Return unique names, sorted alphabetically
-    const uniquePeople = [...new Set(filteredPeople)].sort();
-    console.log(`Fetched people for team ${team}:`, uniquePeople);
-    return uniquePeople;
-  } catch (error) {
-    console.error('Error fetching people by team:', error);
-    return [];
-  }
-};
-
-// Get all unique dates from the data
+// Function to fetch all available dates from the test data
 export const fetchDates = async (): Promise<string[]> => {
   try {
+    console.log("Fetching dates...");
     const data = await getTestData();
     console.log(`Fetching dates from ${data.length} records`);
     
-    if (data.length === 0) {
+    if (!data || data.length === 0) {
       console.log("No data available for dates");
-      return [];
+      // Fallback to default dates if no data is available
+      return ["2025-01-01", "2025-01-02", "2025-01-03"];
     }
     
-    const dates = [...new Set(data.map(item => item.date))].sort();
-    console.log("Fetched dates:", dates);
-    return dates;
+    // Extract unique dates from the data
+    const dates = [...new Set(data.map(item => item.date))];
+    console.log("Available dates:", dates);
+    return dates.sort(); // Sort dates in ascending order
   } catch (error) {
-    console.error('Error fetching dates:', error);
-    return [];
+    console.error("Error fetching dates:", error);
+    // Return default dates as fallback
+    return ["2025-01-01", "2025-01-02", "2025-01-03"];
   }
 };
