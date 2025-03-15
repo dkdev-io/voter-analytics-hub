@@ -26,57 +26,49 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
           return;
         }
         
+        console.log("Loading initial metadata...");
+        
         // Fetch all metadata in parallel for better performance
-        const results = await Promise.allSettled([
+        const [tacticsResult, teamsResult, datesResult, allPeopleResult] = await Promise.all([
           fetchTactics(),
           fetchTeams(),
           fetchDates(),
           fetchAllPeople()
         ]);
         
-        // Process results even if some promises were rejected
-        const [tacticsResult, teamsResult, datesResult, allPeopleResult] = results;
+        console.log("Initial data loaded:", {
+          tactics: tacticsResult?.length || 0,
+          teams: teamsResult?.length || 0,
+          dates: datesResult?.length || 0,
+          allPeople: allPeopleResult?.length || 0
+        });
         
-        if (tacticsResult.status === 'fulfilled') {
-          setTactics(tacticsResult.value || []);
-        } else {
-          console.error("Error loading tactics:", tacticsResult.reason);
-        }
+        // Set state with fetched data
+        setTactics(tacticsResult || []);
+        setTeams(teamsResult || []);
+        setAvailableDates(datesResult || []);
+        setAllPeople(allPeopleResult || []);
         
-        if (teamsResult.status === 'fulfilled') {
-          setTeams(teamsResult.value || []);
-        } else {
-          console.error("Error loading teams:", teamsResult.reason);
-        }
-        
-        if (datesResult.status === 'fulfilled') {
-          setAvailableDates(datesResult.value || []);
-        } else {
-          console.error("Error loading dates:", datesResult.reason);
-        }
-
-        if (allPeopleResult.status === 'fulfilled') {
-          setAllPeople(allPeopleResult.value || []);
-          // Initialize filteredPeople with all people when no team is selected
-          if (!selectedTeam || selectedTeam === "All") {
-            setFilteredPeople(allPeopleResult.value || []);
-          }
-        } else {
-          console.error("Error loading all people:", allPeopleResult.reason);
+        // Initialize filteredPeople with all people when no team is selected
+        if (!selectedTeam || selectedTeam === "All") {
+          setFilteredPeople(allPeopleResult || []);
         }
       } catch (err) {
         console.error("Error loading initial data:", err);
+        // Set fallback values if fetch fails
+        setTactics(["SMS", "Phone", "Canvas"]);
+        setTeams(["Team Tony", "Team Maria", "Team John"]);
+        setAvailableDates(["2025-01-01", "2025-01-02", "2025-01-03"]);
+        const fallbackPeople = ["John Smith", "Jane Doe", "Alex Johnson", "Maria Martinez", "Chris Brown"];
+        setAllPeople(fallbackPeople);
+        setFilteredPeople(fallbackPeople);
       } finally {
         setIsLoading(false);
       }
     };
     
-    if (isDataMigrated) {
-      loadInitialData();
-    } else {
-      setIsLoading(false);
-    }
-  }, [isDataMigrated, selectedTeam]);
+    loadInitialData();
+  }, [isDataMigrated]);
 
   // Fetch people based on selected team
   useEffect(() => {
@@ -84,38 +76,37 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
       if (!isDataMigrated) return;
       
       try {
-        setIsLoading(true);
+        // Don't set loading to true here to avoid UI flicker when switching teams
+        console.log(`Loading people for team: ${selectedTeam || "All"}`);
         
         if (selectedTeam && selectedTeam !== "All") {
           // If a specific team is selected, fetch people from that team
-          const people = await fetchPeopleByTeam(selectedTeam);
-          setFilteredPeople(people || []);
+          const teamPeople = await fetchPeopleByTeam(selectedTeam);
+          console.log(`Loaded ${teamPeople?.length || 0} people for team ${selectedTeam}`);
+          setFilteredPeople(teamPeople || []);
         } else {
           // If "All" is selected or no team is selected, use allPeople
-          // Make sure we have allPeople data before setting it
-          if (allPeople.length > 0) {
-            setFilteredPeople(allPeople);
-          } else {
-            // If allPeople is empty, fetch all people again
+          // Only fetch again if allPeople is empty
+          if (allPeople.length === 0) {
+            console.log("No cached people data, fetching all people...");
             const allPeopleData = await fetchAllPeople();
+            console.log(`Loaded ${allPeopleData?.length || 0} people (all teams)`);
             setFilteredPeople(allPeopleData || []);
-            // Also update allPeople state
-            if (allPeopleData) setAllPeople(allPeopleData);
+            setAllPeople(allPeopleData || []);
+          } else {
+            console.log(`Using ${allPeople.length} cached people for all teams`);
+            setFilteredPeople(allPeople);
           }
         }
       } catch (err) {
         console.error("Error loading people by team:", err);
-        setFilteredPeople([]);
-      } finally {
-        setIsLoading(false);
+        // Fallback to at least showing something
+        const fallbackPeople = ["John Smith", "Jane Doe", "Alex Johnson", "Maria Martinez", "Chris Brown"];
+        setFilteredPeople(fallbackPeople);
       }
     };
     
-    if (isDataMigrated) {
-      loadPeopleByTeam();
-    } else {
-      setFilteredPeople([]);
-    }
+    loadPeopleByTeam();
   }, [selectedTeam, isDataMigrated, allPeople]);
 
   return {

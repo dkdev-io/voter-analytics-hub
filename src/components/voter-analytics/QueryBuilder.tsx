@@ -1,6 +1,5 @@
 
 import { useState, useEffect } from 'react';
-import { format } from "date-fns";
 import { type QueryParams } from '@/types/analytics';
 import { useMetadata } from '@/hooks/use-metadata';
 import { TacticSelector } from './TacticSelector';
@@ -79,13 +78,14 @@ export const QueryBuilder = ({
     setError(null);
   };
 
-  console.log("Selected team:", selectedTeam);
-  console.log("Teams available:", teams);
-  console.log("People to show:", filteredPeople);
-  console.log("People count:", filteredPeople.length);
-  console.log("All people:", allPeople);
-  console.log("All people count:", allPeople.length);
-  console.log("Available dates:", availableDates);
+  console.log("QueryBuilder state:", {
+    selectedTeam,
+    teamsCount: teams.length,
+    filteredPeopleCount: filteredPeople.length,
+    allPeopleCount: allPeople.length,
+    availableDatesCount: availableDates.length,
+    isLoading
+  });
 
   return (
     <div className="space-y-6">

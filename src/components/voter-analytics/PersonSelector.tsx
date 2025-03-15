@@ -16,6 +16,8 @@ export const PersonSelector = ({
   disabled, 
   isLoading 
 }: PersonSelectorProps) => {
+  console.log("PersonSelector rendering with:", { value, peopleCount: people?.length, disabled, isLoading });
+  
   return (
     <div className="inline-block min-w-[180px]">
       <Select
