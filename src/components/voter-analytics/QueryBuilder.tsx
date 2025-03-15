@@ -7,8 +7,6 @@ import { ResultTypeSelector } from './ResultTypeSelector';
 import { TeamSelector } from './TeamSelector';
 import { PersonSelector } from './PersonSelector';
 import { DateSelector } from './DateSelector';
-import { Button } from '@/components/ui/button';
-import { RefreshCw } from 'lucide-react';
 
 interface QueryBuilderProps {
   query: Partial<QueryParams>;
@@ -108,17 +106,6 @@ export const QueryBuilder = ({
     setError(null);
   };
 
-  const handleRefresh = async () => {
-    try {
-      if (onRefresh) {
-        await onRefresh();
-      }
-      await refreshMetadata();
-    } catch (error) {
-      console.error("Error refreshing data:", error);
-    }
-  };
-
   console.log("QueryBuilder state:", {
     selectedTeam,
     teamsCount: teams.length,
@@ -133,19 +120,6 @@ export const QueryBuilder = ({
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-end mb-4">
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={handleRefresh}
-          disabled={isLoading}
-          className="text-xs"
-        >
-          <RefreshCw className="mr-1 h-3 w-3" />
-          Refresh Data
-        </Button>
-      </div>
-      
       <div className="text-lg text-gray-700 flex flex-wrap items-center gap-2">
         <span>I want to know how many</span>
         
