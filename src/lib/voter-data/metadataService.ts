@@ -5,6 +5,13 @@ import { getTestData } from './migrationService';
 export const fetchTactics = async (): Promise<string[]> => {
   try {
     const data = await getTestData();
+    console.log(`Fetching tactics from ${data.length} records`);
+    
+    if (data.length === 0) {
+      console.log("No data available for tactics");
+      return [];
+    }
+    
     const tactics = [...new Set(data.map(item => item.tactic))].sort();
     console.log("Fetched tactics:", tactics);
     return tactics;
@@ -18,6 +25,13 @@ export const fetchTactics = async (): Promise<string[]> => {
 export const fetchTeams = async (): Promise<string[]> => {
   try {
     const data = await getTestData();
+    console.log(`Fetching teams from ${data.length} records`);
+    
+    if (data.length === 0) {
+      console.log("No data available for teams");
+      return [];
+    }
+    
     const teams = [...new Set(data.map(item => item.team))].sort();
     console.log("Fetched teams:", teams);
     return teams;
@@ -31,6 +45,13 @@ export const fetchTeams = async (): Promise<string[]> => {
 export const fetchAllPeople = async (): Promise<string[]> => {
   try {
     const data = await getTestData();
+    console.log(`Fetching all people from ${data.length} records`);
+    
+    if (data.length === 0) {
+      console.log("No data available for people");
+      return [];
+    }
+    
     const people = data.map(item => `${item.first_name} ${item.last_name}`);
     
     // Return unique names, sorted alphabetically
@@ -47,6 +68,12 @@ export const fetchAllPeople = async (): Promise<string[]> => {
 export const fetchPeopleByTeam = async (team: string): Promise<string[]> => {
   try {
     const data = await getTestData();
+    console.log(`Fetching people for team ${team} from ${data.length} records`);
+    
+    if (data.length === 0) {
+      console.log(`No data available for team ${team}`);
+      return [];
+    }
     
     // Filter by the specified team
     const teamData = data.filter(item => item.team === team);
@@ -66,6 +93,13 @@ export const fetchPeopleByTeam = async (team: string): Promise<string[]> => {
 export const fetchDates = async (): Promise<string[]> => {
   try {
     const data = await getTestData();
+    console.log(`Fetching dates from ${data.length} records`);
+    
+    if (data.length === 0) {
+      console.log("No data available for dates");
+      return [];
+    }
+    
     const dates = [...new Set(data.map(item => item.date))].sort();
     console.log("Fetched dates:", dates);
     return dates;
