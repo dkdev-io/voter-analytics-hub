@@ -9,6 +9,7 @@ import {
   migrateTestDataToSupabase, 
   calculateResultFromSupabase 
 } from '@/lib/voter-data';
+import { supabase } from '@/integrations/supabase/client';
 
 export const VoterAnalytics = () => {
   const [query, setQuery] = useState<Partial<QueryParams>>({});
@@ -18,25 +19,56 @@ export const VoterAnalytics = () => {
   const [isDataMigrated, setIsDataMigrated] = useState(false);
   const { toast } = useToast();
 
-  // Initial data migration check - now just sets isDataMigrated to true
+  // Initial data migration and check
   useEffect(() => {
     const initializeData = async () => {
       setIsLoading(true);
       try {
-        console.log("Initializing mock data...");
-        await migrateTestDataToSupabase();
+        console.log("Initializing Supabase connection...");
         
-        toast({
-          title: "Data Connection",
-          description: "Using test data for voter contact queries.",
-          variant: "default"
-        });
-        setIsDataMigrated(true);
+        // First, check Supabase connection
+        const migrateResult = await migrateTestDataToSupabase();
+        
+        if (migrateResult.success) {
+          toast({
+            title: "Supabase Connection",
+            description: migrateResult.message,
+            variant: "default"
+          });
+          
+          // Try to call our edge function to import data if needed
+          try {
+            const { data, error } = await supabase.functions.invoke('import-voter-data');
+            
+            if (error) {
+              console.error("Error calling import-voter-data function:", error);
+            } else {
+              console.log("Import function result:", data);
+              if (data.success) {
+                toast({
+                  title: "Data Import",
+                  description: data.message,
+                  variant: "default"
+                });
+              }
+            }
+          } catch (funcError) {
+            console.error("Error invoking Edge Function:", funcError);
+          }
+          
+          setIsDataMigrated(true);
+        } else {
+          toast({
+            title: "Error",
+            description: "Failed to connect to Supabase: " + migrateResult.message,
+            variant: "destructive"
+          });
+        }
       } catch (err) {
         console.error("Error in data initialization:", err);
         toast({
           title: "Error",
-          description: "Failed to initialize test data.",
+          description: "Failed to initialize Supabase connection.",
           variant: "destructive"
         });
       } finally {

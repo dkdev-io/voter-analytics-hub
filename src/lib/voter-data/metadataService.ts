@@ -4,7 +4,7 @@ import { getTestData } from './migrationService';
 // Get all unique tactics from the data
 export const fetchTactics = async (): Promise<string[]> => {
   try {
-    const data = getTestData();
+    const data = await getTestData();
     const tactics = [...new Set(data.map(item => item.tactic))].sort();
     console.log("Fetched tactics:", tactics);
     return tactics;
@@ -17,7 +17,7 @@ export const fetchTactics = async (): Promise<string[]> => {
 // Get all unique teams from the data
 export const fetchTeams = async (): Promise<string[]> => {
   try {
-    const data = getTestData();
+    const data = await getTestData();
     const teams = [...new Set(data.map(item => item.team))].sort();
     console.log("Fetched teams:", teams);
     return teams;
@@ -30,7 +30,7 @@ export const fetchTeams = async (): Promise<string[]> => {
 // Get all people regardless of team
 export const fetchAllPeople = async (): Promise<string[]> => {
   try {
-    const data = getTestData();
+    const data = await getTestData();
     const people = data.map(item => `${item.first_name} ${item.last_name}`);
     
     // Return unique names, sorted alphabetically
@@ -46,7 +46,7 @@ export const fetchAllPeople = async (): Promise<string[]> => {
 // Get all people belonging to a specific team
 export const fetchPeopleByTeam = async (team: string): Promise<string[]> => {
   try {
-    const data = getTestData();
+    const data = await getTestData();
     
     // Filter by the specified team
     const teamData = data.filter(item => item.team === team);
@@ -65,7 +65,7 @@ export const fetchPeopleByTeam = async (team: string): Promise<string[]> => {
 // Get all unique dates from the data
 export const fetchDates = async (): Promise<string[]> => {
   try {
-    const data = getTestData();
+    const data = await getTestData();
     const dates = [...new Set(data.map(item => item.date))].sort();
     console.log("Fetched dates:", dates);
     return dates;

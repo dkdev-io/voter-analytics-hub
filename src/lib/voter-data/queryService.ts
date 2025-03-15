@@ -10,9 +10,9 @@ export const calculateResultFromSupabase = async (query: Partial<QueryParams>) =
       return { error: "Please select at least one field", result: null };
     }
 
-    // Get the mock data
-    const data = getTestData();
-    console.log("Using mock data:", data);
+    // Get the data from Supabase
+    const data = await getTestData();
+    console.log("Using Supabase data:", data);
     
     // Filter the data based on query parameters
     const filteredData = data.filter(item => {

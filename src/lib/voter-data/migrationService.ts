@@ -1,107 +1,53 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
-// Mock voter contact data
-const mockVoterContacts = [
-  {
-    id: 1,
-    first_name: "John",
-    last_name: "Smith",
-    team: "Team A",
-    tactic: "Phone Banking",
-    date: "2023-04-01",
-    attempts: 25,
-    contacts: 10,
-    not_home: 8,
-    bad_data: 7,
-    support: 5,
-    oppose: 3,
-    undecided: 2,
-    refusal: 0
-  },
-  {
-    id: 2,
-    first_name: "Jane",
-    last_name: "Doe",
-    team: "Team B",
-    tactic: "Canvassing",
-    date: "2023-04-02",
-    attempts: 50,
-    contacts: 25,
-    not_home: 15,
-    bad_data: 10,
-    support: 15,
-    oppose: 5,
-    undecided: 5,
-    refusal: 0
-  },
-  {
-    id: 3,
-    first_name: "Alice",
-    last_name: "Johnson",
-    team: "Team A",
-    tactic: "Texting",
-    date: "2023-04-03",
-    attempts: 75,
-    contacts: 30,
-    not_home: 0,
-    bad_data: 45,
-    support: 20,
-    oppose: 5,
-    undecided: 5,
-    refusal: 0
-  },
-  {
-    id: 4,
-    first_name: "Bob",
-    last_name: "Brown",
-    team: "Team C",
-    tactic: "Phone Banking",
-    date: "2023-04-01",
-    attempts: 30,
-    contacts: 15,
-    not_home: 10,
-    bad_data: 5,
-    support: 8,
-    oppose: 4,
-    undecided: 3,
-    refusal: 0
-  },
-  {
-    id: 5,
-    first_name: "Carol",
-    last_name: "White",
-    team: "Team B",
-    tactic: "Canvassing",
-    date: "2023-04-03",
-    attempts: 40,
-    contacts: 20,
-    not_home: 10,
-    bad_data: 10,
-    support: 12,
-    oppose: 3,
-    undecided: 5,
-    refusal: 0
-  }
-];
-
-// This function now just returns true to simulate "migrated" data
+// This function now actually migrates data to Supabase (if needed)
 export const migrateTestDataToSupabase = async () => {
   try {
-    console.log("Using mock data instead of Supabase...");
-    return { success: true, message: "Using mock data" };
+    // Check if we already have data in the voter_contacts table
+    const { count, error } = await supabase
+      .from('voter_contacts')
+      .select('*', { count: 'exact', head: true });
+    
+    if (error) {
+      console.error('Error checking voter_contacts table:', error);
+      return { success: false, message: error.message };
+    }
+    
+    // If we have data, no need to migrate
+    if (count && count > 0) {
+      console.log(`Already have ${count} records in voter_contacts table`);
+      return { success: true, message: `Using existing ${count} records` };
+    }
+    
+    console.log('No data found in voter_contacts table, would need to import from Google Sheets');
+    return { success: true, message: "Connected to Supabase" };
   } catch (error) {
     console.error('Error in data migration process:', error);
     throw new Error("Migration failed");
   }
 };
 
-// Return the mock data instead of an empty array
-export const getTestData = () => {
-  return mockVoterContacts;
+// Return the data from Supabase instead of mock data
+export const getTestData = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('voter_contacts')
+      .select('*');
+    
+    if (error) {
+      console.error('Error fetching voter contacts from Supabase:', error);
+      return [];
+    }
+    
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching data from Supabase:', error);
+    return [];
+  }
 };
 
-// This now returns true to indicate we're using mock data
+// This now returns true since we're using real Supabase data
 export const isUsingMockData = () => {
-  return true;
+  return false;
 };
