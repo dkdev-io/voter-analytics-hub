@@ -44,24 +44,26 @@ export const VoterAnalytics = () => {
         importNewData={importNewData}
       />
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Section 1: Query Builder */}
-        <QuerySection 
-          query={query}
-          setQuery={setQuery}
-          setError={setError}
-          isLoading={isLoading}
-          isDataMigrated={isDataMigrated}
-          onRefresh={handleRefreshData}
-        />
-        
-        {/* Section 2: Search Field */}
-        <SearchSection 
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          isLoading={isLoading}
-          onSubmit={calculateResult}
-        />
+      <div className="grid grid-cols-1 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Section 1: Query Builder */}
+          <QuerySection 
+            query={query}
+            setQuery={setQuery}
+            setError={setError}
+            isLoading={isLoading}
+            isDataMigrated={isDataMigrated}
+            onRefresh={handleRefreshData}
+          />
+          
+          {/* Section 2: Search Field */}
+          <SearchSection 
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            isLoading={isLoading}
+            onSubmit={calculateResult}
+          />
+        </div>
       </div>
 
       {/* Section 3: Dashboard Charts */}
