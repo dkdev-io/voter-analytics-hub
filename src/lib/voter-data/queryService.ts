@@ -111,3 +111,61 @@ export const searchVoterData = async (searchQuery: string) => {
     return { data: [], error: "Error searching data" };
   }
 };
+
+// New function to get aggregated metrics for the dashboard charts
+export const fetchVoterMetrics = async () => {
+  try {
+    const data = await getTestData();
+    
+    // Initialize metrics structure
+    const metrics = {
+      tactics: {
+        sms: 0,
+        phone: 0,
+        canvas: 0
+      },
+      contacts: {
+        support: 0,
+        oppose: 0,
+        undecided: 0
+      },
+      notReached: {
+        notHome: 0,
+        refusal: 0,
+        badData: 0
+      }
+    };
+    
+    // Aggregate data
+    data.forEach(item => {
+      // Aggregate by tactic
+      if (item.tactic.toLowerCase() === 'sms') {
+        metrics.tactics.sms += item.attempts || 0;
+      } else if (item.tactic.toLowerCase() === 'phone') {
+        metrics.tactics.phone += item.attempts || 0;
+      } else if (item.tactic.toLowerCase() === 'canvas') {
+        metrics.tactics.canvas += item.attempts || 0;
+      }
+      
+      // Aggregate contacts by result
+      metrics.contacts.support += item.support || 0;
+      metrics.contacts.oppose += item.oppose || 0;
+      metrics.contacts.undecided += item.undecided || 0;
+      
+      // Aggregate not reached
+      metrics.notReached.notHome += item.not_home || 0;
+      metrics.notReached.refusal += item.refusal || 0;
+      metrics.notReached.badData += item.bad_data || 0;
+    });
+    
+    return metrics;
+  } catch (error) {
+    console.error("Error fetching voter metrics:", error);
+    // Return empty metrics if there's an error
+    return {
+      tactics: { sms: 0, phone: 0, canvas: 0 },
+      contacts: { support: 0, oppose: 0, undecided: 0 },
+      notReached: { notHome: 0, refusal: 0, badData: 0 }
+    };
+  }
+};

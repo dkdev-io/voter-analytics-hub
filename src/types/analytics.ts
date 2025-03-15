@@ -17,3 +17,25 @@ export const RESULT_TYPES = [
   "Bad Data",
   "Undecided"
 ];
+
+// Colors for the pie charts
+export const CHART_COLORS = {
+  // Tactic colors (greens)
+  TACTIC: {
+    SMS: '#8AE8A4',     // Light green
+    PHONE: '#38D167',   // Medium green
+    CANVAS: '#0D7335',  // Dark green
+  },
+  // Contact types colors
+  CONTACT: {
+    SUPPORT: '#3B82F6',   // Blue
+    OPPOSE: '#EF4444',    // Red
+    UNDECIDED: '#A855F7', // Purple
+  },
+  // Not reached colors (oranges)
+  NOT_REACHED: {
+    NOT_HOME: '#FFA94D',   // Light orange
+    REFUSAL: '#F97316',    // Medium orange
+    BAD_DATA: '#C2410C',   // Dark orange
+  }
+};

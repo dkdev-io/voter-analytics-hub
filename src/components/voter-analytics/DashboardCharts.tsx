@@ -1,65 +1,69 @@
 
 import { useState, useEffect } from 'react';
 import {
-  BarChart,
-  Bar,
   PieChart,
   Pie,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
+  Cell,
   ResponsiveContainer,
-  Cell
+  Tooltip,
+  Legend
 } from 'recharts';
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import { fetchTactics, fetchTeams, fetchDates } from '@/lib/voter-data';
+import { CHART_COLORS } from '@/types/analytics';
+import { fetchVoterMetrics } from '@/lib/voter-data';
 
 interface DashboardChartsProps {
   isLoading: boolean;
 }
 
 export const DashboardCharts: React.FC<DashboardChartsProps> = ({ isLoading }) => {
-  const [tacticData, setTacticData] = useState<any[]>([]);
-  const [teamData, setTeamData] = useState<any[]>([]);
-  const [dateData, setDateData] = useState<any[]>([]);
+  const [tacticsData, setTacticsData] = useState<any[]>([]);
+  const [contactsData, setContactsData] = useState<any[]>([]);
+  const [notReachedData, setNotReachedData] = useState<any[]>([]);
+  const [totalAttempts, setTotalAttempts] = useState(0);
+  const [totalContacts, setTotalContacts] = useState(0);
+  const [totalNotReached, setTotalNotReached] = useState(0);
   const [loading, setLoading] = useState(true);
-
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
 
   useEffect(() => {
     const loadChartData = async () => {
       try {
         setLoading(true);
         
-        // Fetch data for charts
-        const tactics = await fetchTactics();
-        const teams = await fetchTeams();
-        const dates = await fetchDates();
+        // Fetch aggregated metrics from our service
+        const metrics = await fetchVoterMetrics();
         
-        // Create sample data for the charts - in a real app, you'd use actual aggregated data
-        const tacticChartData = tactics.map((tactic, index) => ({
-          name: tactic,
-          value: Math.floor(Math.random() * 100) + 20
-        }));
+        // Chart 1: Tactics breakdown (SMS, Phone, Canvas)
+        const tacticsChartData = [
+          { name: 'SMS', value: metrics.tactics.sms || 0, color: CHART_COLORS.TACTIC.SMS },
+          { name: 'Phone', value: metrics.tactics.phone || 0, color: CHART_COLORS.TACTIC.PHONE },
+          { name: 'Canvas', value: metrics.tactics.canvas || 0, color: CHART_COLORS.TACTIC.CANVAS }
+        ];
         
-        const teamChartData = teams.map((team, index) => ({
-          name: team,
-          value: Math.floor(Math.random() * 80) + 10
-        }));
+        // Chart 2: Contacts breakdown (Support, Oppose, Undecided)
+        const contactsChartData = [
+          { name: 'Support', value: metrics.contacts.support || 0, color: CHART_COLORS.CONTACT.SUPPORT },
+          { name: 'Oppose', value: metrics.contacts.oppose || 0, color: CHART_COLORS.CONTACT.OPPOSE },
+          { name: 'Undecided', value: metrics.contacts.undecided || 0, color: CHART_COLORS.CONTACT.UNDECIDED }
+        ];
         
-        const dateChartData = dates.slice(0, 7).map((date, index) => ({
-          name: date,
-          contacts: Math.floor(Math.random() * 50) + 5,
-          attempts: Math.floor(Math.random() * 100) + 20
-        }));
+        // Chart 3: Not Reached breakdown (Not Home, Refusal, Bad Data)
+        const notReachedChartData = [
+          { name: 'Not Home', value: metrics.notReached.notHome || 0, color: CHART_COLORS.NOT_REACHED.NOT_HOME },
+          { name: 'Refusal', value: metrics.notReached.refusal || 0, color: CHART_COLORS.NOT_REACHED.REFUSAL },
+          { name: 'Bad Data', value: metrics.notReached.badData || 0, color: CHART_COLORS.NOT_REACHED.BAD_DATA }
+        ];
         
-        setTacticData(tacticChartData);
-        setTeamData(teamChartData);
-        setDateData(dateChartData);
+        // Calculate totals
+        const totalTactics = tacticsChartData.reduce((sum, item) => sum + item.value, 0);
+        const totalContactsValue = contactsChartData.reduce((sum, item) => sum + item.value, 0);
+        const totalNotReachedValue = notReachedChartData.reduce((sum, item) => sum + item.value, 0);
+        
+        setTacticsData(tacticsChartData);
+        setContactsData(contactsChartData);
+        setNotReachedData(notReachedChartData);
+        setTotalAttempts(totalTactics);
+        setTotalContacts(totalContactsValue);
+        setTotalNotReached(totalNotReachedValue);
       } catch (error) {
         console.error('Error loading chart data:', error);
       } finally {
@@ -89,65 +93,90 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({ isLoading }) =
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Chart 1: Tactics Distribution */}
-        <div className="h-64 bg-white rounded-lg border border-gray-200">
-          <h3 className="text-sm font-medium p-2 text-center">Tactics Distribution</h3>
-          <ResponsiveContainer width="100%" height="85%">
-            <PieChart>
-              <Pie
-                data={tacticData}
-                cx="50%"
-                cy="50%"
-                innerRadius={30}
-                outerRadius={60}
-                fill="#8884d8"
-                paddingAngle={5}
-                dataKey="value"
-              >
-                {tacticData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip content={<CustomTooltip />} />
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
+        <div className="h-72 bg-white rounded-lg border border-gray-200 flex flex-col">
+          <h3 className="text-sm font-medium p-2 text-center">Tactic Distribution</h3>
+          <div className="flex-1">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={tacticsData}
+                  cx="50%"
+                  cy="45%"
+                  innerRadius={40}
+                  outerRadius={70}
+                  paddingAngle={5}
+                  dataKey="value"
+                >
+                  {tacticsData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip content={<CustomTooltip />} />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="text-center pb-2 font-semibold">
+            Total: {totalAttempts}
+          </div>
         </div>
         
-        {/* Chart 2: Team Performance */}
-        <div className="h-64 bg-white rounded-lg border border-gray-200">
-          <h3 className="text-sm font-medium p-2 text-center">Team Performance</h3>
-          <ResponsiveContainer width="100%" height="85%">
-            <BarChart
-              data={teamData}
-              layout="vertical"
-              margin={{ top: 5, right: 30, left: 40, bottom: 5 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis type="number" />
-              <YAxis type="category" dataKey="name" tick={{ fontSize: 12 }} width={80} />
-              <Tooltip content={<CustomTooltip />} />
-              <Bar dataKey="value" fill="#82ca9d" />
-            </BarChart>
-          </ResponsiveContainer>
+        {/* Chart 2: Contact Results */}
+        <div className="h-72 bg-white rounded-lg border border-gray-200 flex flex-col">
+          <h3 className="text-sm font-medium p-2 text-center">Contact Results</h3>
+          <div className="flex-1">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={contactsData}
+                  cx="50%"
+                  cy="45%"
+                  innerRadius={40}
+                  outerRadius={70}
+                  paddingAngle={5}
+                  dataKey="value"
+                >
+                  {contactsData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip content={<CustomTooltip />} />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="text-center pb-2 font-semibold">
+            Total: {totalContacts}
+          </div>
         </div>
         
-        {/* Chart 3: Activity Over Time */}
-        <div className="h-64 bg-white rounded-lg border border-gray-200">
-          <h3 className="text-sm font-medium p-2 text-center">Activity Over Time</h3>
-          <ResponsiveContainer width="100%" height="85%">
-            <LineChart
-              data={dateData}
-              margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" tick={{ fontSize: 10 }} />
-              <YAxis />
-              <Tooltip content={<CustomTooltip />} />
-              <Legend />
-              <Line type="monotone" dataKey="contacts" stroke="#8884d8" activeDot={{ r: 8 }} />
-              <Line type="monotone" dataKey="attempts" stroke="#82ca9d" />
-            </LineChart>
-          </ResponsiveContainer>
+        {/* Chart 3: Not Reached Breakdown */}
+        <div className="h-72 bg-white rounded-lg border border-gray-200 flex flex-col">
+          <h3 className="text-sm font-medium p-2 text-center">Not Reached Breakdown</h3>
+          <div className="flex-1">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={notReachedData}
+                  cx="50%"
+                  cy="45%"
+                  innerRadius={40}
+                  outerRadius={70}
+                  paddingAngle={5}
+                  dataKey="value"
+                >
+                  {notReachedData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip content={<CustomTooltip />} />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="text-center pb-2 font-semibold">
+            Total: {totalNotReached}
+          </div>
         </div>
       </div>
     </div>
@@ -155,16 +184,17 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({ isLoading }) =
 };
 
 // Custom tooltip component for the charts
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload }: any) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-white p-2 border border-gray-200 shadow-md rounded text-xs">
-        <p className="font-semibold">{`${label || payload[0].name}`}</p>
-        {payload.map((item: any, index: number) => (
-          <p key={index} style={{ color: item.color }}>
-            {`${item.name || item.dataKey}: ${item.value}`}
-          </p>
-        ))}
+        <p className="font-semibold">{payload[0].name}</p>
+        <p style={{ color: payload[0].payload.color }}>
+          Value: {payload[0].value}
+        </p>
+        <p>
+          Percentage: {((payload[0].value / payload[0].payload.total) * 100).toFixed(1)}%
+        </p>
       </div>
     );
   }
