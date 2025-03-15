@@ -32,17 +32,12 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
         console.log("Loading initial metadata...");
         
         // Fetch all metadata in parallel for better performance
-        const results = await Promise.all([
+        const [tacticsResult, teamsResult, datesResult, allPeopleResult] = await Promise.all([
           fetchTactics(),
           fetchTeams(),
           fetchDates(),
           fetchAllPeople()
         ]);
-        
-        const tacticsResult = results[0];
-        const teamsResult = results[1];
-        const datesResult = results[2];
-        const allPeopleResult = results[3];
         
         console.log("Initial data loaded:", {
           tactics: tacticsResult?.length || 0,
@@ -85,7 +80,7 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
     };
     
     loadInitialData();
-  }, [isDataMigrated, toast]);
+  }, [isDataMigrated, selectedTeam, toast]);
 
   // Fetch people based on selected team
   useEffect(() => {

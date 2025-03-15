@@ -14,6 +14,13 @@ export const TeamSelector = ({
   teams, 
   isLoading 
 }: TeamSelectorProps) => {
+  console.log("TeamSelector rendering with:", {
+    value,
+    teamsCount: teams?.length,
+    teams: teams?.slice(0, 5),
+    isLoading
+  });
+  
   return (
     <div className="inline-block min-w-[180px]">
       <Select

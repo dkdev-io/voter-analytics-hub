@@ -48,19 +48,33 @@ export const QueryBuilder = ({
   
   const isLoading = parentIsLoading || metadataIsLoading;
 
+  // Update selectedTeam when query.team changes
+  useEffect(() => {
+    // Only set selectedTeam if query.team exists and is different from current selectedTeam
+    if (safeQuery.team !== undefined) {
+      const newTeam = safeQuery.team === "All" ? null : safeQuery.team;
+      if (newTeam !== selectedTeam) {
+        console.log(`Updating selectedTeam from query: ${safeQuery.team}`);
+        setSelectedTeam(newTeam);
+      }
+    }
+  }, [safeQuery.team, selectedTeam]);
+
   // Clear person selection when team changes
   useEffect(() => {
-    if (selectedTeam !== safeQuery.team) {
-      setQuery(prev => {
-        const newQuery = { ...prev };
-        // Only reset person when team changes
-        if (selectedTeam !== prev.team) {
-          delete newQuery.person;
-        }
-        return newQuery;
-      });
-    }
-  }, [selectedTeam, setQuery, safeQuery.team]);
+    setQuery(prev => {
+      const newQuery = { ...prev };
+      // Only reset person when team changes and is different from the current query team
+      if (selectedTeam !== prev.team && (selectedTeam || prev.team !== "All")) {
+        console.log(`Team changed from ${prev.team} to ${selectedTeam}, resetting person selection`);
+        delete newQuery.person;
+      }
+      return {
+        ...newQuery,
+        team: selectedTeam || "All"
+      };
+    });
+  }, [selectedTeam, setQuery]);
 
   const handleDateSelect = (value: string) => {
     console.log("Date selected:", value);
@@ -95,10 +109,15 @@ export const QueryBuilder = ({
   };
 
   const handleRefresh = async () => {
-    if (onRefresh) {
-      await onRefresh();
+    setIsLoading(true);
+    try {
+      if (onRefresh) {
+        await onRefresh();
+      }
+      await refreshMetadata();
+    } finally {
+      setIsLoading(false);
     }
-    await refreshMetadata();
   };
 
   console.log("QueryBuilder state:", {

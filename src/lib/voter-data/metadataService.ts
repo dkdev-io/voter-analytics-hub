@@ -39,7 +39,7 @@ export const fetchTeams = async (): Promise<string[]> => {
     }
     
     // Extract unique teams from the data
-    const teams = [...new Set(data.map(item => item.team))];
+    const teams = [...new Set(data.map(item => item.team))].filter(Boolean).sort();
     console.log("Available teams:", teams);
     return teams;
   } catch (error) {
@@ -65,7 +65,14 @@ export const fetchPeopleByTeam = async (team: string): Promise<string[]> => {
     // Filter data by team and extract unique full names
     const peopleInTeam = data
       .filter(item => item.team === team)
-      .map(item => `${item.first_name} ${item.last_name}`);
+      .map(item => {
+        if (!item.first_name || !item.last_name) {
+          console.warn("Missing name data:", item);
+          return null;
+        }
+        return `${item.first_name} ${item.last_name}`;
+      })
+      .filter(Boolean) as string[];
     
     // Get unique people (in case there are duplicates)
     const uniquePeople = [...new Set(peopleInTeam)].sort();
@@ -94,7 +101,15 @@ export const fetchAllPeople = async (): Promise<string[]> => {
     }
     
     // Extract unique full names from the data
-    const allPeople = data.map(item => `${item.first_name} ${item.last_name}`);
+    const allPeople = data
+      .map(item => {
+        if (!item.first_name || !item.last_name) {
+          console.warn("Missing name data:", item);
+          return null;
+        }
+        return `${item.first_name} ${item.last_name}`;
+      })
+      .filter(Boolean) as string[];
     
     // Make sure we get unique names only and sort them
     const uniquePeople = [...new Set(allPeople)].sort();
@@ -123,7 +138,7 @@ export const fetchDates = async (): Promise<string[]> => {
     }
     
     // Extract unique dates from the data
-    const dates = [...new Set(data.map(item => item.date))];
+    const dates = [...new Set(data.map(item => item.date))].filter(Boolean);
     const sortedDates = dates.sort(); // Sort dates in ascending order
     console.log("Available dates count:", sortedDates.length);
     console.log("Sample dates:", sortedDates.slice(0, 5));

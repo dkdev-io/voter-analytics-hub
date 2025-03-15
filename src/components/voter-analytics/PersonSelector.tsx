@@ -27,7 +27,7 @@ export const PersonSelector = ({
   return (
     <div className="inline-block min-w-[180px]">
       <Select
-        value={value}
+        value={value || "All"}
         onValueChange={onChange}
         disabled={isLoading || disabled}
       >
