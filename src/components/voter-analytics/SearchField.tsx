@@ -33,26 +33,25 @@ export const SearchField: React.FC<SearchFieldProps> = ({
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-4 items-start">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-4 text-gray-400 h-4 w-4" />
-          <Textarea
-            placeholder="Type your question here..."
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={handleKeyPress}
-            className="pl-10 w-full min-h-[150px] resize-none" /* Increased height by 50% from 100px to 150px */
-            disabled={isLoading}
-          />
-          <div className="text-xs text-gray-500 mt-1 text-right">Press ⌘+Enter to submit</div>
-        </div>
-        
+      <div className="relative w-full">
+        <Search className="absolute left-3 top-4 text-gray-400 h-4 w-4" />
+        <Textarea
+          placeholder="Type your question here..."
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onKeyDown={handleKeyPress}
+          className="pl-10 w-full min-h-[150px] resize-none" /* Increased height by 50% from 100px to 150px */
+          disabled={isLoading}
+        />
+        <div className="text-xs text-gray-500 mt-1 text-right">Press ⌘+Enter to submit</div>
+      </div>
+      
+      <div className="mt-6 flex justify-center">
         <Button 
           onClick={() => {
             handleSearch();
             onSubmit();
           }}
-          className="px-6 py-2 mt-4"
           disabled={isLoading}
           variant="default"
         >
