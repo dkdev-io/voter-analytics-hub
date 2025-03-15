@@ -54,6 +54,7 @@ export const VoterAnalytics = () => {
             isLoading={isLoading}
             isDataMigrated={isDataMigrated}
             onRefresh={handleRefreshData}
+            onSubmit={calculateResult}
           />
           
           {/* Section 2: Search Field */}
