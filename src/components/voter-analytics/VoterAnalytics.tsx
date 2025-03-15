@@ -20,6 +20,7 @@ export const VoterAnalytics = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isDataMigrated, setIsDataMigrated] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showFilteredData, setShowFilteredData] = useState(false);
   const { toast } = useToast();
 
   // Initial data migration and check
@@ -83,17 +84,24 @@ export const VoterAnalytics = () => {
   }, [toast]);
 
   const calculateResult = async () => {
-    if (!query.tactic && !query.resultType && !query.person && !query.date) {
-      setError("Please select at least one field");
+    if (!query.tactic && !query.resultType && !query.person && !query.date && !searchQuery) {
+      setError("Please select at least one field or enter a search term");
       setResult(null);
       return;
     }
 
     try {
       setIsLoading(true);
-      console.log("Calculating result for query:", query);
       
-      const { result: calculatedResult, error: calculationError } = await calculateResultFromSupabase(query);
+      // Update the query with searchQuery if provided
+      const updatedQuery = {
+        ...query,
+        searchQuery: searchQuery
+      };
+      
+      console.log("Calculating result for query:", updatedQuery);
+      
+      const { result: calculatedResult, error: calculationError } = await calculateResultFromSupabase(updatedQuery);
       
       if (calculationError) {
         setError(calculationError);
@@ -113,6 +121,12 @@ export const VoterAnalytics = () => {
         setResult(calculatedResult);
         setError(null);
       }
+      
+      // Update the query state with the searchQuery
+      setQuery(updatedQuery);
+      
+      // Show filtered data in charts
+      setShowFilteredData(true);
     } catch (e) {
       console.error("Error calculating result:", e);
       setError("Unknown error");
@@ -151,20 +165,36 @@ export const VoterAnalytics = () => {
             value={searchQuery}
             onChange={setSearchQuery}
             isLoading={isLoading}
+            onSubmit={calculateResult}
           />
         </div>
         
         {/* Section 3: Dashboard Charts */}
-        <DashboardCharts isLoading={isLoading} />
+        <DashboardCharts 
+          isLoading={isLoading} 
+          query={query}
+          showFilteredData={showFilteredData}
+        />
       </div>
 
-      <ResultDisplay 
-        error={error}
-        result={result}
-        isLoading={isLoading}
-        query={query}
-        calculateResult={calculateResult}
-      />
+      {/* Move ResultDisplay here but remove the Submit button since it's now in SearchField */}
+      <div className="space-y-6">
+        {error && (
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <div className="text-red-600 font-medium text-center">
+              {error}
+            </div>
+          </div>
+        )}
+
+        {result !== null && !error && (
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <p className="text-xl font-medium text-gray-900 text-center">
+              Result: {result}
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

@@ -6,19 +6,31 @@ import {
   Cell,
   ResponsiveContainer,
   Tooltip,
-  Legend
+  Legend,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid
 } from 'recharts';
-import { CHART_COLORS } from '@/types/analytics';
+import { CHART_COLORS, type VoterMetrics, type QueryParams } from '@/types/analytics';
 import { fetchVoterMetrics } from '@/lib/voter-data';
 
 interface DashboardChartsProps {
   isLoading: boolean;
+  query: Partial<QueryParams>;
+  showFilteredData: boolean;
 }
 
-export const DashboardCharts: React.FC<DashboardChartsProps> = ({ isLoading }) => {
+export const DashboardCharts: React.FC<DashboardChartsProps> = ({ 
+  isLoading, 
+  query, 
+  showFilteredData 
+}) => {
   const [tacticsData, setTacticsData] = useState<any[]>([]);
   const [contactsData, setContactsData] = useState<any[]>([]);
   const [notReachedData, setNotReachedData] = useState<any[]>([]);
+  const [lineChartData, setLineChartData] = useState<any[]>([]);
   const [totalAttempts, setTotalAttempts] = useState(0);
   const [totalContacts, setTotalContacts] = useState(0);
   const [totalNotReached, setTotalNotReached] = useState(0);
@@ -29,8 +41,8 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({ isLoading }) =
       try {
         setLoading(true);
         
-        // Fetch aggregated metrics from our service
-        const metrics = await fetchVoterMetrics();
+        // Fetch aggregated metrics from our service - either overall or filtered
+        const metrics = await fetchVoterMetrics(showFilteredData ? query : undefined);
         
         // Chart 1: Tactics breakdown (SMS, Phone, Canvas)
         const tacticsChartData = [
@@ -53,6 +65,9 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({ isLoading }) =
           { name: 'Bad Data', value: metrics.notReached.badData || 0, color: CHART_COLORS.NOT_REACHED.BAD_DATA }
         ];
         
+        // Line chart data
+        const lineData = metrics.byDate || [];
+        
         // Calculate totals
         const totalTactics = tacticsChartData.reduce((sum, item) => sum + item.value, 0);
         const totalContactsValue = contactsChartData.reduce((sum, item) => sum + item.value, 0);
@@ -61,6 +76,7 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({ isLoading }) =
         setTacticsData(tacticsChartData);
         setContactsData(contactsChartData);
         setNotReachedData(notReachedChartData);
+        setLineChartData(lineData);
         setTotalAttempts(totalTactics);
         setTotalContacts(totalContactsValue);
         setTotalNotReached(totalNotReachedValue);
@@ -72,7 +88,7 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({ isLoading }) =
     };
     
     loadChartData();
-  }, []);
+  }, [query, showFilteredData]);
   
   if (loading || isLoading) {
     return (
@@ -83,13 +99,14 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({ isLoading }) =
             <div key={i} className="h-64 bg-gray-100 animate-pulse rounded"></div>
           ))}
         </div>
+        <div className="mt-6 h-72 bg-gray-100 animate-pulse rounded"></div>
       </div>
     );
   }
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
-      <h2 className="text-xl font-semibold mb-4">Analytics</h2>
+      <h2 className="text-xl font-semibold mb-4">Analytics {showFilteredData ? '(Filtered Results)' : '(Overall)'}</h2>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Chart 1: Tactics Distribution */}
@@ -179,6 +196,47 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({ isLoading }) =
           </div>
         </div>
       </div>
+      
+      {/* Line chart showing attempts, contacts, and issues by date */}
+      <div className="mt-8 h-80 bg-white rounded-lg border border-gray-200">
+        <h3 className="text-sm font-medium p-2 text-center">Activity Over Time</h3>
+        <ResponsiveContainer width="100%" height="90%">
+          <LineChart
+            data={lineChartData}
+            margin={{ top: 20, right: 30, left: 20, bottom: 10 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+            <XAxis dataKey="date" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Line
+              type="monotone"
+              dataKey="attempts"
+              stroke={CHART_COLORS.LINE.ATTEMPTS}
+              activeDot={{ r: 8 }}
+              strokeWidth={2}
+              name="Attempts"
+            />
+            <Line
+              type="monotone"
+              dataKey="contacts"
+              stroke={CHART_COLORS.LINE.CONTACTS}
+              activeDot={{ r: 6 }}
+              strokeWidth={2}
+              name="Contacts"
+            />
+            <Line
+              type="monotone"
+              dataKey="issues"
+              stroke={CHART_COLORS.LINE.ISSUES}
+              activeDot={{ r: 6 }}
+              strokeWidth={2}
+              name="Issues"
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 };
@@ -186,15 +244,21 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({ isLoading }) =
 // Custom tooltip component for the charts
 const CustomTooltip = ({ active, payload }: any) => {
   if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    const total = payload[0].payload.total || 
+                 (typeof data.value === 'number' ? data.value : 0);
+    
     return (
       <div className="bg-white p-2 border border-gray-200 shadow-md rounded text-xs">
         <p className="font-semibold">{payload[0].name}</p>
         <p style={{ color: payload[0].payload.color }}>
           Value: {payload[0].value}
         </p>
-        <p>
-          Percentage: {((payload[0].value / payload[0].payload.total) * 100).toFixed(1)}%
-        </p>
+        {total > 0 && (
+          <p>
+            Percentage: {((payload[0].value / total) * 100).toFixed(1)}%
+          </p>
+        )}
       </div>
     );
   }

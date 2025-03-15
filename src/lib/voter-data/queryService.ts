@@ -1,5 +1,5 @@
 
-import type { QueryParams } from '@/types/analytics';
+import type { QueryParams, VoterMetrics } from '@/types/analytics';
 import { getTestData } from './migrationService';
 
 export const calculateResultFromSupabase = async (query: Partial<QueryParams>) => {
@@ -112,13 +112,55 @@ export const searchVoterData = async (searchQuery: string) => {
   }
 };
 
-// New function to get aggregated metrics for the dashboard charts
-export const fetchVoterMetrics = async () => {
+// Function to get aggregated metrics for the dashboard charts
+export const fetchVoterMetrics = async (query?: Partial<QueryParams>): Promise<VoterMetrics> => {
   try {
     const data = await getTestData();
     
+    // If query provided, filter the data
+    const filteredData = query ? data.filter(item => {
+      // Apply tactic filter
+      if (query.tactic && query.tactic !== 'All' && item.tactic !== query.tactic) {
+        return false;
+      }
+      
+      // Apply date filter
+      if (query.date && query.date !== 'All' && item.date !== query.date) {
+        return false;
+      }
+      
+      // Apply team filter
+      if (query.team && query.team !== 'All' && item.team !== query.team) {
+        return false;
+      }
+      
+      // Apply person filter
+      if (query.person && query.person !== 'All') {
+        const fullName = `${item.first_name} ${item.last_name}`;
+        if (fullName !== query.person) {
+          return false;
+        }
+      }
+      
+      // Apply search query if provided
+      if (query.searchQuery) {
+        const searchLower = query.searchQuery.toLowerCase();
+        const fullName = `${item.first_name} ${item.last_name}`.toLowerCase();
+        const teamLower = item.team.toLowerCase();
+        const tacticLower = item.tactic.toLowerCase();
+        
+        if (!fullName.includes(searchLower) && 
+            !teamLower.includes(searchLower) && 
+            !tacticLower.includes(searchLower)) {
+          return false;
+        }
+      }
+      
+      return true;
+    }) : data;
+    
     // Initialize metrics structure
-    const metrics = {
+    const metrics: VoterMetrics = {
       tactics: {
         sms: 0,
         phone: 0,
@@ -133,11 +175,34 @@ export const fetchVoterMetrics = async () => {
         notHome: 0,
         refusal: 0,
         badData: 0
-      }
+      },
+      byDate: []
     };
     
+    // Get unique dates
+    const uniqueDates = [...new Set(filteredData.map(item => item.date))].sort();
+    
+    // Create byDate data structure
+    const dateData = uniqueDates.map(date => {
+      const dateItems = filteredData.filter(item => item.date === date);
+      const attempts = dateItems.reduce((sum, item) => sum + (item.attempts || 0), 0);
+      const contacts = dateItems.reduce((sum, item) => sum + (item.contacts || 0), 0);
+      // "issues" are the sum of not_home, refusal, and bad_data
+      const issues = dateItems.reduce((sum, item) => 
+        sum + (item.not_home || 0) + (item.refusal || 0) + (item.bad_data || 0), 0);
+      
+      return {
+        date,
+        attempts,
+        contacts,
+        issues
+      };
+    });
+    
+    metrics.byDate = dateData;
+    
     // Aggregate data
-    data.forEach(item => {
+    filteredData.forEach(item => {
       // Aggregate by tactic
       if (item.tactic.toLowerCase() === 'sms') {
         metrics.tactics.sms += item.attempts || 0;
@@ -165,7 +230,8 @@ export const fetchVoterMetrics = async () => {
     return {
       tactics: { sms: 0, phone: 0, canvas: 0 },
       contacts: { support: 0, oppose: 0, undecided: 0 },
-      notReached: { notHome: 0, refusal: 0, badData: 0 }
+      notReached: { notHome: 0, refusal: 0, badData: 0 },
+      byDate: []
     };
   }
 };

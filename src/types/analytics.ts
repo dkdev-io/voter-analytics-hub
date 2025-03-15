@@ -37,5 +37,36 @@ export const CHART_COLORS = {
     NOT_HOME: '#FFA94D',   // Light orange
     REFUSAL: '#F97316',    // Medium orange
     BAD_DATA: '#C2410C',   // Dark orange
+  },
+  // Line chart colors
+  LINE: {
+    ATTEMPTS: '#38D167',   // Green
+    CONTACTS: '#3B82F6',   // Blue
+    ISSUES: '#F97316',     // Orange
   }
 };
+
+// Interface for metric data
+export interface VoterMetrics {
+  tactics: {
+    sms: number;
+    phone: number;
+    canvas: number;
+  };
+  contacts: {
+    support: number;
+    oppose: number;
+    undecided: number;
+  };
+  notReached: {
+    notHome: number;
+    refusal: number;
+    badData: number;
+  };
+  byDate?: Array<{
+    date: string;
+    attempts: number;
+    contacts: number;
+    issues: number;
+  }>;
+}
