@@ -1,20 +1,12 @@
 
 import { useState, useEffect } from 'react';
-import {
-  PieChart,
-  Pie,
-  Cell,
-  ResponsiveContainer,
-  Tooltip,
-  Legend,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid
-} from 'recharts';
-import { CHART_COLORS, type VoterMetrics, type QueryParams } from '@/types/analytics';
+import { type VoterMetrics, type QueryParams } from '@/types/analytics';
 import { fetchVoterMetrics } from '@/lib/voter-data';
+import { TacticsPieChart } from './charts/TacticsPieChart';
+import { ContactsPieChart } from './charts/ContactsPieChart';
+import { NotReachedPieChart } from './charts/NotReachedPieChart';
+import { ActivityLineChart } from './charts/ActivityLineChart';
+import { CHART_COLORS } from '@/types/analytics';
 
 interface DashboardChartsProps {
   isLoading: boolean;
@@ -110,158 +102,17 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Chart 1: Tactics Distribution */}
-        <div className="h-72 bg-white rounded-lg border border-gray-200 flex flex-col">
-          <h3 className="text-sm font-medium p-2 text-center">Tactic Distribution</h3>
-          <div className="flex-1">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={tacticsData}
-                  cx="50%"
-                  cy="45%"
-                  innerRadius={40}
-                  outerRadius={70}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {tacticsData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip content={<CustomTooltip />} />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="text-center pb-2 font-semibold">
-            Total: {totalAttempts}
-          </div>
-        </div>
+        <TacticsPieChart data={tacticsData} total={totalAttempts} />
         
         {/* Chart 2: Contact Results */}
-        <div className="h-72 bg-white rounded-lg border border-gray-200 flex flex-col">
-          <h3 className="text-sm font-medium p-2 text-center">Contact Results</h3>
-          <div className="flex-1">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={contactsData}
-                  cx="50%"
-                  cy="45%"
-                  innerRadius={40}
-                  outerRadius={70}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {contactsData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip content={<CustomTooltip />} />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="text-center pb-2 font-semibold">
-            Total: {totalContacts}
-          </div>
-        </div>
+        <ContactsPieChart data={contactsData} total={totalContacts} />
         
         {/* Chart 3: Not Reached Breakdown */}
-        <div className="h-72 bg-white rounded-lg border border-gray-200 flex flex-col">
-          <h3 className="text-sm font-medium p-2 text-center">Not Reached Breakdown</h3>
-          <div className="flex-1">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={notReachedData}
-                  cx="50%"
-                  cy="45%"
-                  innerRadius={40}
-                  outerRadius={70}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {notReachedData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip content={<CustomTooltip />} />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="text-center pb-2 font-semibold">
-            Total: {totalNotReached}
-          </div>
-        </div>
+        <NotReachedPieChart data={notReachedData} total={totalNotReached} />
       </div>
       
       {/* Line chart showing attempts, contacts, and issues by date */}
-      <div className="mt-8 h-80 bg-white rounded-lg border border-gray-200">
-        <h3 className="text-sm font-medium p-2 text-center">Activity Over Time</h3>
-        <ResponsiveContainer width="100%" height="90%">
-          <LineChart
-            data={lineChartData}
-            margin={{ top: 20, right: 30, left: 20, bottom: 10 }}
-          >
-            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-            <XAxis dataKey="date" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Line
-              type="monotone"
-              dataKey="attempts"
-              stroke={CHART_COLORS.LINE.ATTEMPTS}
-              activeDot={{ r: 8 }}
-              strokeWidth={2}
-              name="Attempts"
-            />
-            <Line
-              type="monotone"
-              dataKey="contacts"
-              stroke={CHART_COLORS.LINE.CONTACTS}
-              activeDot={{ r: 6 }}
-              strokeWidth={2}
-              name="Contacts"
-            />
-            <Line
-              type="monotone"
-              dataKey="issues"
-              stroke={CHART_COLORS.LINE.ISSUES}
-              activeDot={{ r: 6 }}
-              strokeWidth={2}
-              name="Issues"
-            />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
+      <ActivityLineChart data={lineChartData} />
     </div>
   );
-};
-
-// Custom tooltip component for the charts
-const CustomTooltip = ({ active, payload }: any) => {
-  if (active && payload && payload.length) {
-    const data = payload[0].payload;
-    const total = payload[0].payload.total || 
-                 (typeof data.value === 'number' ? data.value : 0);
-    
-    return (
-      <div className="bg-white p-2 border border-gray-200 shadow-md rounded text-xs">
-        <p className="font-semibold">{payload[0].name}</p>
-        <p style={{ color: payload[0].payload.color }}>
-          Value: {payload[0].value}
-        </p>
-        {total > 0 && (
-          <p>
-            Percentage: {((payload[0].value / total) * 100).toFixed(1)}%
-          </p>
-        )}
-      </div>
-    );
-  }
-
-  return null;
 };
