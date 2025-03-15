@@ -120,9 +120,9 @@ export const QueryBuilder = ({
 
   return (
     <div className="space-y-6">
-      {/* First row: Show me + Tactic + Metric */}
+      {/* First row: Show + Tactic + Metric on same line */}
       <div className="flex flex-wrap items-center gap-2 mb-4">
-        <span className="text-lg text-gray-700">Show me</span>
+        <span className="text-lg text-gray-700">Show</span>
         
         <TacticSelector 
           value={safeQuery.tactic}
@@ -138,9 +138,9 @@ export const QueryBuilder = ({
         />
       </div>
       
-      {/* Second row: Were done by + Team + Person */}
+      {/* Second row: Done by: + Team + Person */}
       <div className="flex flex-wrap items-center gap-2 mb-4">
-        <span className="text-lg text-gray-700">Were done by</span>
+        <span className="text-lg text-gray-700">Done by:</span>
         
         <TeamSelector 
           value={selectedTeam}

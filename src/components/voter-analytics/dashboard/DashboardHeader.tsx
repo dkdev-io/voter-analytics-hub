@@ -37,7 +37,7 @@ export function DashboardHeader({
       )}
       
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
-        <h1 className="text-2xl font-bold">Voter Analytics Dashboard</h1>
+        <h1 className="text-2xl font-bold">Welcome to Dashboard</h1>
       </div>
     </div>
   );
