@@ -1,33 +1,33 @@
 
-import React from 'react';
-import { QueryBuilder } from '../QueryBuilder';
-import { type QueryParams } from '@/types/analytics';
+import { QueryBuilder } from "../QueryBuilder";
 
 interface QuerySectionProps {
-  query: Partial<QueryParams>;
-  setQuery: React.Dispatch<React.SetStateAction<Partial<QueryParams>>>;
-  setError: React.Dispatch<React.SetStateAction<string | null>>;
+  query: any;
+  setQuery: (query: any) => void;
+  setError: (error: string | null) => void;
   isLoading: boolean;
   isDataMigrated: boolean;
+  onRefresh?: () => Promise<void>;
 }
 
-export const QuerySection: React.FC<QuerySectionProps> = ({ 
-  query, 
-  setQuery, 
-  setError, 
-  isLoading, 
-  isDataMigrated 
-}) => {
+export function QuerySection({
+  query,
+  setQuery,
+  setError,
+  isLoading,
+  isDataMigrated,
+  onRefresh
+}: QuerySectionProps) {
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md">
-      <h2 className="text-xl font-semibold mb-4">Build Your Query</h2>
-      <QueryBuilder 
+    <div className="bg-white rounded-lg shadow-sm p-6">
+      <QueryBuilder
         query={query}
         setQuery={setQuery}
         setError={setError}
         isLoading={isLoading}
         isDataMigrated={isDataMigrated}
+        onRefresh={onRefresh}
       />
     </div>
   );
-};
+}

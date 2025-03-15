@@ -1,20 +1,85 @@
 
-import React from 'react';
-import { DataMigrationAlert } from '../DataMigrationAlert';
+import { useState } from 'react';
+import { DataMigrationAlert } from "../DataMigrationAlert";
+import { QuerySection } from "./QuerySection";
+import { SearchSection } from "./SearchSection";
+import { DataImportButton } from "../DataImportButton";
+import { useToast } from "@/hooks/use-toast";
 
 interface DashboardHeaderProps {
+  query: any;
+  setQuery: (query: any) => void;
+  error: string | null;
+  setError: (error: string | null) => void;
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+  isLoading: boolean;
   isDataMigrated: boolean;
+  calculateResult: () => void;
+  importNewData: () => Promise<boolean>;
 }
 
-export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ isDataMigrated }) => {
+export function DashboardHeader({
+  query,
+  setQuery,
+  error,
+  setError,
+  searchQuery,
+  setSearchQuery,
+  isLoading,
+  isDataMigrated,
+  calculateResult,
+  importNewData
+}: DashboardHeaderProps) {
+  const [showImportButton, setShowImportButton] = useState(true);
+  const { toast } = useToast();
+  
+  const handleImport = async () => {
+    const success = await importNewData();
+    if (success) {
+      setShowImportButton(false);
+      toast({
+        title: "Data Updated",
+        description: "New dataset has been imported. Please refresh the metadata to see the changes.",
+        variant: "default"
+      });
+      // Reset any selections
+      setQuery({});
+    }
+    return success;
+  };
+
   return (
-    <>
-      <h1 className="text-2xl font-semibold text-gray-900 mb-2 text-center">Dashboard</h1>
-      <p className="text-lg text-gray-700 mb-8 text-center italic">
-        The first user friendly tool to help campaigns analyze their voter contact data.
-      </p>
+    <div className="space-y-6 mt-4 mb-8">
+      {!isDataMigrated && (
+        <DataMigrationAlert isLoading={isLoading} />
+      )}
       
-      <DataMigrationAlert isDataMigrated={isDataMigrated} />
-    </>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
+        <h1 className="text-2xl font-bold">Voter Analytics Dashboard</h1>
+        {showImportButton && (
+          <DataImportButton onImport={handleImport} isLoading={isLoading} />
+        )}
+      </div>
+      
+      <div className="space-y-6">
+        <QuerySection 
+          query={query} 
+          setQuery={setQuery} 
+          setError={setError} 
+          isLoading={isLoading} 
+          isDataMigrated={isDataMigrated}
+          onRefresh={() => Promise.resolve()}
+        />
+        
+        <SearchSection
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          isLoading={isLoading}
+          calculateResult={calculateResult}
+          error={error}
+        />
+      </div>
+    </div>
   );
-};
+}

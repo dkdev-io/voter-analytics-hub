@@ -16,7 +16,13 @@ export const PersonSelector = ({
   disabled, 
   isLoading 
 }: PersonSelectorProps) => {
-  console.log("PersonSelector rendering with:", { value, peopleCount: people?.length, disabled, isLoading });
+  console.log("PersonSelector rendering with:", { 
+    value, 
+    peopleCount: people?.length, 
+    firstFewPeople: people?.slice(0, 3),
+    disabled, 
+    isLoading 
+  });
   
   return (
     <div className="inline-block min-w-[180px]">
@@ -43,7 +49,7 @@ export const PersonSelector = ({
             ))
           ) : (
             <SelectItem value="no-data" disabled>
-              {isLoading ? "Loading people..." : "No data available"}
+              {isLoading ? "Loading people..." : "No people available"}
             </SelectItem>
           )}
         </SelectContent>

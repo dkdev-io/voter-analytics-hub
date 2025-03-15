@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { 
   fetchTactics, 
   fetchTeams, 
@@ -7,6 +7,7 @@ import {
   fetchAllPeople,
   fetchDates 
 } from '@/lib/voter-data';
+import { useToast } from "@/hooks/use-toast";
 
 export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null) => {
   const [tactics, setTactics] = useState<string[]>([]);
@@ -15,6 +16,7 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
   const [allPeople, setAllPeople] = useState<string[]>([]);
   const [availableDates, setAvailableDates] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
   
   // Fetch initial data
   useEffect(() => {
@@ -23,18 +25,24 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
         setIsLoading(true);
         
         if (!isDataMigrated) {
+          console.log("Data not migrated yet, skipping metadata fetch");
           return;
         }
         
         console.log("Loading initial metadata...");
         
         // Fetch all metadata in parallel for better performance
-        const [tacticsResult, teamsResult, datesResult, allPeopleResult] = await Promise.all([
+        const results = await Promise.all([
           fetchTactics(),
           fetchTeams(),
           fetchDates(),
           fetchAllPeople()
         ]);
+        
+        const tacticsResult = results[0];
+        const teamsResult = results[1];
+        const datesResult = results[2];
+        const allPeopleResult = results[3];
         
         console.log("Initial data loaded:", {
           tactics: tacticsResult?.length || 0,
@@ -55,11 +63,20 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
         }
       } catch (err) {
         console.error("Error loading initial data:", err);
+        toast({
+          title: "Data Loading Error",
+          description: "Could not load metadata. Please try refreshing the page.",
+          variant: "destructive"
+        });
+        
         // Set fallback values if fetch fails
-        setTactics(["SMS", "Phone", "Canvas"]);
-        setTeams(["Team Tony", "Team Maria", "Team John"]);
-        setAvailableDates(["2025-01-01", "2025-01-02", "2025-01-03"]);
-        const fallbackPeople = ["John Smith", "Jane Doe", "Alex Johnson", "Maria Martinez", "Chris Brown"];
+        setTactics(["SMS", "Phone", "Canvas", "Email"]);
+        setTeams(["Team Alpha", "Team Beta", "Team Gamma", "Team Delta"]);
+        setAvailableDates(["2023-02-01", "2023-03-01", "2023-04-01"]);
+        const fallbackPeople = [
+          "Michael Garcia", "Sarah Rodriguez", "David Smith", 
+          "Emily Johnson", "Joshua Williams"
+        ];
         setAllPeople(fallbackPeople);
         setFilteredPeople(fallbackPeople);
       } finally {
@@ -68,15 +85,17 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
     };
     
     loadInitialData();
-  }, [isDataMigrated]);
+  }, [isDataMigrated, toast]);
 
   // Fetch people based on selected team
   useEffect(() => {
     const loadPeopleByTeam = async () => {
-      if (!isDataMigrated) return;
+      if (!isDataMigrated) {
+        console.log("Data not migrated yet, skipping people fetch");
+        return;
+      }
       
       try {
-        // Don't set loading to true here to avoid UI flicker when switching teams
         console.log(`Loading people for team: ${selectedTeam || "All"}`);
         
         if (selectedTeam && selectedTeam !== "All") {
@@ -86,7 +105,6 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
           setFilteredPeople(teamPeople || []);
         } else {
           // If "All" is selected or no team is selected, use allPeople
-          // Only fetch again if allPeople is empty
           if (allPeople.length === 0) {
             console.log("No cached people data, fetching all people...");
             const allPeopleData = await fetchAllPeople();
@@ -100,14 +118,67 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
         }
       } catch (err) {
         console.error("Error loading people by team:", err);
+        toast({
+          title: "Data Loading Error",
+          description: "Could not load people data.",
+          variant: "destructive"
+        });
+        
         // Fallback to at least showing something
-        const fallbackPeople = ["John Smith", "Jane Doe", "Alex Johnson", "Maria Martinez", "Chris Brown"];
+        const fallbackPeople = [
+          "Michael Garcia", "Sarah Rodriguez", "David Smith", 
+          "Emily Johnson", "Joshua Williams"
+        ];
         setFilteredPeople(fallbackPeople);
       }
     };
     
     loadPeopleByTeam();
-  }, [selectedTeam, isDataMigrated, allPeople]);
+  }, [selectedTeam, isDataMigrated, allPeople, toast]);
+
+  // Function to refresh all metadata
+  const refreshMetadata = useCallback(async () => {
+    if (!isDataMigrated) return;
+    
+    setIsLoading(true);
+    try {
+      console.log("Refreshing all metadata...");
+      
+      const [tacticsResult, teamsResult, datesResult, allPeopleResult] = await Promise.all([
+        fetchTactics(),
+        fetchTeams(),
+        fetchDates(),
+        fetchAllPeople()
+      ]);
+      
+      setTactics(tacticsResult || []);
+      setTeams(teamsResult || []);
+      setAvailableDates(datesResult || []);
+      setAllPeople(allPeopleResult || []);
+      
+      if (!selectedTeam || selectedTeam === "All") {
+        setFilteredPeople(allPeopleResult || []);
+      } else {
+        const teamPeople = await fetchPeopleByTeam(selectedTeam);
+        setFilteredPeople(teamPeople || []);
+      }
+      
+      toast({
+        title: "Data Refreshed",
+        description: "Metadata has been successfully refreshed.",
+        variant: "default"
+      });
+    } catch (err) {
+      console.error("Error refreshing metadata:", err);
+      toast({
+        title: "Refresh Error",
+        description: "Failed to refresh metadata.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isDataMigrated, selectedTeam, toast]);
 
   return {
     tactics,
@@ -115,6 +186,7 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
     filteredPeople,
     allPeople,
     availableDates,
-    isLoading
+    isLoading,
+    refreshMetadata
   };
 };

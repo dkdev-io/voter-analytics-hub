@@ -7,6 +7,8 @@ import { ResultTypeSelector } from './ResultTypeSelector';
 import { TeamSelector } from './TeamSelector';
 import { PersonSelector } from './PersonSelector';
 import { DateSelector } from './DateSelector';
+import { Button } from '@/components/ui/button';
+import { RefreshCw } from 'lucide-react';
 
 interface QueryBuilderProps {
   query: Partial<QueryParams>;
@@ -14,6 +16,7 @@ interface QueryBuilderProps {
   setError: React.Dispatch<React.SetStateAction<string | null>>;
   isLoading: boolean;
   isDataMigrated: boolean;
+  onRefresh?: () => Promise<void>;
 }
 
 export const QueryBuilder = ({ 
@@ -21,7 +24,8 @@ export const QueryBuilder = ({
   setQuery, 
   setError,
   isLoading: parentIsLoading,
-  isDataMigrated 
+  isDataMigrated,
+  onRefresh
 }: QueryBuilderProps) => {
   const [selectedTeam, setSelectedTeam] = useState<string | null>(query.team === "All" ? null : query.team || null);
   
@@ -32,7 +36,8 @@ export const QueryBuilder = ({
     filteredPeople, 
     allPeople, 
     availableDates, 
-    isLoading: metadataIsLoading 
+    isLoading: metadataIsLoading,
+    refreshMetadata
   } = useMetadata(isDataMigrated, selectedTeam);
   
   const isLoading = parentIsLoading || metadataIsLoading;
@@ -52,11 +57,13 @@ export const QueryBuilder = ({
   }, [selectedTeam, setQuery, query.team]);
 
   const handleDateSelect = (value: string) => {
+    console.log("Date selected:", value);
     setQuery(prev => ({ ...prev, date: value }));
     setError(null);
   };
 
   const handleTeamChange = (value: string) => {
+    console.log("Team selected:", value);
     const teamValue = value === "All" ? null : value;
     setSelectedTeam(teamValue);
     setQuery(prev => ({ ...prev, team: value }));
@@ -64,18 +71,28 @@ export const QueryBuilder = ({
   };
 
   const handlePersonChange = (value: string) => {
+    console.log("Person selected:", value);
     setQuery(prev => ({ ...prev, person: value }));
     setError(null);
   };
 
   const handleTacticChange = (value: string) => {
+    console.log("Tactic selected:", value);
     setQuery(prev => ({ ...prev, tactic: value }));
     setError(null);
   };
 
   const handleResultTypeChange = (value: string) => {
+    console.log("Result type selected:", value);
     setQuery(prev => ({ ...prev, resultType: value }));
     setError(null);
+  };
+
+  const handleRefresh = async () => {
+    if (onRefresh) {
+      await onRefresh();
+    }
+    await refreshMetadata();
   };
 
   console.log("QueryBuilder state:", {
@@ -84,11 +101,27 @@ export const QueryBuilder = ({
     filteredPeopleCount: filteredPeople.length,
     allPeopleCount: allPeople.length,
     availableDatesCount: availableDates.length,
+    dates: availableDates.slice(0, 5),
+    people: filteredPeople.slice(0, 5),
+    query,
     isLoading
   });
 
   return (
     <div className="space-y-6">
+      <div className="flex justify-end mb-4">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={handleRefresh}
+          disabled={isLoading}
+          className="text-xs"
+        >
+          <RefreshCw className="mr-1 h-3 w-3" />
+          Refresh Data
+        </Button>
+      </div>
+      
       <div className="text-lg text-gray-700 flex flex-wrap items-center gap-2">
         <span>I want to know how many</span>
         

@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { type QueryParams } from '@/types/analytics';
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -16,6 +16,7 @@ export const useVoterAnalytics = () => {
   const [isDataMigrated, setIsDataMigrated] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilteredData, setShowFilteredData] = useState(false);
+  const [dataStats, setDataStats] = useState<any>(null);
   const { toast } = useToast();
 
   // Initial data migration and check
@@ -34,26 +35,6 @@ export const useVoterAnalytics = () => {
             description: migrateResult.message,
             variant: "default"
           });
-          
-          // Try to call our edge function to import data if needed
-          try {
-            const { data, error } = await supabase.functions.invoke('import-voter-data');
-            
-            if (error) {
-              console.error("Error calling import-voter-data function:", error);
-            } else {
-              console.log("Import function result:", data);
-              if (data.success) {
-                toast({
-                  title: "Data Import",
-                  description: data.message,
-                  variant: "default"
-                });
-              }
-            }
-          } catch (funcError) {
-            console.error("Error invoking Edge Function:", funcError);
-          }
           
           setIsDataMigrated(true);
         } else {
@@ -131,6 +112,55 @@ export const useVoterAnalytics = () => {
     }
   };
 
+  const importNewData = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      console.log("Importing new dataset from Google Sheet...");
+      
+      const { data, error } = await supabase.functions.invoke('import-voter-data-from-sheet');
+      
+      if (error) {
+        console.error("Error importing data:", error);
+        toast({
+          title: "Import Error",
+          description: "Failed to import new dataset: " + error.message,
+          variant: "destructive"
+        });
+        return false;
+      }
+      
+      console.log("Import result:", data);
+      
+      if (data.success) {
+        toast({
+          title: "Data Import Successful",
+          description: `Imported ${data.message}`,
+          variant: "default"
+        });
+        
+        setDataStats(data.stats);
+        return true;
+      } else {
+        toast({
+          title: "Import Error",
+          description: data.error || "Unknown error during import",
+          variant: "destructive"
+        });
+        return false;
+      }
+    } catch (err) {
+      console.error("Error in data import:", err);
+      toast({
+        title: "Import Error",
+        description: "Failed to import new dataset.",
+        variant: "destructive"
+      });
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [toast]);
+
   return {
     query,
     setQuery,
@@ -142,6 +172,8 @@ export const useVoterAnalytics = () => {
     searchQuery,
     setSearchQuery,
     showFilteredData,
-    calculateResult
+    calculateResult,
+    importNewData,
+    dataStats
   };
 };

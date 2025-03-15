@@ -35,7 +35,7 @@ export const fetchTeams = async (): Promise<string[]> => {
     if (!data || data.length === 0) {
       console.log("No data available for teams, using fallback values");
       // Fallback to default teams if no data is available
-      return ["Team Tony", "Team Maria", "Team John"];
+      return ["Team Alpha", "Team Beta", "Team Gamma", "Team Delta"];
     }
     
     // Extract unique teams from the data
@@ -45,7 +45,7 @@ export const fetchTeams = async (): Promise<string[]> => {
   } catch (error) {
     console.error("Error fetching teams:", error);
     // Return default teams as fallback
-    return ["Team Tony", "Team Maria", "Team John"];
+    return ["Team Alpha", "Team Beta", "Team Gamma", "Team Delta"];
   }
 };
 
@@ -54,12 +54,12 @@ export const fetchPeopleByTeam = async (team: string): Promise<string[]> => {
   try {
     console.log(`Fetching people for team: ${team}`);
     const data = await getTestData();
-    console.log(`Fetching people from ${data.length} records`);
+    console.log(`Fetching people from ${data.length} records for team: ${team}`);
     
     if (!data || data.length === 0) {
       console.log("No data available for people, using fallback values");
       // Fallback to default people if no data is available
-      return ["John Smith", "Jane Doe", "Alex Johnson"];
+      return ["Michael Garcia", "Sarah Rodriguez", "David Smith"];
     }
     
     // Filter data by team and extract unique full names
@@ -68,13 +68,15 @@ export const fetchPeopleByTeam = async (team: string): Promise<string[]> => {
       .map(item => `${item.first_name} ${item.last_name}`);
     
     // Get unique people (in case there are duplicates)
-    const uniquePeople = [...new Set(peopleInTeam)];
-    console.log(`People in team ${team}:`, uniquePeople);
+    const uniquePeople = [...new Set(peopleInTeam)].sort();
+    console.log(`Found ${uniquePeople.length} unique people in team ${team}`);
+    console.log("Sample people in team:", uniquePeople.slice(0, 5));
+    
     return uniquePeople;
   } catch (error) {
     console.error(`Error fetching people for team ${team}:`, error);
     // Return default people as fallback
-    return ["John Smith", "Jane Doe", "Alex Johnson"];
+    return ["Michael Garcia", "Sarah Rodriguez", "David Smith"];
   }
 };
 
@@ -88,20 +90,22 @@ export const fetchAllPeople = async (): Promise<string[]> => {
     if (!data || data.length === 0) {
       console.log("No data available for people");
       // Fallback to default people if no data is available
-      return ["John Smith", "Jane Doe", "Alex Johnson", "Maria Martinez", "Chris Brown"];
+      return ["Michael Garcia", "Sarah Rodriguez", "David Smith", "Emily Johnson", "Joshua Williams"];
     }
     
     // Extract unique full names from the data
     const allPeople = data.map(item => `${item.first_name} ${item.last_name}`);
-    // Make sure we get unique names only
-    const uniquePeople = [...new Set(allPeople)];
-    console.log("All people count:", uniquePeople.length);
+    
+    // Make sure we get unique names only and sort them
+    const uniquePeople = [...new Set(allPeople)].sort();
+    console.log("All unique people count:", uniquePeople.length);
     console.log("Sample people:", uniquePeople.slice(0, 5));
+    
     return uniquePeople;
   } catch (error) {
     console.error("Error fetching all people:", error);
     // Return default people as fallback
-    return ["John Smith", "Jane Doe", "Alex Johnson", "Maria Martinez", "Chris Brown"];
+    return ["Michael Garcia", "Sarah Rodriguez", "David Smith", "Emily Johnson", "Joshua Williams"];
   }
 };
 
@@ -115,16 +119,19 @@ export const fetchDates = async (): Promise<string[]> => {
     if (!data || data.length === 0) {
       console.log("No data available for dates");
       // Fallback to default dates if no data is available
-      return ["2025-01-01", "2025-01-02", "2025-01-03"];
+      return ["2023-02-01", "2023-03-01", "2023-04-01"];
     }
     
     // Extract unique dates from the data
     const dates = [...new Set(data.map(item => item.date))];
-    console.log("Available dates:", dates);
-    return dates.sort(); // Sort dates in ascending order
+    const sortedDates = dates.sort(); // Sort dates in ascending order
+    console.log("Available dates count:", sortedDates.length);
+    console.log("Sample dates:", sortedDates.slice(0, 5));
+    
+    return sortedDates;
   } catch (error) {
     console.error("Error fetching dates:", error);
     // Return default dates as fallback
-    return ["2025-01-01", "2025-01-02", "2025-01-03"];
+    return ["2023-02-01", "2023-03-01", "2023-04-01"];
   }
 };

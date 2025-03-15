@@ -14,7 +14,12 @@ export const DateSelector = ({
   availableDates,
   isLoading 
 }: DateSelectorProps) => {
-  console.log("DateSelector rendering with:", { value, datesCount: availableDates?.length, isLoading });
+  console.log("DateSelector rendering with:", { 
+    value, 
+    availableDatesCount: availableDates?.length, 
+    firstFewDates: availableDates?.slice(0, 3),
+    isLoading 
+  });
   
   return (
     <div className="inline-block min-w-[180px]">
@@ -41,7 +46,7 @@ export const DateSelector = ({
             ))
           ) : (
             <SelectItem value="no-data" disabled>
-              {isLoading ? "Loading dates..." : "No data available"}
+              {isLoading ? "Loading dates..." : "No dates available"}
             </SelectItem>
           )}
         </SelectContent>
