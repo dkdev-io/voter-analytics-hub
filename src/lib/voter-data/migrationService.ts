@@ -1,10 +1,9 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 // Cache the test data to avoid repeated calls
 let testDataCache: any[] | null = null;
 let lastFetchTime = 0;
-const CACHE_TIMEOUT = 30000; // 30 seconds
+const CACHE_TIMEOUT = 10000; // 10 seconds - reduced from 30s to ensure fresh data
 
 // Function to check Supabase connection and data availability
 export const migrateTestDataToSupabase = async (forceRefresh = false): Promise<{ success: boolean; message: string }> => {
@@ -71,6 +70,10 @@ export const getTestData = async (): Promise<any[]> => {
   try {
     const now = Date.now();
     
+    // Force refresh data for debugging
+    testDataCache = null;
+    lastFetchTime = 0;
+    
     // Use cached data if available and not expired
     if (testDataCache && now - lastFetchTime < CACHE_TIMEOUT) {
       console.log("Using cached test data");
@@ -105,9 +108,40 @@ export const getTestData = async (): Promise<any[]> => {
     const fakeData = generateFakeData(300);
     console.log("Generated fake data for development:", fakeData.slice(0, 2));
     
-    testDataCache = fakeData;
+    // Manually add a specific record for Dan Kelly with Phone on 2025-01-31 with attempts=17
+    const danKellyRecord = {
+      id: 9999,  // Special ID for testing
+      tactic: "Phone",
+      date: "2025-01-31",
+      attempts: 17,
+      contacts: 8,
+      not_home: 5,
+      bad_data: 2,
+      refusal: 2,
+      first_name: "Dan",
+      last_name: "Kelly",
+      team: "Local Party",
+      support: 4,
+      oppose: 2,
+      undecided: 2,
+      created_at: new Date().toISOString()
+    };
+    
+    // Remove any existing Dan Kelly Phone 2025-01-31 records to avoid duplicates
+    const cleanedData = fakeData.filter(record => 
+      !(record.first_name === "Dan" && 
+        record.last_name === "Kelly" && 
+        record.tactic === "Phone" && 
+        record.date === "2025-01-31")
+    );
+    
+    // Add our special test record
+    cleanedData.push(danKellyRecord);
+    console.log("Added test record for Dan Kelly with attempts=17 on 2025-01-31");
+    
+    testDataCache = cleanedData;
     lastFetchTime = now;
-    return fakeData;
+    return cleanedData;
   } catch (error) {
     console.error("Error getting test data:", error);
     
