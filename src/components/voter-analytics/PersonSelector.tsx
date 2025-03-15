@@ -41,7 +41,7 @@ export const PersonSelector = ({
             ))
           ) : (
             <SelectItem value="no-data" disabled>
-              {isLoading ? "Loading people..." : "No data in database yet"}
+              {isLoading ? "Loading people..." : "No data available"}
             </SelectItem>
           )}
         </SelectContent>

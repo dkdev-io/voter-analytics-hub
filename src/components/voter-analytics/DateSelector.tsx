@@ -39,7 +39,7 @@ export const DateSelector = ({
             ))
           ) : (
             <SelectItem value="no-data" disabled>
-              {isLoading ? "Loading dates..." : "No data in database yet"}
+              {isLoading ? "Loading dates..." : "No data available"}
             </SelectItem>
           )}
         </SelectContent>
