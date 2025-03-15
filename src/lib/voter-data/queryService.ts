@@ -39,6 +39,20 @@ export const calculateResultFromSupabase = async (query: Partial<QueryParams>) =
         }
       }
       
+      // Apply search query if provided
+      if (query.searchQuery) {
+        const searchLower = query.searchQuery.toLowerCase();
+        const fullName = `${item.first_name} ${item.last_name}`.toLowerCase();
+        const teamLower = item.team.toLowerCase();
+        const tacticLower = item.tactic.toLowerCase();
+        
+        if (!fullName.includes(searchLower) && 
+            !teamLower.includes(searchLower) && 
+            !tacticLower.includes(searchLower)) {
+          return false;
+        }
+      }
+      
       return true;
     });
     
@@ -68,5 +82,32 @@ export const calculateResultFromSupabase = async (query: Partial<QueryParams>) =
   } catch (error) {
     console.error("Error calculating result:", error);
     return { error: "Error processing data", result: null };
+  }
+};
+
+// New function to search voter data
+export const searchVoterData = async (searchQuery: string) => {
+  try {
+    if (!searchQuery.trim()) {
+      return { data: [], error: null };
+    }
+    
+    const data = await getTestData();
+    const searchLower = searchQuery.toLowerCase();
+    
+    const searchResults = data.filter(item => {
+      const fullName = `${item.first_name} ${item.last_name}`.toLowerCase();
+      const teamLower = item.team.toLowerCase();
+      const tacticLower = item.tactic.toLowerCase();
+      
+      return fullName.includes(searchLower) || 
+             teamLower.includes(searchLower) || 
+             tacticLower.includes(searchLower);
+    });
+    
+    return { data: searchResults, error: null };
+  } catch (error) {
+    console.error("Error searching voter data:", error);
+    return { data: [], error: "Error searching data" };
   }
 };

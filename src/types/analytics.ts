@@ -5,6 +5,7 @@ export interface QueryParams {
   person?: string;
   date?: string;
   team?: string;
+  searchQuery?: string;
 }
 
 export const RESULT_TYPES = [

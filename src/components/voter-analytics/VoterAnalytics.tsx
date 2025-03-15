@@ -10,6 +10,8 @@ import {
   calculateResultFromSupabase 
 } from '@/lib/voter-data';
 import { supabase } from '@/integrations/supabase/client';
+import { SearchField } from './SearchField';
+import { DashboardCharts } from './DashboardCharts';
 
 export const VoterAnalytics = () => {
   const [query, setQuery] = useState<Partial<QueryParams>>({});
@@ -17,6 +19,7 @@ export const VoterAnalytics = () => {
   const [result, setResult] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isDataMigrated, setIsDataMigrated] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const { toast } = useToast();
 
   // Initial data migration and check
@@ -120,7 +123,7 @@ export const VoterAnalytics = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-8 space-y-8">
+    <div className="max-w-7xl mx-auto p-4 space-y-8">
       <h1 className="text-2xl font-semibold text-gray-900 mb-2 text-center">Dashboard</h1>
       <p className="text-lg text-gray-700 mb-8 text-center italic">
         The first user friendly tool to help campaigns analyze their voter contact data.
@@ -128,13 +131,32 @@ export const VoterAnalytics = () => {
       
       <DataMigrationAlert isDataMigrated={isDataMigrated} />
       
-      <QueryBuilder 
-        query={query}
-        setQuery={setQuery}
-        setError={setError}
-        isLoading={isLoading}
-        isDataMigrated={isDataMigrated}
-      />
+      <div className="grid grid-cols-1 gap-8">
+        {/* Section 1: Query Builder */}
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h2 className="text-xl font-semibold mb-4">Build Your Query</h2>
+          <QueryBuilder 
+            query={query}
+            setQuery={setQuery}
+            setError={setError}
+            isLoading={isLoading}
+            isDataMigrated={isDataMigrated}
+          />
+        </div>
+        
+        {/* Section 2: Search Field */}
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h2 className="text-xl font-semibold mb-4">Search Records</h2>
+          <SearchField 
+            value={searchQuery}
+            onChange={setSearchQuery}
+            isLoading={isLoading}
+          />
+        </div>
+        
+        {/* Section 3: Dashboard Charts */}
+        <DashboardCharts isLoading={isLoading} />
+      </div>
 
       <ResultDisplay 
         error={error}
