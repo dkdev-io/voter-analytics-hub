@@ -40,13 +40,13 @@ export const SearchField: React.FC<SearchFieldProps> = ({
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={handleKeyPress}
-          className="pl-10 w-full min-h-[100px] resize-none"
+          className="pl-10 w-full min-h-[125px] resize-none" /* Increased height by 25% from 100px to 125px */
           disabled={isLoading}
         />
         <div className="text-xs text-gray-500 mt-1 text-right">Press ⌘+Enter to submit</div>
       </div>
       
-      <div className="flex justify-end">
+      <div className="flex justify-center"> {/* Changed from justify-end to justify-center */}
         <Button 
           onClick={() => {
             handleSearch();
