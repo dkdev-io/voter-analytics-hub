@@ -31,7 +31,8 @@ export const SearchField: React.FC<SearchFieldProps> = ({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      <h2 className="text-lg font-medium mb-2">Search Records</h2>
       <div className="flex items-center gap-2">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />

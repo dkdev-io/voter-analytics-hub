@@ -2,7 +2,6 @@
 import { useState } from 'react';
 import { DataMigrationAlert } from "../DataMigrationAlert";
 import { QuerySection } from "./QuerySection";
-import { SearchSection } from "./SearchSection";
 import { useToast } from "@/hooks/use-toast";
 
 interface DashboardHeaderProps {
@@ -50,13 +49,6 @@ export function DashboardHeader({
           isLoading={isLoading} 
           isDataMigrated={isDataMigrated}
           onRefresh={() => Promise.resolve()}
-        />
-        
-        <SearchSection
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          isLoading={isLoading}
-          onSubmit={calculateResult}
         />
       </div>
     </div>

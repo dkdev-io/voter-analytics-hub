@@ -44,7 +44,7 @@ export const VoterAnalytics = () => {
         importNewData={importNewData}
       />
       
-      <div className="grid grid-cols-1 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Section 1: Query Builder */}
         <QuerySection 
           query={query}
@@ -62,15 +62,15 @@ export const VoterAnalytics = () => {
           isLoading={isLoading}
           onSubmit={calculateResult}
         />
-        
-        {/* Section 3: Dashboard Charts */}
-        <DashboardCharts 
-          isLoading={isLoading} 
-          query={query}
-          showFilteredData={showFilteredData}
-        />
       </div>
 
+      {/* Section 3: Dashboard Charts */}
+      <DashboardCharts 
+        isLoading={isLoading} 
+        query={query}
+        showFilteredData={showFilteredData}
+      />
+      
       {/* Results Display */}
       <ResultsSection error={error} result={result} />
     </div>
