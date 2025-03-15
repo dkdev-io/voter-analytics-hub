@@ -120,8 +120,9 @@ export const QueryBuilder = ({
 
   return (
     <div className="space-y-6">
-      <div className="text-lg text-gray-700 flex flex-wrap items-center gap-2">
-        <span>I want to know how many</span>
+      {/* First row: Show me + Tactic + Metric */}
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        <span className="text-lg text-gray-700">Show me</span>
         
         <TacticSelector 
           value={safeQuery.tactic}
@@ -135,8 +136,11 @@ export const QueryBuilder = ({
           onChange={handleResultTypeChange}
           isLoading={isLoading}
         />
-        
-        <span>were done by</span>
+      </div>
+      
+      {/* Second row: Were done by + Team + Person */}
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        <span className="text-lg text-gray-700">Were done by</span>
         
         <TeamSelector 
           value={selectedTeam}
@@ -152,8 +156,11 @@ export const QueryBuilder = ({
           disabled={false}
           isLoading={isLoading}
         />
-        
-        <span>on</span>
+      </div>
+      
+      {/* Third row: On + Date */}
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-lg text-gray-700">On</span>
         
         <DateSelector 
           value={safeQuery.date}
@@ -161,8 +168,6 @@ export const QueryBuilder = ({
           availableDates={availableDates}
           isLoading={isLoading}
         />
-        
-        <span>.</span>
       </div>
     </div>
   );

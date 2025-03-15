@@ -53,8 +53,7 @@ export const SearchField: React.FC<SearchFieldProps> = ({
         </Button>
       </div>
       
-      {/* Submit Button */}
-      <div className="flex justify-center mt-4">
+      <div className="flex justify-center">
         <Button 
           onClick={onSubmit}
           className="px-6 py-2"
@@ -79,4 +78,4 @@ export const SearchField: React.FC<SearchFieldProps> = ({
       </div>
     </div>
   );
-};
+}
