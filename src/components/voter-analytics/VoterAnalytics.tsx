@@ -23,6 +23,12 @@ export const VoterAnalytics = () => {
     refreshData
   } = useVoterAnalytics();
 
+  // Create a wrapper function that discards the boolean return value
+  const handleRefreshData = async () => {
+    await refreshData();
+    // No return value, which makes this Promise<void>
+  };
+
   return (
     <div className="max-w-7xl mx-auto p-4 space-y-8">
       <DashboardHeader 
@@ -46,7 +52,7 @@ export const VoterAnalytics = () => {
           setError={setError}
           isLoading={isLoading}
           isDataMigrated={isDataMigrated}
-          onRefresh={refreshData}
+          onRefresh={handleRefreshData}
         />
         
         {/* Section 2: Search Field */}
