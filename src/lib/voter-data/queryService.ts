@@ -16,33 +16,41 @@ export const calculateResultFromSupabase = async (query: Partial<QueryParams>) =
     
     // Filter the data based on query parameters
     const filteredData = data.filter(item => {
+      // For debug tracking
+      let filterFailReason = "";
+      
       // Apply tactic filter
       if (query.tactic && query.tactic !== 'All' && item.tactic !== query.tactic) {
+        filterFailReason = `Tactic mismatch: query=${query.tactic}, item=${item.tactic}`;
         return false;
       }
       
       // Apply date filter - Fix: Handle the date comparison correctly
       if (query.date && query.date !== 'All') {
-        // Convert formats if needed (2025-01-31 to match with item.date)
-        const queryDate = query.date;
-        if (item.date !== queryDate) {
+        // For debugging
+        if (item.date !== query.date) {
+          filterFailReason = `Date mismatch: query=${query.date}, item=${item.date}`;
           return false;
         }
       }
       
       // Apply team filter
       if (query.team && query.team !== 'All' && item.team !== query.team) {
+        filterFailReason = `Team mismatch: query=${query.team}, item=${item.team}`;
         return false;
       }
       
-      // Apply person filter
+      // Apply person filter - Fixed: Person filter was incorrectly implemented
       if (query.person && query.person !== 'All') {
-        // Fixed: Split the person by first and last name and match against item
-        const [firstName, lastName] = (query.person || '').split(' ');
-        if (
-          (firstName && item.first_name !== firstName) || 
-          (lastName && item.last_name !== lastName)
-        ) {
+        // Split the person by first and last name
+        const names = query.person.split(' ');
+        const firstName = names[0];
+        const lastName = names.length > 1 ? names[1] : '';
+        
+        // Check if both first_name and last_name match exactly
+        // This is a strict match comparison
+        if (item.first_name !== firstName || item.last_name !== lastName) {
+          filterFailReason = `Person mismatch: query=${query.person}, item=${item.first_name} ${item.last_name}`;
           return false;
         }
       }
@@ -57,8 +65,15 @@ export const calculateResultFromSupabase = async (query: Partial<QueryParams>) =
         if (!fullName.includes(searchLower) && 
             !teamLower.includes(searchLower) && 
             !tacticLower.includes(searchLower)) {
+          filterFailReason = `Search query mismatch: query=${query.searchQuery}`;
           return false;
         }
+      }
+      
+      // Item passed all filters
+      // Debug print for items that passed all filters
+      if (query.person === "Dan Kelly" && query.tactic === "Phone") {
+        console.log("Item passed filters:", item);
       }
       
       return true;
@@ -66,6 +81,7 @@ export const calculateResultFromSupabase = async (query: Partial<QueryParams>) =
     
     console.log("Filtered data:", filteredData);
     
+    // Sum up all attempts for the matching records
     // Map the display result type to the actual property name in the data
     let resultType = query.resultType ? 
       query.resultType.toLowerCase().replace(/ /g, "_") : 
@@ -81,8 +97,17 @@ export const calculateResultFromSupabase = async (query: Partial<QueryParams>) =
     if (filteredData.length === 0) {
       return { result: 0, error: null };
     } else {
+      // Debug: Print individual values before summing
+      if (query.person === "Dan Kelly" && query.tactic === "Phone") {
+        console.log("Values to sum:");
+        filteredData.forEach(item => {
+          console.log(`Item ${item.id}: ${resultType} = ${item[resultType as keyof typeof item]}`);
+        });
+      }
+      
       const total = filteredData.reduce((sum, item) => {
-        return sum + (item[resultType as keyof typeof item] as number || 0);
+        const value = item[resultType as keyof typeof item] as number || 0;
+        return sum + value;
       }, 0);
       
       return { result: total, error: null };
