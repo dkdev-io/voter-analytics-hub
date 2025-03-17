@@ -1,4 +1,3 @@
-
 import { useState, useRef } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -78,25 +77,13 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
     try {
       console.log("Deleting ALL existing records before import...");
       
-      // Fix for type error - type assertion to make TypeScript happy
-      const { error: deleteError } = await supabase
-        .from('voter_contacts')
-        .delete()
-        .neq('id', 0 as any);
-        
-      if (deleteError) {
-        console.error("Error using DELETE operation:", deleteError);
-        
-        const { error: truncateError } = await supabase.rpc('truncate_voter_contacts');
-        
-        if (truncateError) {
-          console.error("Error truncating table:", truncateError);
-          throw new Error(`Failed to clear existing records. Please try again or contact support.`);
-        } else {
-          console.log("Successfully truncated table using RPC call");
-        }
+      const { error: truncateError } = await supabase.rpc('truncate_voter_contacts');
+      
+      if (truncateError) {
+        console.error("Error truncating table:", truncateError);
+        throw new Error(`Failed to clear existing records. Please try again or contact support.`);
       } else {
-        console.log("Successfully deleted all records using DELETE operation");
+        console.log("Successfully truncated table using RPC call");
       }
       
       const headerMapping: Record<number, string> = {};
