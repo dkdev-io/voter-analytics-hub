@@ -6,12 +6,14 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Send, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useErrorLogger } from '@/hooks/useErrorLogger';
 
 export const OpenAIChat = () => {
   const [prompt, setPrompt] = useState('');
   const [response, setResponse] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { logError } = useErrorLogger();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,6 +46,8 @@ export const OpenAIChat = () => {
       setResponse(data.answer);
     } catch (error) {
       console.error('Error calling OpenAI:', error);
+      logError(error as Error, 'OpenAIChat.handleSubmit');
+      
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to get response from OpenAI",

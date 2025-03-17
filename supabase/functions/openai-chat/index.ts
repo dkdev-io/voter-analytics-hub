@@ -27,36 +27,53 @@ serve(async (req) => {
 
     console.log(`Processing prompt: ${prompt.substring(0, 50)}...`)
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: 'You are a helpful assistant that provides clear and concise responses.' },
-          { role: 'user', content: prompt }
-        ],
-        temperature: 0.7,
-        max_tokens: 500,
-      }),
-    })
+    try {
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openAIApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            { role: 'system', content: 'You are a helpful assistant that provides clear and concise responses.' },
+            { role: 'user', content: prompt }
+          ],
+          temperature: 0.7,
+          max_tokens: 500,
+        }),
+      })
 
-    if (!response.ok) {
-      const error = await response.json()
-      console.error('OpenAI API Error:', error)
-      throw new Error(`OpenAI API error: ${error.error?.message || 'Unknown error'}`)
+      if (!response.ok) {
+        const error = await response.json()
+        console.error('OpenAI API Error:', error)
+        return new Response(
+          JSON.stringify({ error: `OpenAI API error: ${error.error?.message || 'Unknown error'}` }),
+          { 
+            status: 500, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        )
+      }
+
+      const data = await response.json()
+      const answer = data.choices[0].message.content
+
+      return new Response(
+        JSON.stringify({ answer }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    } catch (openAIError) {
+      console.error('Error calling OpenAI API:', openAIError)
+      return new Response(
+        JSON.stringify({ error: `Error calling OpenAI: ${openAIError.message}` }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
     }
-
-    const data = await response.json()
-    const answer = data.choices[0].message.content
-
-    return new Response(
-      JSON.stringify({ answer }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
   } catch (error) {
     console.error('Error in openai-chat function:', error)
     
