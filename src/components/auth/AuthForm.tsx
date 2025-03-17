@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AuthFormFooter } from './AuthFormFooter';
 import { AuthToggleMode } from './AuthToggleMode';
+import { MailCheck } from 'lucide-react';
 
 interface AuthFormProps {
   email: string;
@@ -15,6 +16,7 @@ interface AuthFormProps {
   error: string | null;
   loading: boolean;
   isLogin: boolean;
+  signupSuccess?: boolean;
   onToggleMode: () => void;
   onSubmit: (e: React.FormEvent) => void;
   onSkipAuth: () => void;
@@ -28,10 +30,48 @@ export const AuthForm: React.FC<AuthFormProps> = ({
   error,
   loading,
   isLogin,
+  signupSuccess = false,
   onToggleMode,
   onSubmit,
   onSkipAuth
 }) => {
+  if (signupSuccess) {
+    return (
+      <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-lg">
+        <div className="text-center">
+          <div className="flex justify-center mb-4">
+            <div className="p-3 rounded-full bg-green-100">
+              <MailCheck className="w-8 h-8 text-green-600" />
+            </div>
+          </div>
+          <h1 className="text-3xl font-bold text-gray-900">Registration Successful</h1>
+          <p className="mt-2 text-gray-600">
+            We've sent a verification email to <span className="font-medium">{email}</span>
+          </p>
+        </div>
+        
+        <div className="space-y-4">
+          <p className="text-sm text-gray-600">
+            Please check your inbox and click on the verification link to activate your account.
+            If you don't see the email, check your spam folder.
+          </p>
+          
+          <div className="pt-4 border-t border-gray-200">
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={onToggleMode}
+            >
+              Return to Login
+            </Button>
+          </div>
+        </div>
+        
+        <AuthFormFooter />
+      </div>
+    );
+  }
+
   return (
     <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-lg">
       <div className="text-center">

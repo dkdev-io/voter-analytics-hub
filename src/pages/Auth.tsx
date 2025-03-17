@@ -22,6 +22,7 @@ const Auth = () => {
     loading, 
     error, 
     isLogin, 
+    signupSuccess,
     toggleAuthMode, 
     handleSubmit, 
     handleSkipAuth 
@@ -50,6 +51,7 @@ const Auth = () => {
         error={error}
         loading={loading}
         isLogin={isLogin}
+        signupSuccess={signupSuccess}
         onToggleMode={toggleAuthMode}
         onSubmit={handleSubmit}
         onSkipAuth={handleSkipAuth}

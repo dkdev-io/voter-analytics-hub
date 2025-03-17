@@ -13,16 +13,22 @@ export function useAuthForm(redirectPath: string = '/connect-data') {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLogin, setIsLogin] = useState(true);
+  const [signupSuccess, setSignupSuccess] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { logAuthFlowIssue } = useErrorLogger();
 
-  const toggleAuthMode = () => setIsLogin(!isLogin);
+  const toggleAuthMode = () => {
+    setIsLogin(!isLogin);
+    setError(null);
+    setSignupSuccess(false);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setSignupSuccess(false);
 
     try {
       if (isLogin) {
@@ -50,9 +56,11 @@ export function useAuthForm(redirectPath: string = '/connect-data') {
 
         if (error) throw error;
         
+        setSignupSuccess(true);
+        
         toast({
-          title: 'Success',
-          description: 'Registration successful! Please check your email for confirmation.',
+          title: 'Registration Successful',
+          description: 'Please check your email to verify your account.',
         });
       }
     } catch (error: any) {
@@ -89,6 +97,7 @@ export function useAuthForm(redirectPath: string = '/connect-data') {
     loading,
     error,
     isLogin,
+    signupSuccess,
     toggleAuthMode,
     handleSubmit,
     handleSkipAuth
