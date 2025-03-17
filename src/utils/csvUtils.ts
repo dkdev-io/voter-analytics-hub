@@ -20,9 +20,17 @@ export const parseCSV = (file: File): Promise<{ headers: string[], data: string[
         // Normalize headers (trim whitespace and convert to lowercase)
         const headers = parsedLines[0].map(header => header.trim());
         
+        // Process data rows - clean up any trailing carriage returns
+        const cleanData = parsedLines.slice(1).map(row => 
+          row.map(cell => cell.replace(/\r$/, '').trim())
+        );
+        
+        console.log("Parsed headers:", headers);
+        console.log("First data row:", cleanData.length > 0 ? cleanData[0] : []);
+        
         resolve({
           headers: headers,
-          data: parsedLines.slice(1)
+          data: cleanData
         });
       } catch (error) {
         reject(error);

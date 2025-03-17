@@ -17,6 +17,7 @@ export const useVoterAnalytics = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilteredData, setShowFilteredData] = useState(false);
   const [dataStats, setDataStats] = useState<any>(null);
+  const [dataLastUpdated, setDataLastUpdated] = useState<Date | null>(null);
   const { toast } = useToast();
 
   // Initial data migration and check
@@ -37,6 +38,7 @@ export const useVoterAnalytics = () => {
           });
           
           setIsDataMigrated(true);
+          setDataLastUpdated(new Date());
           
           // If we're connected but no data found, try to import data
           if (migrateResult.message.includes("no data found")) {
@@ -135,6 +137,7 @@ export const useVoterAnalytics = () => {
           variant: "default"
         });
         
+        setDataLastUpdated(new Date());
         return true;
       } else {
         toast({
@@ -184,6 +187,7 @@ export const useVoterAnalytics = () => {
         });
         
         setDataStats(data.stats);
+        setDataLastUpdated(new Date());
         
         // Refresh the data after successful import
         await refreshData();
@@ -209,6 +213,13 @@ export const useVoterAnalytics = () => {
     }
   }, [toast, refreshData]);
 
+  // Function to handle successful CSV upload
+  const handleCsvUploadSuccess = useCallback(async () => {
+    console.log("CSV upload success, refreshing data...");
+    setDataLastUpdated(new Date());
+    await refreshData();
+  }, [refreshData]);
+
   return {
     query,
     setQuery,
@@ -223,6 +234,8 @@ export const useVoterAnalytics = () => {
     calculateResult,
     importNewData,
     refreshData,
-    dataStats
+    dataStats,
+    dataLastUpdated,
+    handleCsvUploadSuccess
   };
 };

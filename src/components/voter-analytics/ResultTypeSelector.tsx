@@ -1,6 +1,7 @@
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RESULT_TYPES } from '@/types/analytics';
+import { useEffect, useState } from 'react';
 
 interface ResultTypeSelectorProps {
   value: string | undefined;
@@ -13,6 +14,17 @@ export const ResultTypeSelector = ({
   onChange, 
   isLoading 
 }: ResultTypeSelectorProps) => {
+  const [availableTypes, setAvailableTypes] = useState<string[]>(RESULT_TYPES);
+  
+  // When the component mounts or isLoading changes, ensure we have the latest result types
+  useEffect(() => {
+    // Ensure we have the complete list of result types
+    if (!isLoading && RESULT_TYPES.length > 0) {
+      console.log("Available result types:", RESULT_TYPES);
+      setAvailableTypes(RESULT_TYPES);
+    }
+  }, [isLoading]);
+
   return (
     <div className="inline-block min-w-[150px]">
       <Select
@@ -25,7 +37,7 @@ export const ResultTypeSelector = ({
         </SelectTrigger>
         <SelectContent className="bg-white z-50">
           <SelectItem value="All">All Metrics</SelectItem>
-          {RESULT_TYPES.map(type => (
+          {availableTypes.map(type => (
             <SelectItem key={type} value={type}>
               {type}
             </SelectItem>

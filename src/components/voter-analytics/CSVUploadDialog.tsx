@@ -181,8 +181,13 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
         description: `${validData.length} records imported to your database.`,
       });
       
+      // Call onSuccess with the count of records imported
       onSuccess();
-      onClose();
+      
+      // Close the dialog after a short delay to show 100% progress
+      setTimeout(() => {
+        onClose();
+      }, 500);
     } catch (error) {
       console.error('Error uploading data:', error);
       toast({
