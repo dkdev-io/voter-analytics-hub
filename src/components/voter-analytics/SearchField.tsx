@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, Send } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
 
 interface SearchFieldProps {
   value: string;
@@ -19,15 +20,34 @@ export const SearchField: React.FC<SearchFieldProps> = ({
   onSubmit
 }) => {
   const [inputValue, setInputValue] = useState(value);
+  const { toast } = useToast();
 
   const handleSearch = () => {
     onChange(inputValue);
   };
 
+  const handleSubmit = () => {
+    if (!inputValue.trim()) {
+      toast({
+        title: "Empty Query",
+        description: "Please enter a question or query before submitting.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    handleSearch();
+    onSubmit();
+    
+    toast({
+      title: "Query Submitted",
+      description: "Your search query has been submitted successfully.",
+    });
+  };
+
   const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && e.metaKey) {
-      handleSearch();
-      onSubmit();
+      handleSubmit();
     }
   };
 
@@ -48,10 +68,7 @@ export const SearchField: React.FC<SearchFieldProps> = ({
       
       <div className="mt-6 flex justify-center">
         <Button 
-          onClick={() => {
-            handleSearch();
-            onSubmit();
-          }}
+          onClick={handleSubmit}
           disabled={isLoading}
           variant="default"
         >
