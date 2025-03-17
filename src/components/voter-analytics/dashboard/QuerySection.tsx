@@ -24,7 +24,6 @@ export function QuerySection({
 }: QuerySectionProps) {
   return (
     <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-      <h2 className="text-lg font-bold mb-4">Pick your metric</h2>
       <QueryBuilder
         query={query || {}} // Ensure query is never undefined
         setQuery={setQuery}

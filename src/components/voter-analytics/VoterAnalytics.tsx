@@ -5,6 +5,8 @@ import { QuerySection } from './dashboard/QuerySection';
 import { SearchSection } from './dashboard/SearchSection';
 import { ResultsSection } from './dashboard/ResultsSection';
 import { DashboardCharts } from './DashboardCharts';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useState } from 'react';
 
 export const VoterAnalytics = () => {
   const {
@@ -22,6 +24,8 @@ export const VoterAnalytics = () => {
     importNewData,
     refreshData
   } = useVoterAnalytics();
+
+  const [activeTab, setActiveTab] = useState<"metric" | "question">("metric");
 
   // Create a wrapper function that discards the boolean return value
   const handleRefreshData = async () => {
@@ -45,33 +49,38 @@ export const VoterAnalytics = () => {
       />
       
       <div className="grid grid-cols-1 gap-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start relative">
-          {/* Section 1: Query Builder */}
-          <QuerySection 
-            query={query}
-            setQuery={setQuery}
-            setError={setError}
-            isLoading={isLoading}
-            isDataMigrated={isDataMigrated}
-            onRefresh={handleRefreshData}
-            onSubmit={calculateResult}
-          />
+        <Tabs 
+          defaultValue="metric" 
+          value={activeTab} 
+          onValueChange={(value) => setActiveTab(value as "metric" | "question")}
+          className="w-full"
+        >
+          <TabsList className="grid grid-cols-2 mb-4">
+            <TabsTrigger value="metric">Pick a metric</TabsTrigger>
+            <TabsTrigger value="question">Ask a question</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="metric" className="mt-0">
+            <QuerySection 
+              query={query}
+              setQuery={setQuery}
+              setError={setError}
+              isLoading={isLoading}
+              isDataMigrated={isDataMigrated}
+              onRefresh={handleRefreshData}
+              onSubmit={calculateResult}
+            />
+          </TabsContent>
           
-          {/* Or divider */}
-          <div className="hidden md:flex absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10">
-            <div className="bg-white px-4 py-2 rounded-full border border-gray-200 shadow-sm font-bold text-gray-500">
-              Or
-            </div>
-          </div>
-          
-          {/* Section 2: Search Field */}
-          <SearchSection 
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-            isLoading={isLoading}
-            onSubmit={calculateResult}
-          />
-        </div>
+          <TabsContent value="question" className="mt-0">
+            <SearchSection 
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              isLoading={isLoading}
+              onSubmit={calculateResult}
+            />
+          </TabsContent>
+        </Tabs>
       </div>
 
       {/* Section 3: Dashboard Charts */}
