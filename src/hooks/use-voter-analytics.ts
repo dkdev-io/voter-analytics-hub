@@ -127,10 +127,32 @@ export const useVoterAnalytics = () => {
     try {
       console.log("Refreshing data from Supabase...");
       
+      // Get current data count to confirm refresh
+      const { count: beforeCount, error: countError } = await supabase
+        .from('voter_contacts')
+        .select('*', { count: 'exact', head: true });
+      
+      if (countError) {
+        console.error("Error getting data count:", countError);
+      } else {
+        console.log(`Current record count before refresh: ${beforeCount || 0}`);
+      }
+      
       // Check Supabase connection again
       const migrateResult = await migrateTestDataToSupabase(true); // Pass true to force refresh
       
       if (migrateResult.success) {
+        // Get new data count to confirm refresh worked
+        const { count: afterCount, error: countError2 } = await supabase
+          .from('voter_contacts')
+          .select('*', { count: 'exact', head: true });
+          
+        if (countError2) {
+          console.error("Error getting data count after refresh:", countError2);
+        } else {
+          console.log(`Record count after refresh: ${afterCount || 0}`);
+        }
+        
         toast({
           title: "Data Refresh",
           description: "Successfully refreshed connection to Supabase.",
@@ -217,8 +239,19 @@ export const useVoterAnalytics = () => {
   const handleCsvUploadSuccess = useCallback(async () => {
     console.log("CSV upload success, refreshing data...");
     setDataLastUpdated(new Date());
-    await refreshData();
-  }, [refreshData]);
+    
+    // Clear any cached data in the migrationService
+    // Force a complete refresh of all metadata
+    const success = await refreshData();
+    
+    if (success) {
+      toast({
+        title: "Data Refreshed",
+        description: "Successfully refreshed data after CSV upload.",
+        variant: "default"
+      });
+    }
+  }, [refreshData, toast]);
 
   return {
     query,

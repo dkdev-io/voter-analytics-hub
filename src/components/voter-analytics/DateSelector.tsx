@@ -15,7 +15,9 @@ export const DateSelector = ({
   isLoading 
 }: DateSelectorProps) => {
   // Get unique dates and sort them chronologically
-  const uniqueDates = [...new Set(availableDates)].sort();
+  const uniqueDates = [...new Set(availableDates)].sort((a, b) => {
+    return new Date(a).getTime() - new Date(b).getTime();
+  });
   
   console.log("DateSelector rendering with:", { 
     value, 

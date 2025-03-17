@@ -1,10 +1,30 @@
 
 import { getTestData } from './migrationService';
+import { supabase } from '@/integrations/supabase/client';
 
 // Function to fetch all available tactics from the test data
 export const fetchTactics = async (): Promise<string[]> => {
   try {
     console.log("Fetching tactics...");
+    
+    // Try to fetch directly from Supabase first
+    const { data: tacticsData, error } = await supabase
+      .from('voter_contacts')
+      .select('tactic')
+      .limit(1000);
+    
+    if (error) {
+      throw error;
+    }
+    
+    if (tacticsData && tacticsData.length > 0) {
+      // Extract unique tactics from the database result
+      const tactics = [...new Set(tacticsData.map(item => item.tactic))].filter(Boolean).sort();
+      console.log("Available tactics from database:", tactics);
+      return tactics;
+    }
+    
+    // Fall back to getTestData if no data from direct query
     const data = await getTestData();
     console.log(`Fetching tactics from ${data.length} records`);
     
@@ -29,6 +49,30 @@ export const fetchTactics = async (): Promise<string[]> => {
 export const fetchTeams = async (): Promise<string[]> => {
   try {
     console.log("Fetching teams...");
+    
+    // Try to fetch directly from Supabase first
+    const { data: teamsData, error } = await supabase
+      .from('voter_contacts')
+      .select('team')
+      .limit(1000);
+    
+    if (error) {
+      throw error;
+    }
+    
+    if (teamsData && teamsData.length > 0) {
+      // Extract unique teams from the database result
+      const teams = [...new Set(teamsData.map(item => item.team).filter(Boolean))];
+      
+      // Always include our expected teams
+      const expectedTeams = ["Team Tony", "Local Party", "Candidate"];
+      const allTeams = [...new Set([...teams, ...expectedTeams])].sort();
+      
+      console.log("Available teams from database:", allTeams);
+      return allTeams;
+    }
+    
+    // Fall back to getTestData if no data from direct query
     const data = await getTestData();
     console.log(`Fetching teams from ${data.length} records`);
     
@@ -58,6 +102,37 @@ export const fetchTeams = async (): Promise<string[]> => {
 export const fetchPeopleByTeam = async (team: string): Promise<string[]> => {
   try {
     console.log(`Fetching people for team: ${team}`);
+    
+    // Try to fetch directly from Supabase first
+    const { data: peopleData, error } = await supabase
+      .from('voter_contacts')
+      .select('first_name, last_name')
+      .eq('team', team)
+      .limit(1000);
+    
+    if (error) {
+      throw error;
+    }
+    
+    if (peopleData && peopleData.length > 0) {
+      // Map to full names and get unique entries
+      const peopleInTeam = peopleData
+        .map(item => {
+          if (!item.first_name || !item.last_name) {
+            console.warn("Missing name data:", item);
+            return null;
+          }
+          return `${item.first_name} ${item.last_name}`;
+        })
+        .filter(Boolean) as string[];
+      
+      // Get unique people (in case there are duplicates)
+      const uniquePeople = [...new Set(peopleInTeam)].sort();
+      console.log(`Found ${uniquePeople.length} unique people in team ${team} from database`);
+      return uniquePeople;
+    }
+    
+    // Fall back to getTestData if no data from direct query
     const data = await getTestData();
     console.log(`Fetching people from ${data.length} records for team: ${team}`);
     
@@ -109,6 +184,37 @@ export const fetchPeopleByTeam = async (team: string): Promise<string[]> => {
 export const fetchAllPeople = async (): Promise<string[]> => {
   try {
     console.log("Fetching all people...");
+    
+    // Try to fetch directly from Supabase first
+    const { data: peopleData, error } = await supabase
+      .from('voter_contacts')
+      .select('first_name, last_name')
+      .limit(1000);
+    
+    if (error) {
+      throw error;
+    }
+    
+    if (peopleData && peopleData.length > 0) {
+      // Map to full names and get unique entries
+      const allPeople = peopleData
+        .map(item => {
+          if (!item.first_name || !item.last_name) {
+            console.warn("Missing name data:", item);
+            return null;
+          }
+          return `${item.first_name} ${item.last_name}`;
+        })
+        .filter(Boolean) as string[];
+      
+      // Make sure we get unique names only and sort them
+      const uniquePeople = [...new Set(allPeople)].sort();
+      console.log("All unique people count from database:", uniquePeople.length);
+      console.log("Sample people:", uniquePeople.slice(0, 5));
+      return uniquePeople;
+    }
+    
+    // Fall back to getTestData if no data from direct query
     const data = await getTestData();
     console.log(`Fetching all people from ${data.length} records`);
     
@@ -158,6 +264,29 @@ export const fetchAllPeople = async (): Promise<string[]> => {
 export const fetchDates = async (): Promise<string[]> => {
   try {
     console.log("Fetching dates...");
+    
+    // Try to fetch directly from Supabase first
+    const { data: datesData, error } = await supabase
+      .from('voter_contacts')
+      .select('date')
+      .limit(1000);
+    
+    if (error) {
+      throw error;
+    }
+    
+    if (datesData && datesData.length > 0) {
+      // Extract unique dates from the database result and sort chronologically
+      const dates = [...new Set(datesData.map(item => item.date).filter(Boolean))].sort((a, b) => {
+        return new Date(a).getTime() - new Date(b).getTime();
+      });
+      
+      console.log("Available unique dates from database count:", dates.length);
+      console.log("Sample dates from database:", dates.slice(0, 5));
+      return dates;
+    }
+    
+    // Fall back to getTestData if no data from direct query
     const data = await getTestData();
     console.log(`Fetching dates from ${data.length} records`);
     
@@ -172,8 +301,11 @@ export const fetchDates = async (): Promise<string[]> => {
       return fallbackDates;
     }
     
-    // Extract unique dates from the data
-    const dates = [...new Set(data.map(item => item.date).filter(Boolean))].sort();
+    // Extract unique dates from the data and sort chronologically
+    const dates = [...new Set(data.map(item => item.date).filter(Boolean))].sort((a, b) => {
+      return new Date(a).getTime() - new Date(b).getTime();
+    });
+    
     console.log("Available unique dates count:", dates.length);
     console.log("Sample dates:", dates.slice(0, 5));
     

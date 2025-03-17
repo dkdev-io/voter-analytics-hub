@@ -1,3 +1,4 @@
+
 import { useState, useRef } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -77,6 +78,18 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
     setIsUploading(true);
     
     try {
+      // Delete all existing records first to ensure clean import
+      console.log("Deleting existing records before import...");
+      const { error: deleteError } = await supabase
+        .from('voter_contacts')
+        .delete()
+        .neq('id', 0);
+        
+      if (deleteError) {
+        console.error("Error deleting existing records:", deleteError);
+        throw new Error(`Failed to delete existing records: ${deleteError.message}`);
+      }
+      
       // Map CSV headers to database fields - use more flexible matching
       const headerMapping: Record<number, string> = {};
       
