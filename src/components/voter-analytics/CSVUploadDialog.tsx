@@ -1,12 +1,12 @@
-
 import { useState, useRef } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { CSVFieldMapping } from './CSVFieldMapping';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, FileText, Upload, FileUp } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Progress } from "@/components/ui/progress";
+import { FileUploadStep } from './csv-upload/FileUploadStep';
+import { ProcessingStep } from './csv-upload/ProcessingStep';
 
 interface CSVUploadDialogProps {
   open: boolean;
@@ -153,7 +153,6 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
         
         if (error) throw error;
         
-        // Calculate and set the progress as a number
         const progressValue = Math.round(((i + 1) / batches.length) * 100);
         setProgress(progressValue);
       }
@@ -208,46 +207,10 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
         </DialogHeader>
 
         {step === 'upload' && (
-          <div className="py-6">
-            <div 
-              className="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center hover:border-gray-400 transition-colors"
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <FileUp className="h-12 w-12 mx-auto text-gray-400" />
-              <p className="mt-4 text-sm text-gray-600">
-                Click to browse or drag and drop
-              </p>
-              <p className="text-xs text-gray-500 mt-2">
-                CSV files only, up to 10MB
-              </p>
-              <input
-                type="file"
-                ref={fileInputRef}
-                className="hidden"
-                accept=".csv"
-                onChange={handleFileChange}
-              />
-              
-              {file && (
-                <div className="mt-4 flex items-center justify-center">
-                  <FileText className="h-4 w-4 mr-2 text-blue-500" />
-                  <span className="text-sm font-medium">{file.name}</span>
-                </div>
-              )}
-              
-              <Button 
-                className="mt-4" 
-                variant="outline"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  fileInputRef.current?.click();
-                }}
-              >
-                <Upload className="h-4 w-4 mr-2" />
-                Select CSV File
-              </Button>
-            </div>
-          </div>
+          <FileUploadStep 
+            file={file}
+            onFileChange={handleFileChange}
+          />
         )}
 
         {step === 'mapping' && headers.length > 0 && (
@@ -260,20 +223,7 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
         )}
 
         {step === 'processing' && (
-          <div className="py-10 text-center">
-            <Loader2 className="h-10 w-10 mx-auto animate-spin text-primary" />
-            <h3 className="mt-4 text-lg font-medium">Processing your data</h3>
-            <p className="text-sm text-gray-500 mt-1">
-              Please don't close this window.
-            </p>
-            
-            <div className="mt-6 w-full">
-              <Progress value={progress} className="h-2" />
-            </div>
-            <p className="text-xs text-gray-500 mt-2">
-              {progress}% complete
-            </p>
-          </div>
+          <ProcessingStep progress={progress} />
         )}
 
         {step === 'upload' && (
