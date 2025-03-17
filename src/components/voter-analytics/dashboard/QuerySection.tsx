@@ -24,6 +24,10 @@ export function QuerySection({
 }: QuerySectionProps) {
   return (
     <div className="space-y-6">
+      <p className="text-sm text-gray-600 mb-4">
+        Select parameters below to filter your voter data and generate metrics. You can combine multiple filters to get specific insights.
+      </p>
+      
       <QueryBuilder
         query={query || {}} // Ensure query is never undefined
         setQuery={setQuery}
