@@ -46,7 +46,7 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
       }
 
       setFile(selectedFile);
-      processCSVFile(selectedFile);
+      // Don't process automatically - wait for the user to submit
     }
   };
 
@@ -56,7 +56,7 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
       setHeaders(headers);
       setCsvData(data);
       
-      // Start upload immediately after parsing
+      // Start upload after parsing
       handleUpload(headers, data);
     } catch (error) {
       console.error('Error parsing CSV:', error);
@@ -168,6 +168,7 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
       setIsUploading(false);
       setStep('upload');
       setProgress(0);
+      resetUpload();
     }
   };
 
@@ -187,6 +188,18 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
     if (!isUploading) {
       resetUpload();
       onClose();
+    }
+  };
+
+  const handleSubmitFile = () => {
+    if (file) {
+      processCSVFile(file);
+    } else {
+      toast({
+        title: 'No file selected',
+        description: 'Please select a CSV file to upload',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -217,12 +230,21 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
             <Button variant="outline" onClick={onClose}>
               Cancel
             </Button>
-            <Button 
-              onClick={() => fileInputRef.current?.click()} 
-              disabled={isUploading}
-            >
-              Select File
-            </Button>
+            {!file ? (
+              <Button 
+                onClick={() => fileInputRef.current?.click()} 
+                disabled={isUploading}
+              >
+                Select File
+              </Button>
+            ) : (
+              <Button 
+                onClick={handleSubmitFile} 
+                disabled={isUploading}
+              >
+                Upload File
+              </Button>
+            )}
           </DialogFooter>
         )}
       </DialogContent>

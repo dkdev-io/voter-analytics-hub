@@ -35,6 +35,9 @@ export function FileUploadStep({ file, onFileChange, fileInputRef }: FileUploadS
           <div className="mt-4 flex items-center justify-center">
             <FileText className="h-4 w-4 mr-2 text-blue-500" />
             <span className="text-sm font-medium">{file.name}</span>
+            <p className="text-xs text-gray-500 mt-2 block">
+              Click "Upload File" below to submit your data
+            </p>
           </div>
         )}
         
