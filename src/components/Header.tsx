@@ -1,124 +1,55 @@
 
-import { useAuth } from "@/hooks/useAuth";
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
-import { useState } from "react";
-import { Menu, LogOut, ClipboardList, Home } from "lucide-react";
-import { useMobile } from "@/hooks/useMobile";
+import React from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
+import { LogOut, MessageSquare } from 'lucide-react';
 
-export const Header = () => {
+export const Header: React.FC = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
-  const { isMobile } = useMobile();
-  const [showMenu, setShowMenu] = useState(false);
+  const { toast } = useToast();
 
-  const handleLogout = async () => {
+  const handleSignOut = async () => {
     await signOut();
-    navigate("/");
-  };
-
-  const toggleMenu = () => {
-    setShowMenu(!showMenu);
+    toast({
+      title: 'Signed out',
+      description: 'You have been signed out successfully.',
+    });
+    navigate('/auth');
   };
 
   return (
-    <header className="bg-white border-b">
-      <div className="container mx-auto py-4 px-4 flex justify-between items-center">
-        <div className="flex items-center">
-          <Link to="/dashboard" className="font-bold text-xl">
-            VoterDash
-          </Link>
-        </div>
+    <header className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3">
+      <div className="flex justify-between items-center max-w-7xl mx-auto">
+        <Link to="/dashboard" className="text-xl font-bold text-gray-900">
+          Voter Analytics
+        </Link>
 
-        {isMobile ? (
-          <div className="relative">
+        <nav className="flex items-center space-x-6">
+          <Link to="/dashboard" className="text-gray-600 hover:text-gray-900">
+            Dashboard
+          </Link>
+          
+          <Link to="/ai-chat" className="text-gray-600 hover:text-gray-900 flex items-center">
+            <MessageSquare className="mr-1 h-4 w-4" />
+            AI Chat
+          </Link>
+          
+          {user && (
             <Button
               variant="ghost"
-              size="icon"
-              onClick={toggleMenu}
-              aria-label="Toggle menu"
+              size="sm"
+              className="text-gray-600 hover:text-gray-900"
+              onClick={handleSignOut}
             >
-              <Menu className="h-5 w-5" />
+              <LogOut className="mr-1 h-4 w-4" />
+              Sign Out
             </Button>
-            {showMenu && (
-              <div className="absolute top-full right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
-                <div className="py-1">
-                  <Link
-                    to="/"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    onClick={toggleMenu}
-                  >
-                    <div className="flex items-center">
-                      <Home className="h-4 w-4 mr-2" />
-                      Home
-                    </div>
-                  </Link>
-                  {user ? (
-                    <>
-                      <Link
-                        to="/issues"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                        onClick={toggleMenu}
-                      >
-                        <div className="flex items-center">
-                          <ClipboardList className="h-4 w-4 mr-2" />
-                          Issue Tracker
-                        </div>
-                      </Link>
-                      <button
-                        onClick={() => {
-                          handleLogout();
-                          toggleMenu();
-                        }}
-                        className="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        <div className="flex items-center">
-                          <LogOut className="h-4 w-4 mr-2" />
-                          Logout
-                        </div>
-                      </button>
-                    </>
-                  ) : (
-                    <Link
-                      to="/auth"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      onClick={toggleMenu}
-                    >
-                      Login
-                    </Link>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="flex gap-4 items-center">
-            <Link to="/" className="flex items-center text-sm font-medium text-gray-700 hover:text-gray-900">
-              <Home className="h-4 w-4 mr-2" />
-              Home
-            </Link>
-            {user ? (
-              <>
-                <Link to="/issues" className="flex items-center text-sm font-medium text-gray-700 hover:text-gray-900">
-                  <ClipboardList className="h-4 w-4 mr-2" />
-                  Issue Tracker
-                </Link>
-                <Button variant="outline" size="sm" onClick={handleLogout}>
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Logout
-                </Button>
-              </>
-            ) : (
-              <Link to="/auth">
-                <Button variant="outline" size="sm">
-                  Login
-                </Button>
-              </Link>
-            )}
-          </div>
-        )}
+          )}
+        </nav>
       </div>
     </header>
   );
-}
+};
