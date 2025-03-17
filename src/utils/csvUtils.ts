@@ -17,8 +17,11 @@ export const parseCSV = (file: File): Promise<{ headers: string[], data: string[
         
         const parsedLines = lines.map(parseCSVLine);
         
+        // Normalize headers (trim whitespace and convert to lowercase)
+        const headers = parsedLines[0].map(header => header.trim());
+        
         resolve({
-          headers: parsedLines[0],
+          headers: headers,
           data: parsedLines.slice(1)
         });
       } catch (error) {

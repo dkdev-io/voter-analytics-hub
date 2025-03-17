@@ -53,6 +53,9 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
   const processCSVFile = async (file: File) => {
     try {
       const { headers, data } = await parseCSV(file);
+      console.log("Parsed CSV headers:", headers);
+      console.log("First few rows:", data.slice(0, 3));
+      
       setHeaders(headers);
       setCsvData(data);
       
@@ -75,33 +78,39 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
     setIsUploading(true);
     
     try {
-      // Map CSV headers to database fields
+      // Map CSV headers to database fields - use more flexible matching
       const headerMapping: Record<number, string> = {};
       
-      // Define the expected CSV headers and their corresponding database columns
-      const expectedHeaders = {
-        'first_name': 'first_name',
-        'last_name': 'last_name',
-        'team': 'team',
-        'date': 'date',
-        'tactic': 'tactic',
-        'attempts': 'attempts',
-        'contacts': 'contacts',
-        'not_home': 'not_home',
-        'refusal': 'refusal',
-        'bad_data': 'bad_data',
-        'support': 'support',
-        'oppose': 'oppose',
-        'undecided': 'undecided'
+      // Define the expected CSV headers and their possible variations
+      const headerVariations: Record<string, string[]> = {
+        'first_name': ['first_name', 'firstname', 'first', 'fname'],
+        'last_name': ['last_name', 'lastname', 'last', 'lname'],
+        'team': ['team', 'team_name', 'teamname'],
+        'date': ['date', 'contact_date'],
+        'tactic': ['tactic', 'type', 'contact_type'],
+        'attempts': ['attempts', 'attempt', 'tried'],
+        'contacts': ['contacts', 'contact', 'reached'],
+        'not_home': ['not_home', 'nothome', 'nh', 'not_at_home'],
+        'refusal': ['refusal', 'refused', 'decline'],
+        'bad_data': ['bad_data', 'baddata', 'bad', 'invalid'],
+        'support': ['support', 'supports', 'for'],
+        'oppose': ['oppose', 'opposed', 'against'],
+        'undecided': ['undecided', 'unsure']
       };
       
-      // Find the index of each expected header in the CSV
+      // Find matching headers using the variations
       headers.forEach((header, index) => {
         const normalizedHeader = header.trim().toLowerCase();
-        if (expectedHeaders[normalizedHeader as keyof typeof expectedHeaders]) {
-          headerMapping[index] = expectedHeaders[normalizedHeader as keyof typeof expectedHeaders];
+        
+        for (const [dbField, variations] of Object.entries(headerVariations)) {
+          if (variations.includes(normalizedHeader)) {
+            headerMapping[index] = dbField;
+            break;
+          }
         }
       });
+      
+      console.log("Header mapping:", headerMapping);
       
       // Transform CSV data to match database schema
       const transformedData = csvData.map(row => {
@@ -121,12 +130,29 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
         return transformedRow;
       });
       
-      // Filter out any rows that don't have the required fields
-      const validData = transformedData.filter(row => 
+      // Automatically populate missing required fields with defaults if possible
+      const validData = transformedData.map(row => {
+        const enhancedRow = { ...row };
+        
+        // Default values for missing numeric fields
+        if (!('attempts' in enhancedRow)) enhancedRow.attempts = 0;
+        if (!('contacts' in enhancedRow)) enhancedRow.contacts = 0;
+        if (!('not_home' in enhancedRow)) enhancedRow.not_home = 0;
+        if (!('bad_data' in enhancedRow)) enhancedRow.bad_data = 0;
+        if (!('refusal' in enhancedRow)) enhancedRow.refusal = 0;
+        if (!('support' in enhancedRow)) enhancedRow.support = 0;
+        if (!('oppose' in enhancedRow)) enhancedRow.oppose = 0;
+        if (!('undecided' in enhancedRow)) enhancedRow.undecided = 0;
+        
+        return enhancedRow;
+      }).filter(row => 
         row.first_name && row.last_name && row.team && row.date && row.tactic);
       
+      console.log("Valid data count:", validData.length);
+      console.log("Sample valid data:", validData.slice(0, 2));
+      
       if (validData.length === 0) {
-        throw new Error('No valid data found in CSV. Please ensure CSV contains required fields.');
+        throw new Error('No valid data found in CSV. Please ensure CSV contains required fields: first_name, last_name, team, date, and tactic.');
       }
       
       // Upload in batches
