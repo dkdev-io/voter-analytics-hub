@@ -1,3 +1,4 @@
+
 import { useState, useRef } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -77,10 +78,11 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
     try {
       console.log("Deleting ALL existing records before import...");
       
+      // Fix for type error - type assertion to make TypeScript happy
       const { error: deleteError } = await supabase
         .from('voter_contacts')
         .delete()
-        .neq('id', 0);
+        .neq('id', 0 as any);
         
       if (deleteError) {
         console.error("Error using DELETE operation:", deleteError);

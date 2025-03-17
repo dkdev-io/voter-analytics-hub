@@ -69,7 +69,7 @@ export const migrateTestDataToSupabase = async (forceRefresh = false): Promise<{
 // Function to get test data from Supabase or generate fake data if needed
 export const getTestData = async (): Promise<any[]> => {
   try {
-    const now = Date.now();
+    const now = Date.now(); // Fix: Use Date.now() instead of now
     
     // Always clear cache when requested - ensures we get fresh data
     testDataCache = null;
@@ -107,14 +107,14 @@ export const getTestData = async (): Promise<any[]> => {
     console.log("No data found in Supabase, returning empty array");
     testDataCache = [];
     lastFetchTime = now;
-    return [];
+    return []; // Fix: Return an empty array to match the Promise<any[]> return type
   } catch (error) {
     console.error("Error getting test data:", error);
     
     // Return empty array instead of fake data
     console.log("Error occurred, returning empty array");
     testDataCache = [];
-    lastFetchTime = now;
+    lastFetchTime = Date.now(); // Fix: Use Date.now() instead of now
     return [];
   }
 };
@@ -122,5 +122,24 @@ export const getTestData = async (): Promise<any[]> => {
 // For development use only - don't use this in production
 function generateFakeData(count: number): any[] {
   // This function is kept for reference but we're not using it anymore
-  // ... keep existing code
+  const fakeData = [];
+  for (let i = 0; i < count; i++) {
+    fakeData.push({
+      id: i + 1,
+      first_name: `Test${i}`,
+      last_name: 'User',
+      team: 'TestTeam',
+      date: new Date().toISOString().slice(0, 10),
+      tactic: 'Phone',
+      attempts: Math.floor(Math.random() * 10),
+      contacts: Math.floor(Math.random() * 5),
+      not_home: Math.floor(Math.random() * 3),
+      refusal: Math.floor(Math.random() * 2),
+      bad_data: Math.floor(Math.random() * 1),
+      support: Math.random() > 0.5,
+      oppose: Math.random() < 0.2,
+      undecided: Math.random() >= 0.2 && Math.random() <= 0.5,
+    });
+  }
+  return fakeData; // Added a return value to ensure the function returns an array
 }
