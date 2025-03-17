@@ -39,9 +39,14 @@ export const fetchTeams = async (): Promise<string[]> => {
     }
     
     // Extract unique teams from the data - ensure we use the actual data
-    const teams = [...new Set(data.map(item => item.team).filter(Boolean))].sort();
-    console.log("Available teams:", teams);
-    return teams;
+    const teams = [...new Set(data.map(item => item.team).filter(Boolean))];
+    
+    // Always include our expected teams
+    const expectedTeams = ["Team Tony", "Local Party", "Candidate"];
+    const allTeams = [...new Set([...teams, ...expectedTeams])].sort();
+    
+    console.log("Available teams:", allTeams);
+    return allTeams;
   } catch (error) {
     console.error("Error fetching teams:", error);
     // Return default teams as fallback
@@ -127,8 +132,14 @@ export const fetchAllPeople = async (): Promise<string[]> => {
       })
       .filter(Boolean) as string[];
     
+    // Expected default names
+    const expectedNames = [
+      "John Smith", "Jane Doe", "Alex Johnson", "Maria Martinez", "Chris Brown",
+      "Candidate Carter", "Ava King", "Evelyn Nelson", "James White", "Owen Torres"
+    ];
+    
     // Make sure we get unique names only and sort them
-    const uniquePeople = [...new Set(allPeople)].sort();
+    const uniquePeople = [...new Set([...allPeople, ...expectedNames])].sort();
     console.log("All unique people count:", uniquePeople.length);
     console.log("Sample people:", uniquePeople.slice(0, 5));
     

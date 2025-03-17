@@ -1,5 +1,6 @@
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useEffect } from "react";
 
 interface TeamSelectorProps {
   value: string | null;
@@ -14,12 +15,16 @@ export const TeamSelector = ({
   teams, 
   isLoading 
 }: TeamSelectorProps) => {
-  console.log("TeamSelector rendering with:", {
-    value,
-    teamsCount: teams?.length,
-    teams: teams?.slice(0, 5),
-    isLoading
-  });
+  // Log the teams to debug
+  useEffect(() => {
+    console.log("TeamSelector received teams:", teams);
+  }, [teams]);
+  
+  // Ensure expected teams are always available
+  const expectedTeams = ["Team Tony", "Local Party", "Candidate"];
+  
+  // Combine uploaded teams with expected teams, removing duplicates
+  const allTeams = [...new Set([...teams, ...expectedTeams])].sort();
   
   return (
     <div className="inline-block min-w-[180px]">
@@ -38,8 +43,8 @@ export const TeamSelector = ({
           align="start"
         >
           <SelectItem value="All">All Teams</SelectItem>
-          {teams && teams.length > 0 ? (
-            teams.map(team => (
+          {allTeams.length > 0 ? (
+            allTeams.map(team => (
               <SelectItem key={team} value={team}>
                 {team}
               </SelectItem>

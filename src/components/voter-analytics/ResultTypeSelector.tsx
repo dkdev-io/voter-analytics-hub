@@ -19,7 +19,7 @@ export const ResultTypeSelector = ({
   // When the component mounts or isLoading changes, ensure we have the latest result types
   useEffect(() => {
     // Ensure we have the complete list of result types
-    if (!isLoading && RESULT_TYPES.length > 0) {
+    if (!isLoading) {
       console.log("Available result types:", RESULT_TYPES);
       setAvailableTypes(RESULT_TYPES);
     }
@@ -28,7 +28,7 @@ export const ResultTypeSelector = ({
   return (
     <div className="inline-block min-w-[150px]">
       <Select
-        value={value}
+        value={value || ""}
         onValueChange={onChange}
         disabled={isLoading}
       >

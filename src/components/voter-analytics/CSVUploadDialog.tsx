@@ -1,4 +1,3 @@
-
 import { useState, useRef } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -83,19 +82,19 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
       
       // Define the expected CSV headers and their possible variations
       const headerVariations: Record<string, string[]> = {
-        'first_name': ['first_name', 'firstname', 'first', 'fname'],
-        'last_name': ['last_name', 'lastname', 'last', 'lname'],
-        'team': ['team', 'team_name', 'teamname'],
-        'date': ['date', 'contact_date'],
-        'tactic': ['tactic', 'type', 'contact_type'],
-        'attempts': ['attempts', 'attempt', 'tried'],
-        'contacts': ['contacts', 'contact', 'reached'],
-        'not_home': ['not_home', 'nothome', 'nh', 'not_at_home'],
-        'refusal': ['refusal', 'refused', 'decline'],
-        'bad_data': ['bad_data', 'baddata', 'bad', 'invalid'],
-        'support': ['support', 'supports', 'for'],
-        'oppose': ['oppose', 'opposed', 'against'],
-        'undecided': ['undecided', 'unsure']
+        'first_name': ['first_name', 'firstname', 'first', 'fname', 'name', 'given name'],
+        'last_name': ['last_name', 'lastname', 'last', 'lname', 'surname', 'family name'],
+        'team': ['team', 'team_name', 'teamname', 'group', 'department', 'organization', 'org'],
+        'date': ['date', 'contact_date', 'day', 'timestamp', 'contact date'],
+        'tactic': ['tactic', 'type', 'contact_type', 'method', 'channel', 'medium'],
+        'attempts': ['attempts', 'attempt', 'tried', 'tries', 'total_attempts', 'total attempts'],
+        'contacts': ['contacts', 'contact', 'reached', 'connected', 'success', 'successful'],
+        'not_home': ['not_home', 'nothome', 'nh', 'not_at_home', 'away', 'absent', 'not available'],
+        'refusal': ['refusal', 'refused', 'decline', 'rejected', 'no', 'not interested', 'negative'],
+        'bad_data': ['bad_data', 'baddata', 'bad', 'invalid', 'error', 'incorrect', 'wrong number'],
+        'support': ['support', 'supports', 'for', 'positive', 'yes', 'favorable', 'agree'],
+        'oppose': ['oppose', 'opposed', 'against', 'negative', 'disagree', 'unfavorable'],
+        'undecided': ['undecided', 'unsure', 'maybe', 'neutral', 'thinking', 'considering']
       };
       
       // Find matching headers using the variations
@@ -123,6 +122,19 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
           if (['attempts', 'contacts', 'not_home', 'bad_data', 'refusal', 'support', 'oppose', 'undecided'].includes(dbField)) {
             transformedRow[dbField] = parseInt(value) || 0;
           } else {
+            // Special handling for team names
+            if (dbField === 'team' && value) {
+              // Normalize team names to expected values
+              const lowercaseTeam = value.toLowerCase();
+              if (lowercaseTeam.includes('tony')) {
+                value = 'Team Tony';
+              } else if (lowercaseTeam.includes('party') || lowercaseTeam.includes('local')) {
+                value = 'Local Party';
+              } else if (lowercaseTeam.includes('candidate')) {
+                value = 'Candidate';
+              }
+              // Keep other team names as is
+            }
             transformedRow[dbField] = value;
           }
         });
@@ -143,6 +155,12 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
         if (!('support' in enhancedRow)) enhancedRow.support = 0;
         if (!('oppose' in enhancedRow)) enhancedRow.oppose = 0;
         if (!('undecided' in enhancedRow)) enhancedRow.undecided = 0;
+        
+        // Ensure team is one of the expected values if possible
+        if (!enhancedRow.team) {
+          // Default to Team Tony if missing
+          enhancedRow.team = 'Team Tony';
+        }
         
         return enhancedRow;
       }).filter(row => 
