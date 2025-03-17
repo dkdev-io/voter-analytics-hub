@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, Send, Loader2, Sparkle } from 'lucide-react';
+import { Search, Loader2, Sparkle } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -24,13 +24,8 @@ export const SearchField: React.FC<SearchFieldProps> = ({
   const [inputValue, setInputValue] = useState(value);
   const [aiResponse, setAiResponse] = useState<string | null>(null);
   const [isAiLoading, setIsAiLoading] = useState(false);
-  const [useAiAssist, setUseAiAssist] = useState(false);
   const { toast } = useToast();
   const { logError } = useErrorLogger();
-
-  const handleSearch = () => {
-    onChange(inputValue);
-  };
 
   const handleAiAssist = async () => {
     if (!inputValue.trim()) {
@@ -44,6 +39,9 @@ export const SearchField: React.FC<SearchFieldProps> = ({
 
     setIsAiLoading(true);
     setAiResponse(null);
+    
+    // Update the search value but don't submit
+    onChange(inputValue);
 
     try {
       const { data, error } = await supabase.functions.invoke('openai-chat', {
@@ -77,36 +75,9 @@ export const SearchField: React.FC<SearchFieldProps> = ({
     }
   };
 
-  const handleSubmit = () => {
-    if (!inputValue.trim()) {
-      toast({
-        title: "Empty Query",
-        description: "Please enter a question or query before submitting.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    handleSearch();
-    onSubmit();
-    
-    toast({
-      title: "Query Submitted",
-      description: "Your search query has been submitted successfully.",
-    });
-  };
-
-  const handleButtonClick = () => {
-    if (useAiAssist) {
-      handleAiAssist();
-    } else {
-      handleSubmit();
-    }
-  };
-
   const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && e.metaKey) {
-      handleButtonClick();
+      handleAiAssist();
     }
   };
 
@@ -125,45 +96,22 @@ export const SearchField: React.FC<SearchFieldProps> = ({
         <div className="text-xs text-gray-500 mt-1 text-right">Press ⌘+Enter to submit</div>
       </div>
       
-      <div className="mt-6 flex flex-col sm:flex-row justify-center items-center gap-4">
-        <div className="flex items-center">
-          <label className="inline-flex items-center cursor-pointer">
-            <input 
-              type="checkbox" 
-              className="sr-only peer"
-              checked={useAiAssist}
-              onChange={() => setUseAiAssist(!useAiAssist)}
-              disabled={isLoading || isAiLoading}
-            />
-            <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-            <span className="ms-3 text-sm font-medium">Use AI Assistant</span>
-          </label>
-        </div>
-        
+      <div className="mt-6 flex justify-center">
         <Button 
-          onClick={handleButtonClick}
+          onClick={handleAiAssist}
           disabled={isLoading || isAiLoading}
           variant="default"
           className="w-full sm:w-auto"
         >
-          {isLoading || isAiLoading ? (
+          {isAiLoading ? (
             <span className="flex items-center">
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              {isAiLoading ? "AI Processing..." : "Processing..."}
+              AI Processing...
             </span>
           ) : (
             <>
-              {useAiAssist ? (
-                <>
-                  <Sparkle className="mr-2 h-4 w-4" />
-                  Get AI Insights
-                </>
-              ) : (
-                <>
-                  <Send className="mr-2 h-4 w-4" />
-                  Submit Query
-                </>
-              )}
+              <Sparkle className="mr-2 h-4 w-4" />
+              Get AI Insights
             </>
           )}
         </Button>
