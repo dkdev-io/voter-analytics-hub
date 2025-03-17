@@ -1,3 +1,4 @@
+
 import { useState, useRef } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -18,7 +19,7 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
   const [headers, setHeaders] = useState<string[]>([]);
   const [step, setStep] = useState<'upload' | 'mapping' | 'processing'>('upload');
   const [isUploading, setIsUploading] = useState(false);
-  const [progress, setProgress] = useState(0);
+  const [progress, setProgress] = useState<number>(0); // Changed from implicit type to explicit number type
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
