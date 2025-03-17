@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button";
 import { CSVFieldMapping } from './CSVFieldMapping';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Progress } from "@/components/ui/progress";
 import { FileUploadStep } from './csv-upload/FileUploadStep';
 import { ProcessingStep } from './csv-upload/ProcessingStep';
+import { parseCSV } from '@/utils/csvUtils';
 
 interface CSVUploadDialogProps {
   open: boolean;
@@ -46,67 +46,24 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
       }
 
       setFile(selectedFile);
-      parseCSV(selectedFile);
+      processCSVFile(selectedFile);
     }
   };
 
-  const parseCSV = (file: File) => {
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      try {
-        const text = event.target?.result as string;
-        const lines = text.split('\n').filter(line => line.trim() !== '');
-        
-        const parseCSVLine = (line: string) => {
-          const result = [];
-          let inQuote = false;
-          let currentValue = '';
-          
-          for (let i = 0; i < line.length; i++) {
-            const char = line[i];
-            
-            if (char === '"') {
-              inQuote = !inQuote;
-            } else if (char === ',' && !inQuote) {
-              result.push(currentValue);
-              currentValue = '';
-            } else {
-              currentValue += char;
-            }
-          }
-          
-          result.push(currentValue);
-          return result;
-        };
-        
-        const parsedLines = lines.map(parseCSVLine);
-        
-        if (parsedLines.length < 2) {
-          throw new Error('CSV must contain headers and at least one row of data');
-        }
-        
-        setHeaders(parsedLines[0]);
-        setCsvData(parsedLines.slice(1));
-        setStep('mapping');
-      } catch (error) {
-        console.error('Error parsing CSV:', error);
-        toast({
-          title: 'Error parsing CSV',
-          description: 'The file could not be parsed correctly.',
-          variant: 'destructive',
-        });
-      }
-    };
-    
-    reader.onerror = () => {
+  const processCSVFile = async (file: File) => {
+    try {
+      const { headers, data } = await parseCSV(file);
+      setHeaders(headers);
+      setCsvData(data);
+      setStep('mapping');
+    } catch (error) {
+      console.error('Error parsing CSV:', error);
       toast({
-        title: 'Error reading file',
-        description: 'The file could not be read.',
+        title: 'Error parsing CSV',
+        description: 'The file could not be parsed correctly.',
         variant: 'destructive',
       });
-    };
-    
-    reader.readAsText(file);
+    }
   };
 
   const handleMappingComplete = async (mapping: Record<string, string>) => {
