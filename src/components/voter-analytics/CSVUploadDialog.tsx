@@ -6,6 +6,7 @@ import { CSVFieldMapping } from './CSVFieldMapping';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, FileText, Upload, FileUp } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { Progress } from "@/components/ui/progress";
 
 interface CSVUploadDialogProps {
   open: boolean;
@@ -19,7 +20,7 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
   const [headers, setHeaders] = useState<string[]>([]);
   const [step, setStep] = useState<'upload' | 'mapping' | 'processing'>('upload');
   const [isUploading, setIsUploading] = useState(false);
-  const [progress, setProgress] = useState<number>(0); // Changed from implicit type to explicit number type
+  const [progress, setProgress] = useState<number>(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -152,7 +153,9 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
         
         if (error) throw error;
         
-        setProgress(Math.round(((i + 1) / batches.length) * 100));
+        // Calculate and set the progress as a number
+        const progressValue = Math.round(((i + 1) / batches.length) * 100);
+        setProgress(progressValue);
       }
       
       toast({
@@ -264,11 +267,8 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
               Please don't close this window.
             </p>
             
-            <div className="w-full bg-gray-200 rounded-full h-2.5 mt-6">
-              <div 
-                className="bg-primary h-2.5 rounded-full transition-all duration-300" 
-                style={{ width: `${progress}%` }}
-              ></div>
+            <div className="mt-6 w-full">
+              <Progress value={progress} className="h-2" />
             </div>
             <p className="text-xs text-gray-500 mt-2">
               {progress}% complete
