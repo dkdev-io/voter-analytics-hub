@@ -97,7 +97,8 @@ async function logDanKellyIssueToTracker(query: Partial<QueryParams>, data: any[
         "Special case handling not working correctly"
       ].join('\n'),
       component: "queryService, specialCases",
-      reference_links: null
+      reference_links: null,
+      resolution: null  // Add the missing property
     };
     
     // Add the issue to the tracking system

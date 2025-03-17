@@ -40,7 +40,9 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ error, result, q
             result: result
           }, null, 2),
           theories: "Multiple Dan Kelly records may exist in the test data with different values.",
-          component: "VoterAnalytics, QueryService"
+          component: "VoterAnalytics, QueryService",
+          reference_links: null,  // Add the missing property
+          resolution: null        // Add the missing property
         };
         
         addIssue(issueData)
