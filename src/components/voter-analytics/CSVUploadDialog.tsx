@@ -112,10 +112,10 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
           let value = row[idx]?.trim() || '';
           
           if (['attempts', 'contacts', 'not_home', 'bad_data', 'refusal', 'support', 'oppose', 'undecided'].includes(dbField)) {
-            value = parseInt(value) || 0;
+            transformedRow[dbField] = parseInt(value) || 0;
+          } else {
+            transformedRow[dbField] = value;
           }
-          
-          transformedRow[dbField] = value;
         });
         
         return transformedRow;
@@ -167,6 +167,7 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
     } finally {
       setIsUploading(false);
       setStep('upload');
+      setProgress(0);
     }
   };
 
@@ -203,6 +204,7 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
           <FileUploadStep 
             file={file}
             onFileChange={handleFileChange}
+            fileInputRef={fileInputRef}
           />
         )}
 

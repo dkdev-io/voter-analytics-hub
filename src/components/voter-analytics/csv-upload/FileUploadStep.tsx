@@ -1,20 +1,19 @@
 
-import React, { useRef } from 'react';
+import React, { RefObject } from 'react';
 import { Button } from "@/components/ui/button";
 import { FileUp, FileText, Upload } from 'lucide-react';
 
 interface FileUploadStepProps {
   file: File | null;
   onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  fileInputRef: RefObject<HTMLInputElement>;
 }
 
-export function FileUploadStep({ file, onFileChange }: FileUploadStepProps) {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
+export function FileUploadStep({ file, onFileChange, fileInputRef }: FileUploadStepProps) {
   return (
     <div className="py-6">
       <div 
-        className="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center hover:border-gray-400 transition-colors"
+        className="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center hover:border-gray-400 transition-colors cursor-pointer"
         onClick={() => fileInputRef.current?.click()}
       >
         <FileUp className="h-12 w-12 mx-auto text-gray-400" />
