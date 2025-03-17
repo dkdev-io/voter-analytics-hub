@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, Send, Loader2 } from 'lucide-react';
+import { Search, Send, Loader2, Sparkle } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -24,6 +24,7 @@ export const SearchField: React.FC<SearchFieldProps> = ({
   const [inputValue, setInputValue] = useState(value);
   const [aiResponse, setAiResponse] = useState<string | null>(null);
   const [isAiLoading, setIsAiLoading] = useState(false);
+  const [useAiAssist, setUseAiAssist] = useState(false);
   const { toast } = useToast();
   const { logError } = useErrorLogger();
 
@@ -31,30 +32,11 @@ export const SearchField: React.FC<SearchFieldProps> = ({
     onChange(inputValue);
   };
 
-  const handleSubmit = () => {
-    if (!inputValue.trim()) {
-      toast({
-        title: "Empty Query",
-        description: "Please enter a question or query before submitting.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    handleSearch();
-    onSubmit();
-    
-    toast({
-      title: "Query Submitted",
-      description: "Your search query has been submitted successfully.",
-    });
-  };
-
   const handleAiAssist = async () => {
     if (!inputValue.trim()) {
       toast({
         title: "Empty Query",
-        description: "Please enter a question before asking AI for assistance.",
+        description: "Please enter a question or query before submitting.",
         variant: "destructive",
       });
       return;
@@ -77,6 +59,10 @@ export const SearchField: React.FC<SearchFieldProps> = ({
       }
 
       setAiResponse(data.answer);
+      toast({
+        title: "AI Analysis Complete",
+        description: "The AI has analyzed your query and provided insights.",
+      });
     } catch (error) {
       console.error('Error calling OpenAI:', error);
       logError(error as Error, 'SearchField.handleAiAssist');
@@ -91,9 +77,36 @@ export const SearchField: React.FC<SearchFieldProps> = ({
     }
   };
 
+  const handleSubmit = () => {
+    if (!inputValue.trim()) {
+      toast({
+        title: "Empty Query",
+        description: "Please enter a question or query before submitting.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    handleSearch();
+    onSubmit();
+    
+    toast({
+      title: "Query Submitted",
+      description: "Your search query has been submitted successfully.",
+    });
+  };
+
+  const handleButtonClick = () => {
+    if (useAiAssist) {
+      handleAiAssist();
+    } else {
+      handleSubmit();
+    }
+  };
+
   const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && e.metaKey) {
-      handleSubmit();
+      handleButtonClick();
     }
   };
 
@@ -112,42 +125,45 @@ export const SearchField: React.FC<SearchFieldProps> = ({
         <div className="text-xs text-gray-500 mt-1 text-right">Press ⌘+Enter to submit</div>
       </div>
       
-      <div className="mt-6 flex justify-center gap-4">
-        <Button 
-          onClick={handleAiAssist}
-          disabled={isLoading || isAiLoading}
-          variant="outline"
-        >
-          {isAiLoading ? (
-            <span className="flex items-center">
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              AI Processing...
-            </span>
-          ) : (
-            <>
-              <svg className="mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10" />
-                <path d="M12 16v-4M12 8h.01" />
-              </svg>
-              Ask AI for Help
-            </>
-          )}
-        </Button>
+      <div className="mt-6 flex flex-col sm:flex-row justify-center items-center gap-4">
+        <div className="flex items-center">
+          <label className="inline-flex items-center cursor-pointer">
+            <input 
+              type="checkbox" 
+              className="sr-only peer"
+              checked={useAiAssist}
+              onChange={() => setUseAiAssist(!useAiAssist)}
+              disabled={isLoading || isAiLoading}
+            />
+            <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+            <span className="ms-3 text-sm font-medium">Use AI Assistant</span>
+          </label>
+        </div>
         
         <Button 
-          onClick={handleSubmit}
+          onClick={handleButtonClick}
           disabled={isLoading || isAiLoading}
           variant="default"
+          className="w-full sm:w-auto"
         >
-          {isLoading ? (
+          {isLoading || isAiLoading ? (
             <span className="flex items-center">
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Processing...
+              {isAiLoading ? "AI Processing..." : "Processing..."}
             </span>
           ) : (
             <>
-              <Send className="mr-2 h-4 w-4" />
-              Submit
+              {useAiAssist ? (
+                <>
+                  <Sparkle className="mr-2 h-4 w-4" />
+                  Get AI Insights
+                </>
+              ) : (
+                <>
+                  <Send className="mr-2 h-4 w-4" />
+                  Submit Query
+                </>
+              )}
             </>
           )}
         </Button>
