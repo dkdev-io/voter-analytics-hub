@@ -1,4 +1,3 @@
-
 import { useState, useRef } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -56,7 +55,6 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
         const text = event.target?.result as string;
         const lines = text.split('\n').filter(line => line.trim() !== '');
         
-        // Parse CSV, accounting for quoted values that might contain commas
         const parseCSVLine = (line: string) => {
           const result = [];
           let inQuote = false;
@@ -75,7 +73,6 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
             }
           }
           
-          // Add the last value
           result.push(currentValue);
           return result;
         };
@@ -117,18 +114,15 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
     setIsUploading(true);
     
     try {
-      // Transform data based on mapping
       const transformedData = csvData.map(row => {
         const transformedRow: Record<string, any> = {};
         
-        // Map each database field to the corresponding CSV value
         Object.entries(mapping).forEach(([dbField, csvHeader]) => {
           if (csvHeader) {
             const headerIndex = headers.findIndex(h => h === csvHeader);
             if (headerIndex !== -1) {
               let value = row[headerIndex];
               
-              // Convert number fields to numbers
               if (['attempts', 'contacts', 'not_home', 'bad_data', 'refusal', 'support', 'oppose', 'undecided'].includes(dbField)) {
                 value = parseInt(value) || 0;
               }
@@ -141,7 +135,6 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
         return transformedRow;
       });
       
-      // Prepare batches of 100 records for upload
       const batchSize = 100;
       const batches = [];
       
@@ -149,7 +142,6 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
         batches.push(transformedData.slice(i, i + batchSize));
       }
       
-      // Upload each batch
       for (let i = 0; i < batches.length; i++) {
         const batch = batches[i];
         
@@ -159,7 +151,6 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
         
         if (error) throw error;
         
-        // Update progress
         setProgress(Math.round(((i + 1) / batches.length) * 100));
       }
       
