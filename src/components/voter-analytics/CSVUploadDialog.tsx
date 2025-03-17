@@ -1,7 +1,7 @@
+
 import { useState, useRef } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { CSVFieldMapping } from './CSVFieldMapping';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { FileUploadStep } from './csv-upload/FileUploadStep';
@@ -18,7 +18,7 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
   const [file, setFile] = useState<File | null>(null);
   const [csvData, setCsvData] = useState<string[][]>([]);
   const [headers, setHeaders] = useState<string[]>([]);
-  const [step, setStep] = useState<'upload' | 'mapping' | 'processing'>('upload');
+  const [step, setStep] = useState<'upload' | 'processing'>('upload');
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState<number>(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -55,7 +55,9 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
       const { headers, data } = await parseCSV(file);
       setHeaders(headers);
       setCsvData(data);
-      setStep('mapping');
+      
+      // Start upload immediately after parsing
+      handleUpload(headers, data);
     } catch (error) {
       console.error('Error parsing CSV:', error);
       toast({
@@ -66,39 +68,73 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
     }
   };
 
-  const handleMappingComplete = async (mapping: Record<string, string>) => {
+  const handleUpload = async (headers: string[], csvData: string[][]) => {
     if (!file || !csvData.length) return;
     
     setStep('processing');
     setIsUploading(true);
     
     try {
+      // Map CSV headers to database fields
+      const headerMapping: Record<number, string> = {};
+      
+      // Define the expected CSV headers and their corresponding database columns
+      const expectedHeaders = {
+        'first_name': 'first_name',
+        'last_name': 'last_name',
+        'team': 'team',
+        'date': 'date',
+        'tactic': 'tactic',
+        'attempts': 'attempts',
+        'contacts': 'contacts',
+        'not_home': 'not_home',
+        'refusal': 'refusal',
+        'bad_data': 'bad_data',
+        'support': 'support',
+        'oppose': 'oppose',
+        'undecided': 'undecided'
+      };
+      
+      // Find the index of each expected header in the CSV
+      headers.forEach((header, index) => {
+        const normalizedHeader = header.trim().toLowerCase();
+        if (expectedHeaders[normalizedHeader as keyof typeof expectedHeaders]) {
+          headerMapping[index] = expectedHeaders[normalizedHeader as keyof typeof expectedHeaders];
+        }
+      });
+      
+      // Transform CSV data to match database schema
       const transformedData = csvData.map(row => {
         const transformedRow: Record<string, any> = {};
         
-        Object.entries(mapping).forEach(([dbField, csvHeader]) => {
-          if (csvHeader) {
-            const headerIndex = headers.findIndex(h => h === csvHeader);
-            if (headerIndex !== -1) {
-              let value = row[headerIndex];
-              
-              if (['attempts', 'contacts', 'not_home', 'bad_data', 'refusal', 'support', 'oppose', 'undecided'].includes(dbField)) {
-                value = parseInt(value) || 0;
-              }
-              
-              transformedRow[dbField] = value;
-            }
+        Object.entries(headerMapping).forEach(([index, dbField]) => {
+          const idx = parseInt(index);
+          let value = row[idx]?.trim() || '';
+          
+          if (['attempts', 'contacts', 'not_home', 'bad_data', 'refusal', 'support', 'oppose', 'undecided'].includes(dbField)) {
+            value = parseInt(value) || 0;
           }
+          
+          transformedRow[dbField] = value;
         });
         
         return transformedRow;
       });
       
+      // Filter out any rows that don't have the required fields
+      const validData = transformedData.filter(row => 
+        row.first_name && row.last_name && row.team && row.date && row.tactic);
+      
+      if (validData.length === 0) {
+        throw new Error('No valid data found in CSV. Please ensure CSV contains required fields.');
+      }
+      
+      // Upload in batches
       const batchSize = 100;
       const batches = [];
       
-      for (let i = 0; i < transformedData.length; i += batchSize) {
-        batches.push(transformedData.slice(i, i + batchSize));
+      for (let i = 0; i < validData.length; i += batchSize) {
+        batches.push(validData.slice(i, i + batchSize));
       }
       
       for (let i = 0; i < batches.length; i++) {
@@ -116,7 +152,7 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
       
       toast({
         title: 'Data uploaded successfully',
-        description: `${transformedData.length} records imported to your database.`,
+        description: `${validData.length} records imported to your database.`,
       });
       
       onSuccess();
@@ -125,7 +161,7 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
       console.error('Error uploading data:', error);
       toast({
         title: 'Upload failed',
-        description: 'There was an error uploading your data.',
+        description: 'There was an error uploading your data. ' + (error as Error).message,
         variant: 'destructive',
       });
     } finally {
@@ -167,15 +203,6 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
           <FileUploadStep 
             file={file}
             onFileChange={handleFileChange}
-          />
-        )}
-
-        {step === 'mapping' && headers.length > 0 && (
-          <CSVFieldMapping 
-            headers={headers}
-            sampleData={csvData.slice(0, 5)}
-            onMappingComplete={handleMappingComplete}
-            onCancel={() => setStep('upload')}
           />
         )}
 
