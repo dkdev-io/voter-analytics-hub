@@ -23,7 +23,7 @@ export function QuerySection({
   onSubmit
 }: QuerySectionProps) {
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+    <div className="space-y-6">
       <QueryBuilder
         query={query || {}} // Ensure query is never undefined
         setQuery={setQuery}
@@ -32,11 +32,12 @@ export function QuerySection({
         isDataMigrated={isDataMigrated}
         onRefresh={onRefresh}
       />
-      <div className="mt-6 flex justify-center">
+      <div className="mt-6 flex justify-end">
         <Button 
           onClick={onSubmit}
           disabled={isLoading}
           variant="default"
+          className="px-6"
         >
           {isLoading ? (
             <span className="flex items-center">

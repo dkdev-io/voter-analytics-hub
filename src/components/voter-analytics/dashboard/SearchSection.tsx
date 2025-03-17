@@ -15,7 +15,7 @@ export function SearchSection({
   onSubmit
 }: SearchSectionProps) {
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+    <div>
       <SearchField
         value={searchQuery}
         onChange={setSearchQuery}
