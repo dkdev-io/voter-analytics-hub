@@ -1,4 +1,3 @@
-
 import { useState, useRef } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -46,7 +45,6 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
       }
 
       setFile(selectedFile);
-      // Don't process automatically - wait for the user to submit
     }
   };
 
@@ -59,7 +57,6 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
       setHeaders(headers);
       setCsvData(data);
       
-      // Start upload after parsing
       handleUpload(headers, data);
     } catch (error) {
       console.error('Error parsing CSV:', error);
@@ -78,22 +75,30 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
     setIsUploading(true);
     
     try {
-      // Delete all existing records first to ensure clean import
-      console.log("Deleting existing records before import...");
+      console.log("Deleting ALL existing records before import...");
+      
       const { error: deleteError } = await supabase
         .from('voter_contacts')
         .delete()
         .neq('id', 0);
         
       if (deleteError) {
-        console.error("Error deleting existing records:", deleteError);
-        throw new Error(`Failed to delete existing records: ${deleteError.message}`);
+        console.error("Error using DELETE operation:", deleteError);
+        
+        const { error: truncateError } = await supabase.rpc('truncate_voter_contacts');
+        
+        if (truncateError) {
+          console.error("Error truncating table:", truncateError);
+          throw new Error(`Failed to clear existing records. Please try again or contact support.`);
+        } else {
+          console.log("Successfully truncated table using RPC call");
+        }
+      } else {
+        console.log("Successfully deleted all records using DELETE operation");
       }
       
-      // Map CSV headers to database fields - use more flexible matching
       const headerMapping: Record<number, string> = {};
       
-      // Define the expected CSV headers and their possible variations
       const headerVariations: Record<string, string[]> = {
         'first_name': ['first_name', 'firstname', 'first', 'fname', 'name', 'given name'],
         'last_name': ['last_name', 'lastname', 'last', 'lname', 'surname', 'family name'],
@@ -110,7 +115,6 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
         'undecided': ['undecided', 'unsure', 'maybe', 'neutral', 'thinking', 'considering']
       };
       
-      // Find matching headers using the variations
       headers.forEach((header, index) => {
         const normalizedHeader = header.trim().toLowerCase();
         
@@ -124,7 +128,6 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
       
       console.log("Header mapping:", headerMapping);
       
-      // Transform CSV data to match database schema
       const transformedData = csvData.map(row => {
         const transformedRow: Record<string, any> = {};
         
@@ -135,9 +138,7 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
           if (['attempts', 'contacts', 'not_home', 'bad_data', 'refusal', 'support', 'oppose', 'undecided'].includes(dbField)) {
             transformedRow[dbField] = parseInt(value) || 0;
           } else {
-            // Special handling for team names
             if (dbField === 'team' && value) {
-              // Normalize team names to expected values
               const lowercaseTeam = value.toLowerCase();
               if (lowercaseTeam.includes('tony')) {
                 value = 'Team Tony';
@@ -146,8 +147,21 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
               } else if (lowercaseTeam.includes('candidate')) {
                 value = 'Candidate';
               }
-              // Keep other team names as is
+              transformedRow[dbField] = value;
             }
+            
+            if (dbField === 'date' && value) {
+              try {
+                const dateObj = new Date(value);
+                if (!isNaN(dateObj.getTime())) {
+                  value = dateObj.toISOString().split('T')[0];
+                }
+              } catch (e) {
+                console.warn(`Could not parse date: ${value}`, e);
+              }
+              transformedRow[dbField] = value;
+            }
+            
             transformedRow[dbField] = value;
           }
         });
@@ -155,11 +169,9 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
         return transformedRow;
       });
       
-      // Automatically populate missing required fields with defaults if possible
       const validData = transformedData.map(row => {
         const enhancedRow = { ...row };
         
-        // Default values for missing numeric fields
         if (!('attempts' in enhancedRow)) enhancedRow.attempts = 0;
         if (!('contacts' in enhancedRow)) enhancedRow.contacts = 0;
         if (!('not_home' in enhancedRow)) enhancedRow.not_home = 0;
@@ -169,9 +181,7 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
         if (!('oppose' in enhancedRow)) enhancedRow.oppose = 0;
         if (!('undecided' in enhancedRow)) enhancedRow.undecided = 0;
         
-        // Ensure team is one of the expected values if possible
         if (!enhancedRow.team) {
-          // Default to Team Tony if missing
           enhancedRow.team = 'Team Tony';
         }
         
@@ -186,7 +196,6 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
         throw new Error('No valid data found in CSV. Please ensure CSV contains required fields: first_name, last_name, team, date, and tactic.');
       }
       
-      // Upload in batches
       const batchSize = 100;
       const batches = [];
       
@@ -212,10 +221,10 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
         description: `${validData.length} records imported to your database.`,
       });
       
-      // Call onSuccess with the count of records imported
+      console.log("Clearing data cache after successful upload");
+      
       onSuccess();
       
-      // Close the dialog after a short delay to show 100% progress
       setTimeout(() => {
         onClose();
       }, 500);

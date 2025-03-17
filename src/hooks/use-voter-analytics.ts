@@ -138,7 +138,7 @@ export const useVoterAnalytics = () => {
         console.log(`Current record count before refresh: ${beforeCount || 0}`);
       }
       
-      // Check Supabase connection again
+      // Force refresh by clearing cache
       const migrateResult = await migrateTestDataToSupabase(true); // Pass true to force refresh
       
       if (migrateResult.success) {
@@ -240,8 +240,7 @@ export const useVoterAnalytics = () => {
     console.log("CSV upload success, refreshing data...");
     setDataLastUpdated(new Date());
     
-    // Clear any cached data in the migrationService
-    // Force a complete refresh of all metadata
+    // Clear any cached data and force a complete refresh of all metadata
     const success = await refreshData();
     
     if (success) {
@@ -250,6 +249,10 @@ export const useVoterAnalytics = () => {
         description: "Successfully refreshed data after CSV upload.",
         variant: "default"
       });
+      
+      // Clear the query state to avoid showing stale results
+      setQuery({});
+      setResult(null);
     }
   }, [refreshData, toast]);
 
