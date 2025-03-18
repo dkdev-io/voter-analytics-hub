@@ -16,10 +16,28 @@ export const filterVoterData = (data: any[], query: Partial<QueryParams>) => {
       includeRecord = false;
     }
     
-    // Apply date filter with exact match
-    if (includeRecord && query.date && query.date !== 'All' && item.date !== query.date) {
-      filterLog += `Failed date filter: query=${query.date}, item=${item.date}`;
-      includeRecord = false;
+    // Apply date filter with date range support
+    if (includeRecord && query.date && query.date !== 'All') {
+      // Convert dates to timestamps for comparison
+      const itemDate = new Date(item.date).getTime();
+      const startDate = new Date(query.date).getTime();
+      
+      // If endDate is specified, use date range
+      if (query.endDate && query.endDate !== 'All') {
+        const endDate = new Date(query.endDate).getTime();
+        
+        // Check if item date is within range (inclusive of start and end dates)
+        if (itemDate < startDate || itemDate > endDate) {
+          filterLog += `Failed date range filter: query=${query.date} to ${query.endDate}, item=${item.date}`;
+          includeRecord = false;
+        }
+      } else {
+        // Single date filter
+        if (item.date !== query.date) {
+          filterLog += `Failed date filter: query=${query.date}, item=${item.date}`;
+          includeRecord = false;
+        }
+      }
     }
     
     // Apply team filter

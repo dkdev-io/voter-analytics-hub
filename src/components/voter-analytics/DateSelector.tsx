@@ -6,13 +6,15 @@ interface DateSelectorProps {
   onChange: (value: string) => void;
   availableDates: string[];
   isLoading: boolean;
+  label?: string;
 }
 
 export const DateSelector = ({ 
   value, 
   onChange,
   availableDates,
-  isLoading 
+  isLoading,
+  label = "Date"
 }: DateSelectorProps) => {
   // Get unique dates and sort them chronologically
   const uniqueDates = [...new Set(availableDates)].sort((a, b) => {
@@ -34,7 +36,7 @@ export const DateSelector = ({
         disabled={isLoading}
       >
         <SelectTrigger className="min-w-[180px]">
-          <SelectValue placeholder={isLoading ? "Loading..." : "Select Date"} />
+          <SelectValue placeholder={isLoading ? "Loading..." : `Select ${label}`} />
         </SelectTrigger>
         <SelectContent 
           className="max-h-[300px] overflow-y-auto bg-white z-50"

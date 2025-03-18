@@ -1,8 +1,10 @@
+
 export interface QueryParams {
   tactic?: string;
   resultType?: string;
   person?: string;
   date?: string;
+  endDate?: string;
   team?: string;
   searchQuery?: string;
 }

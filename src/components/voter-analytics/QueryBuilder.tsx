@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { type QueryParams } from '@/types/analytics';
 import { useMetadata } from '@/hooks/use-metadata';
@@ -74,8 +75,14 @@ export const QueryBuilder = ({
   }, [selectedTeam, setQuery]);
 
   const handleDateSelect = (value: string) => {
-    console.log("Date selected:", value);
+    console.log("Start date selected:", value);
     setQuery(prev => ({ ...prev, date: value }));
+    setError(null);
+  };
+
+  const handleEndDateSelect = (value: string) => {
+    console.log("End date selected:", value);
+    setQuery(prev => ({ ...prev, endDate: value }));
     setError(null);
   };
 
@@ -153,15 +160,26 @@ export const QueryBuilder = ({
         />
       </div>
       
-      {/* Third row: On + Date */}
+      {/* Third row: From date + To date */}
       <div className="flex items-center gap-2">
-        <span className="text-lg text-gray-700">On</span>
+        <span className="text-lg text-gray-700">From</span>
         
         <DateSelector 
           value={safeQuery.date}
           onChange={handleDateSelect}
           availableDates={availableDates}
           isLoading={isLoading}
+          label="Start Date"
+        />
+        
+        <span className="text-lg text-gray-700 ml-4">To</span>
+        
+        <DateSelector 
+          value={safeQuery.endDate}
+          onChange={handleEndDateSelect}
+          availableDates={availableDates}
+          isLoading={isLoading}
+          label="End Date"
         />
       </div>
     </div>
