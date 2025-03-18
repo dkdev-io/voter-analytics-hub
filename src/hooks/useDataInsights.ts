@@ -54,12 +54,16 @@ export const useDataInsights = () => {
   // Generate AI insight based on data summary
   const generateInsight = useCallback(async (question?: string) => {
     if (!dataSummary) {
-      toast({
-        title: "No Data Summary",
-        description: "Please analyze data first before generating insights",
-        variant: "destructive",
-      });
-      return null;
+      // Try to analyze data first if we don't have a summary
+      const summary = await analyzeUserData();
+      if (!summary) {
+        toast({
+          title: "No Data Summary",
+          description: "No data available for analysis. Please upload some data first.",
+          variant: "destructive",
+        });
+        return null;
+      }
     }
     
     setIsGeneratingInsight(true);
@@ -93,6 +97,11 @@ export const useDataInsights = () => {
       console.log("AI generated insight:", insightText);
       setInsight(insightText);
       
+      toast({
+        title: "Insight Generated",
+        description: "AI has analyzed your data and generated insights.",
+      });
+      
       return insightText;
     } catch (error) {
       console.error('Error generating insight:', error);
@@ -108,7 +117,7 @@ export const useDataInsights = () => {
     } finally {
       setIsGeneratingInsight(false);
     }
-  }, [dataSummary, toast, logError]);
+  }, [dataSummary, toast, logError, analyzeUserData]);
 
   // Initial data analysis on component mount
   useEffect(() => {

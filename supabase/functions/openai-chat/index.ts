@@ -20,7 +20,7 @@ serve(async (req) => {
       includeData = false, 
       queryParams, 
       conciseResponse = false,
-      dataSummary = null // New parameter for structured data summary
+      dataSummary = null // Parameter for structured data summary
     } = await req.json()
     
     if (!prompt) {
@@ -121,6 +121,8 @@ Based on this data summary, please answer the user's question. Focus on providin
           if (error) {
             console.error('Error fetching data from Supabase:', error);
           } else if (sampleData && sampleData.length > 0) {
+            console.log("Retrieved data from Supabase:", sampleData.length, "records");
+            
             // For large datasets, also fetch aggregated statistics
             let statsContext = "";
             
@@ -184,8 +186,8 @@ Based on this data${count && count > 50 ? ' and the aggregated statistics' : ''}
       const systemPrompt = isParameterExtraction 
         ? 'You are a helpful assistant that extracts structured parameters from natural language queries about voter data. Return only valid JSON with no additional text, explanations, or markdown formatting. Never use backticks or code blocks in your response, just the raw JSON. If the query mentions "phone", set tactic to "Phone". If it mentions "SMS" or "sms", set tactic to "SMS". If it mentions "canvas", set tactic to "Canvas". Be exact with person names and dates. Here are specific examples: For "How many Phone attempts did Jane Doe make on 2025-01-02?" your response must be exactly {"tactic":"Phone","person":"Jane Doe","date":"2025-01-02","resultType":"attempts"}'
         : conciseResponse 
-          ? `You are a data analyst providing extremely concise insights about voter contact data. Your responses should be 1-2 sentences maximum, emphasizing key numbers and insights. Always start with the most important numerical finding. Do not include explanations, context, or verbose analysis. Just provide the direct answer with the most relevant number or percentage. Be extremely brief and to the point.`
-          : `You are a helpful assistant that analyzes voter contact data and provides clear, concise insights. Your responses should be insightful, data-driven, and focused on answering the user's specific question. Be precise in your analysis and use specific numbers from the data when applicable. Present your findings in a way that's easy to understand.`
+          ? `You are a data analyst providing insights about voter contact data. Your responses should be concise, emphasizing key numbers and insights. Always directly answer the user's question with specific numbers from the data provided. Remember that you have access to the data shown in the context section - use it to provide accurate answers. Never say you don't have access to the data when it's provided to you. If the data provided doesn't contain the exact information requested, analyze what is available and provide the closest relevant insight.`
+          : `You are a helpful assistant that analyzes voter contact data and provides clear, concise insights. Your responses should be insightful, data-driven, and focused on answering the user's specific question. Be precise in your analysis and use specific numbers from the data when applicable. Present your findings in a way that's easy to understand. Remember that you have access to the data shown in the context section - never say you don't have access to the data when it's provided to you.`
       
       // Include the data context in the user prompt for data analysis requests
       const userPrompt = includeData && dataContext 
