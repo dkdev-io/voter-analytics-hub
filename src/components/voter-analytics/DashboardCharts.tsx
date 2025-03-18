@@ -107,6 +107,22 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
           text-align: center;
           position: relative;
         }
+        /* Make pie charts appear on the same line when printing */
+        #pie-charts-row {
+          display: flex !important;
+          flex-direction: row !important;
+          justify-content: space-between !important;
+          width: 100% !important;
+        }
+        .pie-chart-container {
+          width: 32% !important;
+          max-width: 32% !important;
+        }
+        /* Line chart should be full width below */
+        #line-chart-container {
+          width: 100% !important;
+          margin-top: 20px !important;
+        }
       }
     `;
     document.head.appendChild(style);
@@ -149,19 +165,28 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
           </pre>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Pie charts row - normal responsive grid for screen, flex for print */}
+        <div id="pie-charts-row" className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Chart 1: Tactics Distribution */}
-          <TacticsPieChart data={tacticsData} total={totalAttempts} />
+          <div className="pie-chart-container">
+            <TacticsPieChart data={tacticsData} total={totalAttempts} />
+          </div>
           
           {/* Chart 2: Contact Results */}
-          <ContactsPieChart data={contactsData} total={totalContacts} />
+          <div className="pie-chart-container">
+            <ContactsPieChart data={contactsData} total={totalContacts} />
+          </div>
           
           {/* Chart 3: Not Reached Breakdown */}
-          <NotReachedPieChart data={notReachedData} total={totalNotReached} />
+          <div className="pie-chart-container">
+            <NotReachedPieChart data={notReachedData} total={totalNotReached} />
+          </div>
         </div>
         
         {/* Line chart showing attempts, contacts, and issues by date */}
-        <ActivityLineChart data={lineChartData} />
+        <div id="line-chart-container">
+          <ActivityLineChart data={lineChartData} />
+        </div>
       </div>
     </div>
   );
