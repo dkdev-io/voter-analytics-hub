@@ -134,10 +134,7 @@ export const SearchField: React.FC<SearchFieldProps> = ({
               Processing...
             </span>
           ) : (
-            <>
-              <Search className="mr-2 h-4 w-4" />
-              Submit Query
-            </>
+            "Submit"
           )}
         </Button>
         
