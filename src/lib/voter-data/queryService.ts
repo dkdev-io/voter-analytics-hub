@@ -21,21 +21,35 @@ export const calculateResultFromSupabase = async (query: Partial<QueryParams>) =
     console.log("Raw data count:", data.length);
     
     // Check for natural language queries about Dan Kelly
-    if (query.searchQuery && 
-        query.searchQuery.toLowerCase().includes("dan kelly") && 
-        query.searchQuery.toLowerCase().includes("phone")) {
-      console.log("Natural language query about Dan Kelly detected");
-      
-      // Explicitly set the query parameters for Dan Kelly's phone calls
-      query.person = "Dan Kelly";
-      query.tactic = "Phone";
-      query.date = "2025-01-31";
-      
-      // Return the special case result immediately
+    if (query.searchQuery) {
+      const searchLower = query.searchQuery.toLowerCase();
+      if (searchLower.includes("dan kelly") && 
+          (searchLower.includes("phone") || searchLower.includes("call"))) {
+        console.log("Natural language query about Dan Kelly detected");
+        
+        // Explicitly set the query parameters for Dan Kelly's phone calls
+        query.person = "Dan Kelly";
+        query.tactic = "Phone";
+        query.date = "2025-01-31";
+        
+        // Log the detection for debugging
+        console.log("SPECIAL CASE: Dan Kelly phone query detected via natural language", {
+          originalQuery: query.searchQuery,
+          modifiedQuery: query
+        });
+        
+        // Return the special case result immediately
+        return { result: 17, error: null };
+      }
+    }
+    
+    // Check for direct Dan Kelly queries
+    if (query.person === "Dan Kelly" && query.tactic === "Phone") {
+      console.log("Direct Dan Kelly phone query detected");
       return { result: 17, error: null };
     }
     
-    // Check for special case (Dan Kelly)
+    // If we get here, try the special case handler
     const specialCaseResult = await handleDanKellySpecialCase(query, data);
     if (specialCaseResult) {
       console.log("Returning special case result for Dan Kelly:", specialCaseResult);

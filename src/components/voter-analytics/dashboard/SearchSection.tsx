@@ -26,6 +26,15 @@ export function SearchSection({
         isLoading={isLoading}
         onSubmit={onSubmit}
       />
+      
+      <div className="mt-4 p-3 bg-blue-50 border border-blue-100 rounded text-sm text-blue-700">
+        <p className="font-medium">Try these example questions:</p>
+        <ul className="list-disc pl-5 mt-1 space-y-1">
+          <li>How many phone calls has Dan Kelly made?</li>
+          <li>Show me Team Tony's canvas attempts in January</li>
+          <li>Compare SMS vs Phone tactics performance</li>
+        </ul>
+      </div>
     </div>
   );
 }

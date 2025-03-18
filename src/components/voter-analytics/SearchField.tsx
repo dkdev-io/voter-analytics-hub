@@ -27,6 +27,32 @@ export const SearchField: React.FC<SearchFieldProps> = ({
   const { toast } = useToast();
   const { logError } = useErrorLogger();
 
+  const handleSubmit = () => {
+    if (!inputValue.trim()) {
+      toast({
+        title: "Empty Query",
+        description: "Please enter a question or query before submitting.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check for Dan Kelly special case
+    const isDanKellyQuery = inputValue.toLowerCase().includes("dan kelly") && 
+                           (inputValue.toLowerCase().includes("phone") || 
+                            inputValue.toLowerCase().includes("call"));
+    
+    if (isDanKellyQuery) {
+      console.log("Dan Kelly special case detected in search field:", inputValue);
+    }
+    
+    // Update the search value
+    onChange(inputValue);
+    
+    // Submit the search query
+    onSubmit();
+  };
+
   const handleAiAssist = async () => {
     if (!inputValue.trim()) {
       toast({
@@ -77,7 +103,7 @@ export const SearchField: React.FC<SearchFieldProps> = ({
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && e.metaKey) {
-      handleAiAssist();
+      handleSubmit();
     }
   };
 
@@ -96,11 +122,30 @@ export const SearchField: React.FC<SearchFieldProps> = ({
         <div className="text-xs text-gray-500 mt-1 text-right">Press ⌘+Enter to submit</div>
       </div>
       
-      <div className="mt-6 flex justify-center">
+      <div className="mt-6 flex justify-center gap-2">
+        <Button 
+          onClick={handleSubmit}
+          disabled={isLoading || isAiLoading}
+          variant="default"
+          className="w-full sm:w-auto"
+        >
+          {isLoading ? (
+            <span className="flex items-center">
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Processing...
+            </span>
+          ) : (
+            <>
+              <Search className="mr-2 h-4 w-4" />
+              Submit Query
+            </>
+          )}
+        </Button>
+        
         <Button 
           onClick={handleAiAssist}
           disabled={isLoading || isAiLoading}
-          variant="default"
+          variant="outline"
           className="w-full sm:w-auto"
         >
           {isAiLoading ? (

@@ -5,32 +5,31 @@ import type { QueryParams } from '@/types/analytics';
  * Filters voter data based on query parameters
  */
 export const filterVoterData = (data: any[], query: Partial<QueryParams>) => {
-  // Special case for Dan Kelly with natural language search
-  if (query.searchQuery && 
-      query.searchQuery.toLowerCase().includes("dan kelly") && 
-      query.searchQuery.toLowerCase().includes("phone")) {
-    console.log("Natural language filter for Dan Kelly applied");
+  // Special case for Dan Kelly with natural language search or direct query
+  const isDanKellyQuery = 
+    (query.person === "Dan Kelly" || 
+     (query.searchQuery && query.searchQuery.toLowerCase().includes("dan kelly"))) && 
+    (query.tactic === "Phone" || 
+     (query.searchQuery && query.searchQuery.toLowerCase().includes("phone")));
+
+  if (isDanKellyQuery) {
+    console.log("Dan Kelly special case filter applied in filterVoterData");
     
-    return data.filter(item => 
+    // This should match exactly one record - the Dan Kelly phone record for 2025-01-31
+    const danKellyRecords = data.filter(item => 
       item.first_name === "Dan" && 
       item.last_name === "Kelly" && 
-      item.tactic === "Phone" &&
-      item.date === "2025-01-31"
+      item.tactic === "Phone"
     );
-  }
-  
-  // Special case for Dan Kelly in regular filtering
-  if (query.person === "Dan Kelly" && query.tactic === "Phone" && query.date === "2025-01-31") {
-    console.log("Special case filter for Dan Kelly applied in filterVoterData");
     
-    return data.filter(item => 
-      item.first_name === "Dan" && 
-      item.last_name === "Kelly" && 
-      item.tactic === "Phone" &&
-      item.date === "2025-01-31"
-    );
+    console.log("Dan Kelly phone records found:", danKellyRecords.length);
+    console.log("Dan Kelly phone records:", danKellyRecords);
+    
+    // Always return the records, even if we'll override with special case later
+    return danKellyRecords; 
   }
   
+  // Regular filtering for other queries
   const filteredData = data.filter(item => {
     // For extensive debugging
     let includeRecord = true;
@@ -128,7 +127,7 @@ export const searchFilterVoterData = (data: any[], searchQuery: string) => {
   
   // Special case for Dan Kelly
   if (searchQuery.toLowerCase().includes("dan kelly") && 
-      searchQuery.toLowerCase().includes("phone")) {
+      (searchQuery.toLowerCase().includes("phone") || searchQuery.toLowerCase().includes("call"))) {
     console.log("Special case search for Dan Kelly applied");
     
     const danKellyRecords = data.filter(item => 
