@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 interface HeaderMappingResult {
@@ -94,12 +93,24 @@ export const transformCSVData = (csvData: string[][], headerMapping: Record<numb
 };
 
 /**
+ * Results of the validation process
+ */
+export interface ValidationResult {
+  validData: Record<string, any>[];
+  invalidData: Array<{row: Record<string, any>, reason: string}>;
+}
+
+/**
  * Enhance and validate the transformed data
  */
-export const validateAndEnhanceData = (transformedData: Record<string, any>[]): Record<string, any>[] => {
-  return transformedData.map(row => {
+export const validateAndEnhanceData = (transformedData: Record<string, any>[]): ValidationResult => {
+  const validData: Record<string, any>[] = [];
+  const invalidData: Array<{row: Record<string, any>, reason: string}> = [];
+  
+  transformedData.forEach(row => {
     const enhancedRow = { ...row };
     
+    // Set default values for numeric fields
     if (!('attempts' in enhancedRow)) enhancedRow.attempts = 0;
     if (!('contacts' in enhancedRow)) enhancedRow.contacts = 0;
     if (!('not_home' in enhancedRow)) enhancedRow.not_home = 0;
@@ -109,16 +120,31 @@ export const validateAndEnhanceData = (transformedData: Record<string, any>[]): 
     if (!('oppose' in enhancedRow)) enhancedRow.oppose = 0;
     if (!('undecided' in enhancedRow)) enhancedRow.undecided = 0;
     
+    // Set default team if missing
     if (!enhancedRow.team) {
       enhancedRow.team = 'Team Tony';
     }
     
-    // Add the current user's ID to each row
-    enhancedRow.user_id = supabase.auth.getSession().then(({ data }) => data.session?.user.id) || null;
+    // Validate required fields
+    const missingFields = [];
+    if (!enhancedRow.first_name) missingFields.push('first_name');
+    if (!enhancedRow.last_name) missingFields.push('last_name');
+    if (!enhancedRow.date) missingFields.push('date');
+    if (!enhancedRow.tactic) missingFields.push('tactic');
     
-    return enhancedRow;
-  }).filter(row => 
-    row.first_name && row.last_name && row.team && row.date && row.tactic);
+    // Add to valid or invalid data based on validation
+    if (missingFields.length === 0) {
+      enhancedRow.user_id = supabase.auth.getSession().then(({ data }) => data.session?.user.id) || null;
+      validData.push(enhancedRow);
+    } else {
+      invalidData.push({
+        row: enhancedRow,
+        reason: `Missing required fields: ${missingFields.join(', ')}`
+      });
+    }
+  });
+  
+  return { validData, invalidData };
 };
 
 /**

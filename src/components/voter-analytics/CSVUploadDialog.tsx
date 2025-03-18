@@ -19,6 +19,7 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
     step,
     isUploading,
     progress,
+    validationStats,
     handleFileChange,
     handleSubmitFile,
     resetUpload
@@ -50,7 +51,10 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
         )}
 
         {step === 'processing' && (
-          <ProcessingStep progress={progress} />
+          <ProcessingStep 
+            progress={progress}
+            validationStats={validationStats} 
+          />
         )}
 
         {step === 'upload' && (

@@ -17,6 +17,12 @@ export function useCSVUpload(onSuccess: () => void) {
   const [step, setStep] = useState<'upload' | 'processing'>('upload');
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState<number>(0);
+  const [validationStats, setValidationStats] = useState<{
+    total: number;
+    valid: number;
+    invalid: number;
+    reasons: Record<string, number>;
+  } | null>(null);
   const { toast } = useToast();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -49,6 +55,7 @@ export function useCSVUpload(onSuccess: () => void) {
       const { headers, data } = await parseCSV(file);
       console.log("Parsed CSV headers:", headers);
       console.log("First few rows:", data.slice(0, 3));
+      console.log("Total rows in CSV:", data.length);
       
       setHeaders(headers);
       setCsvData(data);
@@ -79,20 +86,39 @@ export function useCSVUpload(onSuccess: () => void) {
       console.log("Header mapping:", headerMapping);
       
       const transformedData = transformCSVData(csvData, headerMapping);
-      const validData = validateAndEnhanceData(transformedData);
+      const { validData, invalidData } = validateAndEnhanceData(transformedData);
       
       console.log("Valid data count:", validData.length);
+      console.log("Invalid data count:", invalidData.length);
       console.log("Sample valid data:", validData.slice(0, 2));
       
       if (validData.length === 0) {
         throw new Error('No valid data found in CSV. Please ensure CSV contains required fields: first_name, last_name, team, date, and tactic.');
       }
       
+      // Collect stats on invalid records
+      const reasonCounts: Record<string, number> = {};
+      invalidData.forEach(({ reason }) => {
+        reasonCounts[reason] = (reasonCounts[reason] || 0) + 1;
+      });
+      
+      setValidationStats({
+        total: transformedData.length,
+        valid: validData.length,
+        invalid: invalidData.length,
+        reasons: reasonCounts
+      });
+      
       await uploadDataBatches(validData, setProgress);
+      
+      // Provide detailed information about the import
+      const importMessage = validData.length === transformedData.length
+        ? `${validData.length} records imported to your database.`
+        : `${validData.length} of ${transformedData.length} records imported. ${invalidData.length} records were skipped due to missing required fields.`;
       
       toast({
         title: 'Data uploaded successfully',
-        description: `${validData.length} records imported to your database.`,
+        description: importMessage,
       });
       
       console.log("Clearing data cache after successful upload");
@@ -123,6 +149,7 @@ export function useCSVUpload(onSuccess: () => void) {
     setStep('upload');
     setIsUploading(false);
     setProgress(0);
+    setValidationStats(null);
   };
 
   const handleSubmitFile = () => {
@@ -142,6 +169,7 @@ export function useCSVUpload(onSuccess: () => void) {
     step,
     isUploading,
     progress,
+    validationStats,
     handleFileChange,
     handleSubmitFile,
     resetUpload
