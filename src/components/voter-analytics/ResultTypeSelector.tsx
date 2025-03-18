@@ -32,11 +32,11 @@ export const ResultTypeSelector = ({
         onValueChange={onChange}
         disabled={isLoading}
       >
-        <SelectTrigger className="w-full">
+        <SelectTrigger className="w-full font-sans border-primary/20 focus:ring-primary/30">
           <SelectValue placeholder={isLoading ? "Loading..." : "Select Metric"} />
         </SelectTrigger>
-        <SelectContent className="bg-white z-50">
-          <SelectItem value="All">All Metrics</SelectItem>
+        <SelectContent className="bg-white z-50 font-sans">
+          <SelectItem value="All" className="font-medium">All Metrics</SelectItem>
           {availableTypes.map(type => (
             <SelectItem key={type} value={type}>
               {type}

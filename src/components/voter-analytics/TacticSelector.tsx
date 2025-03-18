@@ -23,11 +23,11 @@ export const TacticSelector = ({
         onValueChange={onChange}
         disabled={isLoading}
       >
-        <SelectTrigger className="w-full">
+        <SelectTrigger className="w-full font-sans border-primary/20 focus:ring-primary/30">
           <SelectValue placeholder={isLoading ? "Loading..." : "Select Tactic"} />
         </SelectTrigger>
-        <SelectContent className="bg-white z-50 max-h-[300px] overflow-y-auto">
-          <SelectItem value="All">All Tactics</SelectItem>
+        <SelectContent className="bg-white z-50 max-h-[300px] overflow-y-auto font-sans">
+          <SelectItem value="All" className="font-medium">All Tactics</SelectItem>
           {tactics && tactics.length > 0 ? (
             tactics.map(tactic => (
               <SelectItem key={tactic} value={tactic}>
