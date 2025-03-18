@@ -42,13 +42,16 @@ export const SearchField: React.FC<SearchFieldProps> = ({
 
     console.log("Submitting natural language query:", inputValue);
     
+    // Update the parent component's search query value
     onChange(inputValue);
     
     if (setQuery) {
       try {
         console.log("Processing query with LLM before submission");
+        // Process the query with LLM to extract structured parameters
         const success = await processWithLLM(inputValue);
         console.log("LLM processing result:", success);
+        
         if (success) {
           // Only submit if we successfully processed the query
           console.log("Submitting search after successful LLM processing");
@@ -65,6 +68,7 @@ export const SearchField: React.FC<SearchFieldProps> = ({
         });
       }
     } else {
+      // If no setQuery function is provided, just submit directly
       onSubmit();
     }
   };

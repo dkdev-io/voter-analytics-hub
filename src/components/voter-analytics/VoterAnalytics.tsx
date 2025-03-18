@@ -104,6 +104,7 @@ export const VoterAnalytics = () => {
                   setSearchQuery={setSearchQuery}
                   isLoading={isLoading}
                   onSubmit={calculateResult}
+                  setQuery={setQuery} 
                 />
               )}
             </div>

@@ -15,6 +15,11 @@ export const useLLMProcessor = ({ setQuery }: UseLLMProcessorOptions) => {
   const { logError } = useErrorLogger();
 
   const processWithLLM = useCallback(async (userQuery: string) => {
+    if (!setQuery) {
+      console.error("No setQuery function provided to useLLMProcessor");
+      return false;
+    }
+
     setIsProcessingQuery(true);
     try {
       console.log("Processing query with LLM:", userQuery);
@@ -45,6 +50,8 @@ export const useLLMProcessor = ({ setQuery }: UseLLMProcessorOptions) => {
             Example 3:
             Query: "How many Phone attempts did Jane Doe make on 2025-01-02?"
             Response: {"tactic":"Phone","person":"Jane Doe","date":"2025-01-02","resultType":"attempts"}
+            
+            Important: Be exact with person names and dates. Make sure to extract all parameters correctly.
           `
         }
       });
@@ -81,28 +88,23 @@ export const useLLMProcessor = ({ setQuery }: UseLLMProcessorOptions) => {
           throw new Error("Could not extract search parameters from your query");
         }
         
-        // Only update the query if we have a setQuery function
-        if (setQuery) {
-          // Preserve the original searchQuery
-          const updatedQuery = {
-            ...extractedParams,
-            searchQuery: userQuery
-          };
-          
-          console.log("Setting query with parameters:", updatedQuery);
-          setQuery(updatedQuery);
-          
-          toast({
-            title: "Query Processed",
-            description: `Interpreted as: ${Object.entries(extractedParams)
-              .map(([key, value]) => `${key}: ${value}`)
-              .join(', ')}`,
-          });
-          
-          return true;
-        }
+        // Preserve the original searchQuery and merge with extracted parameters
+        const updatedQuery = {
+          ...extractedParams,
+          searchQuery: userQuery
+        };
         
-        return false;
+        console.log("Setting query with parameters:", updatedQuery);
+        setQuery(updatedQuery);
+        
+        toast({
+          title: "Query Processed",
+          description: `Interpreted as: ${Object.entries(extractedParams)
+            .map(([key, value]) => `${key}: ${value}`)
+            .join(', ')}`,
+        });
+        
+        return true;
       } catch (parseError) {
         console.error("Failed to parse LLM response:", data.answer);
         console.error("Parse error:", parseError);
@@ -119,7 +121,6 @@ export const useLLMProcessor = ({ setQuery }: UseLLMProcessorOptions) => {
 
   return {
     isProcessingQuery,
-    setIsProcessingQuery,
     processWithLLM
   };
 };

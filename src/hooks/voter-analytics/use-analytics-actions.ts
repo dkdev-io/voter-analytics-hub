@@ -1,4 +1,3 @@
-
 import { useCallback } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -44,7 +43,8 @@ export const useAnalyticsActions = ({
   const calculateResult = async () => {
     console.log("Starting calculateResult with query:", query, "searchQuery:", searchQuery);
     
-    if (!query.tactic && !query.resultType && !query.person && !query.date && !query.team && !searchQuery) {
+    // Check if we have any query parameters to use
+    if (!query.tactic && !query.resultType && !query.person && !query.date && !query.team && !query.searchQuery) {
       setError("Please select at least one field or enter a search term");
       return;
     }
@@ -52,10 +52,10 @@ export const useAnalyticsActions = ({
     try {
       setIsLoading(true);
       
-      // Update the query with searchQuery if provided
+      // Update the query with searchQuery if provided and not already set
       const updatedQuery = {
         ...query,
-        searchQuery: searchQuery
+        searchQuery: query.searchQuery || searchQuery
       };
       
       console.log("Calculating result with updatedQuery:", updatedQuery);
@@ -77,9 +77,6 @@ export const useAnalyticsActions = ({
       } else {
         setError(null);
       }
-      
-      // Update the query state with the searchQuery
-      setQuery(updatedQuery);
       
       // Show filtered data in charts
       setShowFilteredData(true);
