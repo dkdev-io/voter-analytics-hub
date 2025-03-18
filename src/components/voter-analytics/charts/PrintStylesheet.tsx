@@ -28,15 +28,17 @@ export const PrintStylesheet: React.FC<PrintStylesheetProps> = ({ onCleanup }) =
           top: 0;
           width: 100%;
           padding: 20px;
+          margin: 0;
         }
         
         /* Ensure the report title is visible and properly positioned */
         #report-title {
           display: block !important;
-          margin: 20px 0 30px;
+          margin: 0 0 30px;
           text-align: center;
           position: relative;
           visibility: visible !important;
+          page-break-after: avoid;
         }
         
         /* Make pie charts appear on the same line when printing */
@@ -71,6 +73,19 @@ export const PrintStylesheet: React.FC<PrintStylesheetProps> = ({ onCleanup }) =
         select,
         form,
         .bg-white.rounded-lg.shadow-sm.p-6 {
+          display: none !important;
+          visibility: hidden !important;
+        }
+
+        /* Additional rules to hide everything before the report title */
+        #report-container ~ *,
+        #report-container ~ * * {
+          display: none !important;
+          visibility: hidden !important;
+        }
+
+        /* Ensure no unwanted elements appear above the report */
+        #report-title ~ *:not(#pie-charts-row):not(#line-chart-container):not(.pie-chart-container) {
           display: none !important;
           visibility: hidden !important;
         }
