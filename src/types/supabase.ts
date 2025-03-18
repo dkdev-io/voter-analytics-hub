@@ -26,6 +26,9 @@ export interface Database {
           support: number
           oppose: number
           undecided: number
+          user_id?: string | null
+          user_email?: string | null
+          label?: string | null
           created_at?: string
         }
         Insert: {
@@ -43,6 +46,9 @@ export interface Database {
           support: number
           oppose: number
           undecided: number
+          user_id?: string | null
+          user_email?: string | null
+          label?: string | null
           created_at?: string
         }
         Update: {
@@ -60,6 +66,9 @@ export interface Database {
           support?: number
           oppose?: number
           undecided?: number
+          user_id?: string | null
+          user_email?: string | null
+          label?: string | null
           created_at?: string
         }
       }
