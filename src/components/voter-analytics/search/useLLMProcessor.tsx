@@ -104,7 +104,7 @@ export const useLLMProcessor = ({ setQuery }: UseLLMProcessorOptions) => {
             .join(', ')}`,
         });
         
-        return true;
+        return updatedQuery;
       } catch (parseError) {
         console.error("Failed to parse LLM response:", data.answer);
         console.error("Parse error:", parseError);

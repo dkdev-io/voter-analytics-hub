@@ -28,13 +28,13 @@ export const useAIAssistant = () => {
       console.log("Getting AI assistance for:", inputValue);
       console.log("With query parameters:", queryParams);
       
-      // Use the actual query parameters that were extracted
+      // Make sure we're passing the extracted query parameters correctly
       const { data, error } = await supabase.functions.invoke('openai-chat', {
         body: { 
           prompt: inputValue,
-          includeData: true, // Tell the function to include data in the analysis
-          queryParams: queryParams || {}, // Pass the extracted parameters to filter relevant data
-          conciseResponse: true // Request a concise response
+          includeData: true, 
+          queryParams: queryParams || {}, // Ensure we're passing the query parameters
+          conciseResponse: true 
         }
       });
 

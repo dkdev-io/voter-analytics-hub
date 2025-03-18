@@ -52,14 +52,18 @@ export const SearchField: React.FC<SearchFieldProps> = ({
         const success = await processWithLLM(inputValue);
         
         if (success) {
-          // Store the current query for AI assistance
-          setCurrentQuery({
+          // Get the latest extracted parameters
+          const extractedParams = {
             ...currentQuery,
             searchQuery: inputValue
-          });
+          };
           
-          // Get insights directly instead of running a separate query
-          await getAIAssistance(inputValue, currentQuery);
+          // Store the current query for AI assistance
+          setCurrentQuery(extractedParams);
+          
+          // Get insights with the FULL extracted parameters
+          console.log("Getting AI assistance with parameters:", extractedParams);
+          await getAIAssistance(inputValue, extractedParams);
         }
       } catch (error) {
         console.error("Error in query processing:", error);
@@ -118,7 +122,7 @@ export const SearchField: React.FC<SearchFieldProps> = ({
         </Button>
       </div>
 
-      <AIAssistantResponse response={aiResponse} />
+      <AIAssistantResponse response={aiResponse} isLoading={isAiLoading} />
     </div>
   );
 };
