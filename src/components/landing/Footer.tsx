@@ -11,6 +11,9 @@ export const Footer = () => {
             <p className="text-sm text-blue-100">
               Making voter data accessible and actionable for campaigns of all sizes.
             </p>
+            <p className="text-sm text-blue-100 mt-2">
+              <a href="https://votercontact.lovable.app" className="hover:text-white transition-colors">votercontact.lovable.app</a>
+            </p>
           </div>
           
           <div>
