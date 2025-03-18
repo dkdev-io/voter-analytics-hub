@@ -11,24 +11,33 @@ export const PrintStylesheet: React.FC<PrintStylesheetProps> = ({ onCleanup }) =
     const style = document.createElement('style');
     style.innerHTML = `
       @media print {
+        /* Hide everything by default */
         body * {
           visibility: hidden;
         }
-        #report-container, #report-container *, #report-title, #report-title * {
+        
+        /* Only show the report container and its contents */
+        #report-container, #report-container * {
           visibility: visible;
         }
+        
+        /* Position the report at the top of the page */
         #report-container {
           position: absolute;
           left: 0;
           top: 0;
           width: 100%;
+          padding: 20px;
         }
+        
+        /* Ensure the report title is visible and properly positioned */
         #report-title {
           display: block !important;
           margin: 20px 0;
           text-align: center;
           position: relative;
         }
+        
         /* Make pie charts appear on the same line when printing */
         #pie-charts-row {
           display: flex !important;
@@ -36,18 +45,27 @@ export const PrintStylesheet: React.FC<PrintStylesheetProps> = ({ onCleanup }) =
           justify-content: space-between !important;
           width: 100% !important;
         }
+        
         .pie-chart-container {
           width: 32% !important;
           max-width: 32% !important;
         }
+        
         /* Line chart should be full width below */
         #line-chart-container {
           width: 100% !important;
           margin-top: 20px !important;
         }
-        /* Hide elements that shouldn't be in the print view */
-        button, .hidden-print {
+        
+        /* Hide specific elements that shouldn't appear in print */
+        button, 
+        .hidden-print,
+        nav,
+        header,
+        footer,
+        .bg-white.rounded-lg.shadow-sm.p-6 {
           display: none !important;
+          visibility: hidden !important;
         }
       }
     `;
