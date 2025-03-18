@@ -28,6 +28,15 @@ serve(async (req) => {
     console.log(`Processing prompt: ${prompt.substring(0, 50)}...`)
 
     try {
+      // Check if this is a parameter extraction request
+      const isParameterExtraction = prompt.includes("extract structured parameters") || 
+                                   prompt.includes("valid JSON object")
+      
+      // Use different system prompts based on the task
+      const systemPrompt = isParameterExtraction 
+        ? 'You are a helpful assistant that extracts structured parameters from natural language queries about voter data. Return only valid JSON with no additional text.'
+        : 'You are a helpful assistant that provides clear and concise responses.'
+      
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -37,10 +46,10 @@ serve(async (req) => {
         body: JSON.stringify({
           model: 'gpt-4o-mini',
           messages: [
-            { role: 'system', content: 'You are a helpful assistant that provides clear and concise responses.' },
+            { role: 'system', content: systemPrompt },
             { role: 'user', content: prompt }
           ],
-          temperature: 0.7,
+          temperature: isParameterExtraction ? 0.1 : 0.7, // Lower temperature for more deterministic results in parameter extraction
           max_tokens: 500,
         }),
       })

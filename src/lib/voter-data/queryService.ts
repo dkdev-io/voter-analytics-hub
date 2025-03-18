@@ -33,50 +33,6 @@ export const calculateResultFromSupabase = async (query: Partial<QueryParams>) =
       console.log("Updated query after extraction:", query);
     }
     
-    // Check for natural language queries with improved Dan Kelly detection
-    if (query.searchQuery) {
-      const searchLower = query.searchQuery.toLowerCase();
-      
-      // Use regex for better pattern matching to ensure "dan kelly" appears as a phrase
-      // and check that the query does not explicitly mention other teams
-      const hasDanKelly = /\bdan\s+kelly\b/i.test(searchLower);
-      const hasPhoneOrCall = /\bphone\b|\bcall(s|ed)?\b/i.test(searchLower);
-      const hasOtherTeam = /\bteam\s+(?!dan|kelly)\w+/i.test(searchLower) || searchLower.includes("tony") || searchLower.includes("jane");
-      
-      // Only apply Dan Kelly special case if it's explicitly about Dan Kelly
-      // and NOT about another team
-      if (hasDanKelly && hasPhoneOrCall && !hasOtherTeam) {
-        console.log("Natural language query about Dan Kelly detected with improved pattern matching");
-        
-        // Explicitly set the query parameters for Dan Kelly's phone calls
-        query.person = "Dan Kelly";
-        query.tactic = "Phone";
-        query.date = "2025-01-31";
-        
-        // Log the detection for debugging
-        console.log("SPECIAL CASE: Dan Kelly phone query detected via natural language", {
-          originalQuery: query.searchQuery,
-          modifiedQuery: query
-        });
-        
-        // Return the special case result immediately
-        return { result: 17, error: null };
-      }
-    }
-    
-    // Check for direct Dan Kelly queries
-    if (query.person === "Dan Kelly" && query.tactic === "Phone") {
-      console.log("Direct Dan Kelly phone query detected");
-      return { result: 17, error: null };
-    }
-    
-    // If we get here, try the special case handler
-    const specialCaseResult = await handleDanKellySpecialCase(query, data);
-    if (specialCaseResult) {
-      console.log("Returning special case result for Dan Kelly:", specialCaseResult);
-      return specialCaseResult;
-    }
-    
     // Filter the data based on query parameters
     const filteredData = filterVoterData(data, query);
     

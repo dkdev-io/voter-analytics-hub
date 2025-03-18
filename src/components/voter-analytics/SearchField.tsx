@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, Loader2, Sparkle } from 'lucide-react';
@@ -7,27 +6,89 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useErrorLogger } from '@/hooks/useErrorLogger';
+import { type QueryParams } from '@/types/analytics';
 
 interface SearchFieldProps {
   value: string;
   onChange: (value: string) => void;
   isLoading: boolean;
   onSubmit: () => void;
+  setQuery?: (query: Partial<QueryParams>) => void;
 }
 
 export const SearchField: React.FC<SearchFieldProps> = ({ 
   value, 
   onChange, 
   isLoading,
-  onSubmit
+  onSubmit,
+  setQuery
 }) => {
   const [inputValue, setInputValue] = useState(value);
   const [aiResponse, setAiResponse] = useState<string | null>(null);
   const [isAiLoading, setIsAiLoading] = useState(false);
+  const [isProcessingQuery, setIsProcessingQuery] = useState(false);
   const { toast } = useToast();
   const { logError } = useErrorLogger();
 
-  const handleSubmit = () => {
+  const processWithLLM = useCallback(async (userQuery: string) => {
+    setIsProcessingQuery(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('openai-chat', {
+        body: { 
+          prompt: `
+            Given this natural language query about voter analytics: "${userQuery}", 
+            extract structured parameters for searching a voter database. 
+            The result should be a valid JSON object with these possible fields:
+            - tactic: "Phone", "SMS", or "Canvas" (type of voter contact)
+            - person: The full name of the person, with proper capitalization
+            - date: In YYYY-MM-DD format
+            - resultType: "attempts", "contacts", "support", "oppose", "undecided", "notHome", "refusal", or "badData"
+            - team: The team name if mentioned
+            
+            Only include fields that are explicitly mentioned or strongly implied in the query.
+            Return ONLY the JSON with no additional text.
+          `
+        }
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      if (!data || !data.answer) {
+        throw new Error("No response from AI");
+      }
+
+      // Try to parse the JSON response
+      try {
+        const extractedParams = JSON.parse(data.answer.trim());
+        console.log("LLM extracted parameters:", extractedParams);
+        
+        // Only update the query if we have a setQuery function
+        if (setQuery) {
+          // Preserve the original searchQuery
+          setQuery({
+            ...extractedParams,
+            searchQuery: userQuery
+          });
+        }
+        
+        return true;
+      } catch (parseError) {
+        console.error("Failed to parse LLM response:", data.answer);
+        console.error("Parse error:", parseError);
+        throw new Error("Failed to parse parameters from the query");
+      }
+    } catch (error) {
+      console.error('Error processing with LLM:', error);
+      logError(error as Error, 'SearchField.processWithLLM');
+      throw error;
+    } finally {
+      setIsProcessingQuery(false);
+    }
+  }, [setQuery, logError]);
+
+  const handleSubmit = async () => {
     if (!inputValue.trim()) {
       toast({
         title: "Empty Query",
@@ -42,8 +103,26 @@ export const SearchField: React.FC<SearchFieldProps> = ({
     // Update the search value
     onChange(inputValue);
     
-    // Submit the search query
-    onSubmit();
+    // If we have a setQuery function, try to process with LLM first
+    if (setQuery) {
+      try {
+        setIsLoading(true);
+        await processWithLLM(inputValue);
+        // After processing, submit the query
+        onSubmit();
+      } catch (error) {
+        toast({
+          title: "Query Processing Error",
+          description: error instanceof Error ? error.message : "Failed to process your query",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    } else {
+      // Otherwise just submit directly
+      onSubmit();
+    }
   };
 
   const handleAiAssist = async () => {
@@ -110,7 +189,7 @@ export const SearchField: React.FC<SearchFieldProps> = ({
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={handleKeyPress}
           className="pl-10 w-full min-h-[100px] resize-none" 
-          disabled={isLoading || isAiLoading}
+          disabled={isLoading || isAiLoading || isProcessingQuery}
         />
         <div className="text-xs text-gray-500 mt-1 text-right">Press ⌘+Enter to submit</div>
       </div>
@@ -118,15 +197,15 @@ export const SearchField: React.FC<SearchFieldProps> = ({
       <div className="mt-4 flex justify-center gap-2">
         <Button 
           onClick={handleSubmit}
-          disabled={isLoading || isAiLoading}
+          disabled={isLoading || isAiLoading || isProcessingQuery}
           variant="default"
           className="w-full"
           size="sm"
         >
-          {isLoading ? (
+          {isLoading || isProcessingQuery ? (
             <span className="flex items-center">
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Processing...
+              {isProcessingQuery ? "Processing with AI..." : "Searching..."}
             </span>
           ) : (
             "Submit"
