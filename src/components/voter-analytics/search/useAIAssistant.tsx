@@ -30,9 +30,10 @@ export const useAIAssistant = () => {
       
       const { data, error } = await supabase.functions.invoke('openai-chat', {
         body: { 
-          prompt: `Analyze the following voter analytics query and provide insights: "${inputValue}"`,
+          prompt: inputValue,
           includeData: true, // Tell the function to include data in the analysis
-          queryParams // Pass the extracted parameters to filter relevant data
+          queryParams, // Pass the extracted parameters to filter relevant data
+          conciseResponse: true // Request a concise response
         }
       });
 
@@ -48,8 +49,8 @@ export const useAIAssistant = () => {
       setAiResponse(data.answer);
       
       toast({
-        title: "AI Analysis Complete",
-        description: "The AI has analyzed your data and provided insights.",
+        title: "Insight Ready",
+        description: "Here's what the data shows.",
       });
     } catch (error) {
       console.error('Error calling OpenAI:', error);

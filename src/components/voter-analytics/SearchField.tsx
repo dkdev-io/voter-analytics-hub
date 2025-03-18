@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Search, Loader2, Lightbulb } from 'lucide-react';
+import { Search, Loader2 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { type QueryParams } from '@/types/analytics';
@@ -35,23 +35,21 @@ export const SearchField: React.FC<SearchFieldProps> = ({
     if (!inputValue.trim()) {
       toast({
         title: "Empty Query",
-        description: "Please enter a question or query before submitting.",
+        description: "Please enter a question before submitting.",
         variant: "destructive",
       });
       return;
     }
 
-    console.log("Submitting natural language query:", inputValue);
+    console.log("Processing query:", inputValue);
     
     // Update the parent component's search query value
     onChange(inputValue);
     
     if (setQuery) {
       try {
-        console.log("Processing query with LLM before submission");
         // Process the query with LLM to extract structured parameters
         const success = await processWithLLM(inputValue);
-        console.log("LLM processing result:", success);
         
         if (success) {
           // Store the current query for AI assistance
@@ -60,14 +58,11 @@ export const SearchField: React.FC<SearchFieldProps> = ({
             searchQuery: inputValue
           });
           
-          // Only submit if we successfully processed the query
-          console.log("Submitting search after successful LLM processing");
-          onSubmit();
-        } else {
-          console.log("LLM processing failed, not submitting search");
+          // Get insights directly instead of running a separate query
+          await getAIAssistance(inputValue, currentQuery);
         }
       } catch (error) {
-        console.error("Error in LLM processing:", error);
+        console.error("Error in query processing:", error);
         toast({
           title: "Query Processing Error",
           description: error instanceof Error ? error.message : "Failed to process your query",
@@ -75,14 +70,9 @@ export const SearchField: React.FC<SearchFieldProps> = ({
         });
       }
     } else {
-      // If no setQuery function is provided, just submit directly
-      onSubmit();
+      // If no setQuery function is provided, just get AI assistance
+      await getAIAssistance(inputValue);
     }
-  };
-
-  const handleAiAssist = async () => {
-    // Pass both the query text and the structured parameters to the AI assistant
-    await getAIAssistance(inputValue, currentQuery);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -96,7 +86,7 @@ export const SearchField: React.FC<SearchFieldProps> = ({
       <div className="relative w-full">
         <Search className="absolute left-3 top-3 text-gray-400 h-4 w-4" />
         <Textarea
-          placeholder="Try asking: 'How many SMS did Jane Doe make on 2025-01-03?'"
+          placeholder="Ask a question about your data (e.g., 'How many SMS did Jane send yesterday?')"
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={handleKeyPress}
@@ -106,40 +96,23 @@ export const SearchField: React.FC<SearchFieldProps> = ({
         <div className="text-xs text-gray-500 mt-1 text-right">Press ⌘+Enter to submit</div>
       </div>
       
-      <div className="mt-4 flex justify-center gap-2">
+      <div className="mt-4">
         <Button 
           onClick={handleSubmit}
           disabled={isLoading || isAiLoading || isProcessingQuery}
           variant="default"
-          className="w-1/2"
-          size="sm"
+          className="w-full"
+          size="md"
         >
-          {isLoading || isProcessingQuery ? (
+          {isLoading || isProcessingQuery || isAiLoading ? (
             <span className="flex items-center">
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              {isProcessingQuery ? "Processing with AI..." : "Searching..."}
-            </span>
-          ) : (
-            "Submit"
-          )}
-        </Button>
-        
-        <Button
-          onClick={handleAiAssist}
-          disabled={isLoading || isAiLoading || isProcessingQuery || !inputValue.trim()}
-          variant="outline"
-          className="w-1/2"
-          size="sm"
-        >
-          {isAiLoading ? (
-            <span className="flex items-center">
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Analyzing Data...
+              {isProcessingQuery ? "Processing..." : isAiLoading ? "Analyzing Data..." : "Searching..."}
             </span>
           ) : (
             <span className="flex items-center">
-              <Lightbulb className="mr-2 h-4 w-4" />
-              Get AI Insights
+              <Search className="mr-2 h-4 w-4" />
+              Get Insights
             </span>
           )}
         </Button>
@@ -148,4 +121,4 @@ export const SearchField: React.FC<SearchFieldProps> = ({
       <AIAssistantResponse response={aiResponse} />
     </div>
   );
-}
+};

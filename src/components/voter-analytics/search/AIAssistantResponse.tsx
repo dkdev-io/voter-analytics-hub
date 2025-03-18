@@ -12,7 +12,7 @@ export const AIAssistantResponse: React.FC<AIAssistantResponseProps> = ({ respon
   return (
     <Card className="mt-4">
       <CardHeader className="pb-2">
-        <CardTitle className="text-sm">AI Data Analysis</CardTitle>
+        <CardTitle className="text-sm font-medium">Insight</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="text-sm whitespace-pre-wrap prose prose-sm max-w-none">

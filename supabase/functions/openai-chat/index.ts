@@ -15,7 +15,7 @@ serve(async (req) => {
   }
 
   try {
-    const { prompt, includeData = false, queryParams } = await req.json()
+    const { prompt, includeData = false, queryParams, conciseResponse = false } = await req.json()
     
     if (!prompt) {
       throw new Error('No prompt provided')
@@ -28,6 +28,7 @@ serve(async (req) => {
 
     console.log(`Processing prompt: ${prompt.substring(0, 100)}...`)
     console.log(`Include data: ${includeData}, Query params:`, queryParams)
+    console.log(`Concise response: ${conciseResponse}`)
 
     try {
       // Check if this is a parameter extraction request
@@ -82,7 +83,9 @@ Based on this data sample, please answer the user's question. If the data is ins
       // Use different system prompts based on the task
       const systemPrompt = isParameterExtraction 
         ? 'You are a helpful assistant that extracts structured parameters from natural language queries about voter data. Return only valid JSON with no additional text, explanations, or markdown formatting. Never use backticks or code blocks in your response, just the raw JSON. If the query mentions "phone", set tactic to "Phone". If it mentions "SMS" or "sms", set tactic to "SMS". If it mentions "canvas", set tactic to "Canvas". Be exact with person names and dates. Here are specific examples: For "How many Phone attempts did Jane Doe make on 2025-01-02?" your response must be exactly {"tactic":"Phone","person":"Jane Doe","date":"2025-01-02","resultType":"attempts"}'
-        : `You are a helpful assistant that analyzes voter contact data and provides clear, concise insights. Your responses should be insightful, data-driven, and focused on answering the user's specific question. Be precise in your analysis and use specific numbers from the data when applicable. Present your findings in a way that's easy to understand.`
+        : conciseResponse 
+          ? `You are a data analyst providing extremely concise insights about voter contact data. Your responses should be 1-2 sentences maximum, emphasizing key numbers and insights. Always start with the most important numerical finding. Do not include explanations, context, or verbose analysis. Just provide the direct answer with the most relevant number or percentage. Be extremely brief and to the point.`
+          : `You are a helpful assistant that analyzes voter contact data and provides clear, concise insights. Your responses should be insightful, data-driven, and focused on answering the user's specific question. Be precise in your analysis and use specific numbers from the data when applicable. Present your findings in a way that's easy to understand.`
       
       // Include the data context in the user prompt for data analysis requests
       const userPrompt = includeData && dataContext 
@@ -102,7 +105,7 @@ Based on this data sample, please answer the user's question. If the data is ins
             { role: 'user', content: userPrompt }
           ],
           temperature: isParameterExtraction ? 0.1 : 0.7, // Lower temperature for more deterministic results in parameter extraction
-          max_tokens: includeData ? 1000 : 500, // Allow more tokens for data analysis
+          max_tokens: conciseResponse ? 150 : 500, // Less tokens for concise responses
         }),
       })
 
