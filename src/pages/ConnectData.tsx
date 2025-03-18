@@ -1,14 +1,37 @@
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Database, ChevronRight, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Database, ChevronRight, ArrowRight, ArrowLeft, FileUp, FileText, Upload, Loader2 } from 'lucide-react';
+import { Progress } from "@/components/ui/progress";
+import { useCSVUpload } from '@/hooks/useCSVUpload';
+import { ProcessingStep } from '@/components/voter-analytics/csv-upload/ProcessingStep';
 
 const ConnectData = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // CSV upload state management through custom hook
+  const {
+    file,
+    step,
+    isUploading,
+    progress,
+    validationStats,
+    handleFileChange,
+    handleSubmitFile,
+    resetUpload,
+    userEmail
+  } = useCSVUpload(() => {
+    toast({
+      title: 'Data uploaded successfully',
+      description: 'Your voter data has been uploaded and is ready to use.',
+    });
+    setTimeout(() => navigate('/dashboard'), 1500);
+  });
 
   const handleSkip = () => {
     toast({
@@ -19,8 +42,13 @@ const ConnectData = () => {
   };
 
   const handleConnect = (source: string) => {
+    if (source === 'CSV Upload') {
+      // No need to set loading or use setTimeout since we already have the upload logic
+      return;
+    }
+    
     setLoading(true);
-    // Simulate connection process
+    // Simulate connection process for other sources
     setTimeout(() => {
       setLoading(false);
       toast({
@@ -87,21 +115,84 @@ const ConnectData = () => {
             </p>
           </div>
 
-          <div 
-            className="p-6 border border-gray-200 rounded-lg hover:border-blue-300 hover:shadow-md transition-all cursor-pointer"
-            onClick={() => handleConnect('CSV Upload')}
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <Database className="w-8 h-8 text-blue-600" />
-                <h3 className="text-lg font-medium">CSV Upload</h3>
+          {step === 'upload' ? (
+            <div 
+              className="p-6 border border-gray-200 rounded-lg hover:border-blue-300 hover:shadow-md transition-all cursor-pointer md:col-span-2"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-3">
+                  <Database className="w-8 h-8 text-blue-600" />
+                  <h3 className="text-lg font-medium">CSV Upload</h3>
+                </div>
+                <ChevronRight className="w-5 h-5 text-gray-400" />
               </div>
-              <ChevronRight className="w-5 h-5 text-gray-400" />
+              
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+                <FileUp className="h-10 w-10 mx-auto text-gray-400" />
+                <p className="mt-4 text-sm text-gray-600">
+                  Click to browse or drag and drop
+                </p>
+                <p className="text-xs text-gray-500 mt-2">
+                  CSV files only, up to 10MB
+                </p>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  className="hidden"
+                  accept=".csv"
+                  onChange={handleFileChange}
+                />
+                
+                {file && (
+                  <div className="mt-4 flex flex-col items-center justify-center">
+                    <div className="flex items-center">
+                      <FileText className="h-4 w-4 mr-2 text-blue-500" />
+                      <span className="text-sm font-medium">{file.name}</span>
+                    </div>
+                    {userEmail && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        Data will be saved as "voter contact - {userEmail}"
+                      </p>
+                    )}
+                    <Button 
+                      className="mt-4" 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSubmitFile();
+                      }}
+                      disabled={isUploading}
+                    >
+                      <Upload className="h-4 w-4 mr-2" />
+                      Upload File
+                    </Button>
+                  </div>
+                )}
+                
+                {!file && (
+                  <Button 
+                    className="mt-4" 
+                    variant="outline"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      fileInputRef.current?.click();
+                    }}
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    Select CSV File
+                  </Button>
+                )}
+              </div>
             </div>
-            <p className="mt-3 text-sm text-gray-500">
-              Upload voter data from a CSV file.
-            </p>
-          </div>
+          ) : (
+            <div className="p-6 border border-gray-200 rounded-lg md:col-span-2">
+              <ProcessingStep 
+                progress={progress}
+                validationStats={validationStats}
+                userEmail={userEmail}
+              />
+            </div>
+          )}
 
           <div 
             className="p-6 border border-gray-200 rounded-lg hover:border-blue-300 hover:shadow-md transition-all cursor-pointer"
@@ -120,28 +211,32 @@ const ConnectData = () => {
           </div>
         </div>
 
-        <div className="relative my-6">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300"></div>
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-4 text-gray-500 bg-white">Or</span>
-          </div>
-        </div>
+        {step === 'upload' && (
+          <>
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-4 text-gray-500 bg-white">Or</span>
+              </div>
+            </div>
 
-        <div className="flex flex-col items-center justify-center">
-          <Button 
-            variant="outline" 
-            className="flex items-center space-x-2 py-3 px-6 text-gray-700 hover:text-blue-600"
-            onClick={handleSkip}
-          >
-            <span>Skip for Now</span>
-            <ArrowRight className="w-4 h-4" />
-          </Button>
-          <p className="mt-2 text-sm text-gray-500">
-            You can always connect your data later in settings
-          </p>
-        </div>
+            <div className="flex flex-col items-center justify-center">
+              <Button 
+                variant="outline" 
+                className="flex items-center space-x-2 py-3 px-6 text-gray-700 hover:text-blue-600"
+                onClick={handleSkip}
+              >
+                <span>Skip for Now</span>
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+              <p className="mt-2 text-sm text-gray-500">
+                You can always connect your data later in settings
+              </p>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
