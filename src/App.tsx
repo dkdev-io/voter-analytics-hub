@@ -1,9 +1,8 @@
-import { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from '@/components/AuthProvider';
 import { Toaster } from '@/components/ui/toaster';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import { Header } from '@/components/Header';
 import Index from '@/pages/Index';
 import Auth from '@/pages/Auth';
 import Landing from '@/pages/Landing';
@@ -26,17 +25,8 @@ function App() {
 }
 
 function AppContent() {
-  const [showHeader, setShowHeader] = useState(true);
-  const location = useLocation();
-
-  useEffect(() => {
-    // Hide header on landing page
-    setShowHeader(location.pathname !== '/');
-  }, [location.pathname]);
-
   return (
     <div className="app">
-      {showHeader && <Header />}
       <main>
         <Routes>
           <Route path="/" element={<Landing />} />
