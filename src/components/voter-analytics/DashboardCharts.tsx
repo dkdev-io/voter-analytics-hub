@@ -103,8 +103,9 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
         }
         #report-title {
           display: block !important;
-          margin: 20px;
+          margin: 20px 0;
           text-align: center;
+          position: relative;
         }
       }
     `;
@@ -141,6 +142,13 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
       </div>
       
       <div id="report-container">
+        {/* Move the report title inside the report container for proper printing */}
+        <div id="report-title" className="hidden">
+          <pre className="text-xl font-bold whitespace-pre-line text-center">
+            {formatTitle(query)}
+          </pre>
+        </div>
+        
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Chart 1: Tactics Distribution */}
           <TacticsPieChart data={tacticsData} total={totalAttempts} />
@@ -157,4 +165,54 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
       </div>
     </div>
   );
+};
+
+// Format the title based on query parameters - moved from PrintReport to here
+const formatTitle = (query: Partial<QueryParams>) => {
+  const { tactic, resultType, person, team, date, endDate } = query;
+  
+  let title = '';
+  
+  // First line: "Tactic ResultType"
+  if (tactic && tactic !== 'All') {
+    title += tactic;
+  } else {
+    title += "All Tactics";
+  }
+  
+  if (resultType && resultType !== 'All') {
+    title += ` ${resultType}`;
+  } else {
+    title += " Results";
+  }
+  
+  // Second line: "Person by Team"
+  title += "\n";
+  if (person && person !== 'All') {
+    title += `${person}`;
+  } else {
+    title += "All Canvassers";
+  }
+  
+  title += " by ";
+  
+  if (team && team !== 'All') {
+    title += `${team}`;
+  } else {
+    title += "All Teams";
+  }
+  
+  // Third line: "Date to EndDate"
+  title += "\n";
+  if (date && date !== 'All') {
+    title += `${date}`;
+  } else {
+    title += "All Dates";
+  }
+  
+  if (endDate && endDate !== 'All') {
+    title += ` to ${endDate}`;
+  }
+  
+  return title;
 };
