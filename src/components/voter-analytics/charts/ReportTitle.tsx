@@ -9,6 +9,7 @@ interface ReportTitleProps {
 export const ReportTitle: React.FC<ReportTitleProps> = ({ query }) => {
   return (
     <div id="report-title" className="hidden print:block print:mb-8">
+      <h1 className="text-2xl font-bold text-center mb-1">Voter Analytics Report</h1>
       <div className="text-xl font-bold whitespace-pre-line text-center">
         {formatTitle(query)}
       </div>

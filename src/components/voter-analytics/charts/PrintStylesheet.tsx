@@ -33,9 +33,10 @@ export const PrintStylesheet: React.FC<PrintStylesheetProps> = ({ onCleanup }) =
         /* Ensure the report title is visible and properly positioned */
         #report-title {
           display: block !important;
-          margin: 20px 0;
+          margin: 20px 0 30px;
           text-align: center;
           position: relative;
+          visibility: visible !important;
         }
         
         /* Make pie charts appear on the same line when printing */
@@ -63,6 +64,12 @@ export const PrintStylesheet: React.FC<PrintStylesheetProps> = ({ onCleanup }) =
         nav,
         header,
         footer,
+        .tabs-container,
+        .welcome-section,
+        [role="tablist"],
+        input,
+        select,
+        form,
         .bg-white.rounded-lg.shadow-sm.p-6 {
           display: none !important;
           visibility: hidden !important;

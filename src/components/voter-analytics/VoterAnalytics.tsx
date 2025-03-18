@@ -53,7 +53,7 @@ export const VoterAnalytics = () => {
         importNewData={importNewData}
       />
       
-      <div className="bg-white rounded-lg shadow-sm p-6">
+      <div className="bg-white rounded-lg shadow-sm p-6 welcome-section hidden-print">
         <div className="text-center mb-8">
           <h2 className="text-2xl font-bold text-gray-800">Welcome to Dashboard</h2>
           
@@ -71,7 +71,7 @@ export const VoterAnalytics = () => {
           defaultValue="metric" 
           value={activeTab} 
           onValueChange={(value) => setActiveTab(value as "metric" | "question")}
-          className="w-full"
+          className="w-full tabs-container"
         >
           <div className="grid grid-cols-2 gap-4 mb-6">
             <button 
