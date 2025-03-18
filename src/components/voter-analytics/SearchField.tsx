@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -36,14 +37,7 @@ export const SearchField: React.FC<SearchFieldProps> = ({
       return;
     }
 
-    // Check for Dan Kelly special case
-    const isDanKellyQuery = inputValue.toLowerCase().includes("dan kelly") && 
-                           (inputValue.toLowerCase().includes("phone") || 
-                            inputValue.toLowerCase().includes("call"));
-    
-    if (isDanKellyQuery) {
-      console.log("Dan Kelly special case detected in search field:", inputValue);
-    }
+    console.log("Submitting natural language query:", inputValue);
     
     // Update the search value
     onChange(inputValue);
@@ -111,7 +105,7 @@ export const SearchField: React.FC<SearchFieldProps> = ({
       <div className="relative w-full">
         <Search className="absolute left-3 top-4 text-gray-400 h-4 w-4" />
         <Textarea
-          placeholder="Type your question here..."
+          placeholder="Try asking: 'How many SMS did Jane Doe make on 2025-01-03?'"
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={handleKeyPress}

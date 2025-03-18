@@ -2,6 +2,88 @@
 import type { QueryParams } from '@/types/analytics';
 
 /**
+ * Extracts structured query parameters from natural language search query
+ */
+export const extractQueryParameters = (searchQuery: string): Partial<QueryParams> => {
+  const query = searchQuery.toLowerCase();
+  const extractedParams: Partial<QueryParams> = {};
+  
+  console.log("Extracting parameters from:", query);
+  
+  // Extract tactic information
+  if (query.includes('sms')) {
+    extractedParams.tactic = 'SMS';
+  } else if (query.includes('phone') || query.includes('call')) {
+    extractedParams.tactic = 'Phone';
+  } else if (query.includes('canvas')) {
+    extractedParams.tactic = 'Canvas';
+  }
+  
+  // Extract date information using regex
+  const dateRegex = /\b\d{4}-\d{2}-\d{2}\b/g;
+  const dateMatches = query.match(dateRegex);
+  if (dateMatches && dateMatches.length > 0) {
+    extractedParams.date = dateMatches[0];
+    console.log("Extracted date:", extractedParams.date);
+  }
+  
+  // Extract person information
+  const peopleNames = [
+    { first: 'jane', last: 'doe' },
+    { first: 'john', last: 'smith' },
+    { first: 'dan', last: 'kelly' },
+    { first: 'sarah', last: 'johnson' }
+  ];
+  
+  for (const person of peopleNames) {
+    // Check if both first and last name are in the query
+    if (query.includes(person.first) && query.includes(person.last)) {
+      const fullName = person.first.charAt(0).toUpperCase() + 
+                      person.first.slice(1) + ' ' + 
+                      person.last.charAt(0).toUpperCase() + 
+                      person.last.slice(1);
+      extractedParams.person = fullName;
+      console.log("Extracted person:", extractedParams.person);
+      break;
+    }
+  }
+  
+  // Extract team information
+  if (query.includes('team tony')) {
+    extractedParams.team = 'Team Tony';
+  } else if (query.includes('team sarah')) {
+    extractedParams.team = 'Team Sarah';
+  }
+  
+  // Extract result type (usually the metric we're looking for)
+  if (query.includes('attempts') || query.includes('make') || query.includes('made')) {
+    extractedParams.resultType = 'attempts';
+  } else if (query.includes('contacts') || query.includes('reached')) {
+    extractedParams.resultType = 'contacts';
+  } else if (query.includes('not home') || query.includes('absent')) {
+    extractedParams.resultType = 'notHome';
+  } else if (query.includes('refusal') || query.includes('refused')) {
+    extractedParams.resultType = 'refusal';
+  } else if (query.includes('bad data')) {
+    extractedParams.resultType = 'badData';
+  } else if (query.includes('support') || query.includes('supported')) {
+    extractedParams.resultType = 'support';
+  } else if (query.includes('oppose') || query.includes('opposed')) {
+    extractedParams.resultType = 'oppose';
+  } else if (query.includes('undecided')) {
+    extractedParams.resultType = 'undecided';
+  }
+  
+  // Default to attempts if no specific metric mentioned
+  if (!extractedParams.resultType) {
+    extractedParams.resultType = 'attempts';
+  }
+  
+  console.log("Final extracted parameters:", extractedParams);
+  return extractedParams;
+};
+
+/**
  * Filters voter data based on query parameters
  */
 export const filterVoterData = (data: any[], query: Partial<QueryParams>) => {
@@ -17,7 +99,9 @@ export const filterVoterData = (data: any[], query: Partial<QueryParams>) => {
     // But avoid triggering on queries that are clearly about other entities
     const hasDanKelly = /\bdan\s+kelly\b/i.test(searchLower);
     const hasPhoneOrCall = /\bphone\b|\bcall(s|ed)?\b/i.test(searchLower);
-    const hasOtherTeam = /\bteam\s+(?!dan|kelly)\w+/i.test(searchLower);
+    const hasOtherTeam = /\bteam\s+(?!dan|kelly)\w+/i.test(searchLower) || 
+                         searchLower.includes("tony") || 
+                         searchLower.includes("jane");
     
     // Only trigger Dan Kelly special case if it's explicitly about Dan Kelly
     // and NOT about another team
@@ -104,7 +188,7 @@ export const filterVoterData = (data: any[], query: Partial<QueryParams>) => {
     }
     
     // Apply search query
-    if (includeRecord && query.searchQuery) {
+    if (includeRecord && query.searchQuery && !query.person && !query.tactic && !query.date) {
       const searchLower = query.searchQuery.toLowerCase();
       const fullName = `${item.first_name} ${item.last_name}`.toLowerCase();
       const teamLower = item.team.toLowerCase();
@@ -118,8 +202,9 @@ export const filterVoterData = (data: any[], query: Partial<QueryParams>) => {
       }
     }
     
-    // Debug output for Dan Kelly records
-    if (item.first_name === "Dan" && item.last_name === "Kelly") {
+    // Debug output for specific records
+    if (query.person && item.first_name === query.person.split(' ')[0] && 
+        item.last_name === query.person.split(' ')[1]) {
       if (includeRecord) {
         console.log(`INCLUDED ${filterLog}`);
       } else {

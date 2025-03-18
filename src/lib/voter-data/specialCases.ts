@@ -18,7 +18,9 @@ export const handleDanKellySpecialCase = async (query: Partial<QueryParams>, dat
     // Use regex for better pattern matching
     const hasDanKelly = /\bdan\s+kelly\b/i.test(searchLower);
     const hasPhoneOrCall = /\bphone\b|\bcall(s|ed)?\b/i.test(searchLower);
-    const hasOtherTeam = /\bteam\s+(?!dan|kelly)\w+/i.test(searchLower);
+    const hasOtherTeam = /\bteam\s+(?!dan|kelly)\w+/i.test(searchLower) || 
+                         searchLower.includes("tony") || 
+                         searchLower.includes("jane");
     
     // Only apply special case if it's explicitly about Dan Kelly and not about another team
     isDanKellyQuery = hasDanKelly && hasPhoneOrCall && !hasOtherTeam;

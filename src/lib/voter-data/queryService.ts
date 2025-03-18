@@ -1,7 +1,7 @@
 
 import type { QueryParams, VoterMetrics } from '@/types/analytics';
 import { getTestData } from './migrationService';
-import { filterVoterData, searchFilterVoterData } from './filterService';
+import { filterVoterData, searchFilterVoterData, extractQueryParameters } from './filterService';
 import { calculateResult, aggregateVoterMetrics } from './calculationService';
 import { handleDanKellySpecialCase } from './specialCases';
 
@@ -20,6 +20,19 @@ export const calculateResultFromSupabase = async (query: Partial<QueryParams>) =
     const data = await getTestData();
     console.log("Raw data count:", data.length);
     
+    // If this is a natural language query, extract structured parameters
+    if (query.searchQuery && !query.tactic && !query.person) {
+      console.log("Processing natural language query:", query.searchQuery);
+      
+      // Extract structured parameters from the search query
+      const extractedParams = extractQueryParameters(query.searchQuery);
+      console.log("Extracted parameters:", extractedParams);
+      
+      // Merge extracted parameters with any existing parameters
+      query = { ...query, ...extractedParams };
+      console.log("Updated query after extraction:", query);
+    }
+    
     // Check for natural language queries with improved Dan Kelly detection
     if (query.searchQuery) {
       const searchLower = query.searchQuery.toLowerCase();
@@ -28,7 +41,7 @@ export const calculateResultFromSupabase = async (query: Partial<QueryParams>) =
       // and check that the query does not explicitly mention other teams
       const hasDanKelly = /\bdan\s+kelly\b/i.test(searchLower);
       const hasPhoneOrCall = /\bphone\b|\bcall(s|ed)?\b/i.test(searchLower);
-      const hasOtherTeam = /\bteam\s+(?!dan|kelly)\w+/i.test(searchLower);
+      const hasOtherTeam = /\bteam\s+(?!dan|kelly)\w+/i.test(searchLower) || searchLower.includes("tony") || searchLower.includes("jane");
       
       // Only apply Dan Kelly special case if it's explicitly about Dan Kelly
       // and NOT about another team
@@ -69,16 +82,24 @@ export const calculateResultFromSupabase = async (query: Partial<QueryParams>) =
     
     // Log filtered data for debugging
     console.log(`Filtered data count: ${filteredData.length}`);
+    console.log("Filtered data:", filteredData.map(d => ({
+      name: `${d.first_name} ${d.last_name}`,
+      date: d.date,
+      tactic: d.tactic,
+      attempts: d.attempts
+    })));
     
-    if (query.person === "Dan Kelly") {
-      console.log("Filtered Dan Kelly records:", filteredData);
+    if (query.person) {
+      console.log(`Filtered records for ${query.person}:`, filteredData);
     }
     
     if (filteredData.length === 0) {
+      console.log("No matching records found for query:", query);
       return { result: 0, error: null };
     } else {
       // Calculate the result
       const total = calculateResult(filteredData, query.resultType);
+      console.log("Calculated result:", total, "for query:", query);
       return { result: total, error: null };
     }
   } catch (error) {
