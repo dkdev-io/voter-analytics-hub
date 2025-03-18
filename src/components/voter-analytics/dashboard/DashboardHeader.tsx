@@ -73,8 +73,6 @@ export function DashboardHeader({
         <DataMigrationAlert isDataMigrated={isDataMigrated} />
       )}
       
-      <h1 className="text-2xl font-bold">Voter Analytics Dashboard</h1>
-      
       <div className="flex space-x-2">
         <Button 
           variant="outline" 
