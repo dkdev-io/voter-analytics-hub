@@ -11,7 +11,7 @@ export const PrintStylesheet: React.FC<PrintStylesheetProps> = ({ onCleanup }) =
     const style = document.createElement('style');
     style.innerHTML = `
       @media print {
-        /* Hide everything by default */
+        /* Hide absolutely everything by default */
         body * {
           visibility: hidden !important;
           display: none !important;
@@ -32,6 +32,7 @@ export const PrintStylesheet: React.FC<PrintStylesheetProps> = ({ onCleanup }) =
           padding: 20px !important;
           margin: 0 !important;
           box-sizing: border-box !important;
+          background-color: white !important;
         }
         
         /* Ensure the report title is visible and properly positioned */
@@ -69,7 +70,13 @@ export const PrintStylesheet: React.FC<PrintStylesheetProps> = ({ onCleanup }) =
           break-after: auto !important;
         }
         
-        /* Absolutely prevent any unwanted elements */
+        /* Make sure charts are properly sized and spaced */
+        .recharts-wrapper {
+          width: 100% !important;
+          height: auto !important;
+        }
+        
+        /* Aggressively hide every possible unwanted element */
         .welcome-section, 
         button, 
         nav, 
@@ -80,22 +87,21 @@ export const PrintStylesheet: React.FC<PrintStylesheetProps> = ({ onCleanup }) =
         input, 
         select, 
         form, 
-        .hidden-print, 
-        .welcome-section ~ *:not(#report-container) {
+        .hidden-print,
+        h2:not(#report-title h2),
+        .flex:not(#report-container .flex),
+        .mb-4:not(#report-container .mb-4) {
           display: none !important;
           visibility: hidden !important;
         }
         
-        /* Make sure charts are properly sized and spaced */
-        .recharts-wrapper {
-          width: 100% !important;
-          height: auto !important;
-        }
-        
-        /* Extra insurance - hide everything outside the report */
-        body > *:not(#root),
+        /* Very strong selector to hide everything except the report */
+        body > *:not(:has(#report-container)),
         #root > *:not(:has(#report-container)),
-        #root > *:has(#report-container) > *:not(#report-container):not(:has(#report-container)) {
+        div:has(> .welcome-section),
+        div:has(> .tabs-container),
+        div:has(button),
+        div:has(> [role="tablist"]) {
           display: none !important;
           visibility: hidden !important;
         }

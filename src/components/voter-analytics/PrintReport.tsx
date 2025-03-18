@@ -11,15 +11,13 @@ interface PrintReportProps {
 
 export const PrintReport: React.FC<PrintReportProps> = ({ query, onPrint }) => {
   return (
-    <div className="mb-4 hidden-print">
-      <Button 
-        onClick={onPrint}
-        variant="outline"
-        className="flex items-center gap-2"
-      >
-        <Printer className="h-4 w-4" />
-        <span>Print Report</span>
-      </Button>
-    </div>
+    <Button 
+      onClick={onPrint}
+      variant="outline"
+      className="flex items-center gap-2 hidden-print"
+    >
+      <Printer className="h-4 w-4" />
+      <span>Print Report</span>
+    </Button>
   );
 };
