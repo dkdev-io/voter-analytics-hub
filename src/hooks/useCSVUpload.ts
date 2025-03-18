@@ -7,7 +7,8 @@ import {
   transformCSVData, 
   validateAndEnhanceData, 
   clearExistingContacts, 
-  uploadDataBatches 
+  uploadDataBatches,
+  ensureVoterContactsTableExists
 } from '@/utils/csvDataProcessing';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -80,7 +81,12 @@ export function useCSVUpload(onSuccess: () => void) {
     setIsUploading(true);
     
     try {
-      console.log("Deleting ALL existing records before import...");
+      console.log("Setting up for data import...");
+      
+      // First ensure the table exists
+      await ensureVoterContactsTableExists();
+      
+      console.log("Deleting existing records before import...");
       
       await clearExistingContacts();
       
@@ -132,11 +138,22 @@ export function useCSVUpload(onSuccess: () => void) {
       setTimeout(() => {
         resetUpload();
       }, 500);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error uploading data:', error);
+      let errorMessage = 'There was an error uploading your data. ';
+      
+      // Handle specific database errors
+      if (error.message?.includes('relation') && error.message?.includes('does not exist')) {
+        errorMessage += 'Database setup issue. Please contact support.';
+      } else if (error.code === '42P01') {
+        errorMessage += 'Database table not found. Please contact support.';
+      } else {
+        errorMessage += error.message || 'Unknown error occurred.';
+      }
+      
       toast({
         title: 'Upload failed',
-        description: 'There was an error uploading your data. ' + (error as Error).message,
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {

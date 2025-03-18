@@ -147,6 +147,41 @@ export const validateAndEnhanceData = (transformedData: Record<string, any>[]): 
 };
 
 /**
+ * Ensures the voter_contacts table exists for the current user
+ */
+export const ensureVoterContactsTableExists = async (): Promise<void> => {
+  try {
+    // Check if table exists by querying it
+    const { error } = await supabase
+      .from('voter_contacts')
+      .select('id')
+      .limit(1);
+    
+    if (error && error.code === '42P01') { // Table does not exist error code
+      console.log("Table 'voter_contacts' does not exist. Creating it...");
+      
+      // Create the table with SQL (this requires appropriate permissions)
+      const { error: createError } = await supabase.rpc('create_voter_contacts_table');
+      
+      if (createError) {
+        console.error("Error creating table:", createError);
+        throw new Error(`Failed to create the required database table: ${createError.message}`);
+      }
+      
+      console.log("Table 'voter_contacts' created successfully");
+    } else if (error) {
+      console.error("Error checking table existence:", error);
+      throw new Error(`Error checking database: ${error.message}`);
+    } else {
+      console.log("Table 'voter_contacts' already exists");
+    }
+  } catch (error) {
+    console.error("Error in ensureVoterContactsTableExists:", error);
+    throw error;
+  }
+};
+
+/**
  * Clear existing voter contacts data for the current user
  */
 export const clearExistingContacts = async (): Promise<void> => {
@@ -196,7 +231,10 @@ export const uploadDataBatches = async (
     throw new Error("You must be logged in to upload data");
   }
   
-  // Create label for the data
+  // Make sure the table exists
+  await ensureVoterContactsTableExists();
+  
+  // Create label for the data using the user's email
   const label = `voter contact - ${email}`;
   
   // Add the user ID, email, and label to each row
@@ -218,7 +256,10 @@ export const uploadDataBatches = async (
       .from('voter_contacts')
       .insert(batch);
     
-    if (error) throw error;
+    if (error) {
+      console.error("Error inserting batch:", error);
+      throw error;
+    }
     
     const progressValue = Math.round(((i + 1) / batches.length) * 100);
     onProgressUpdate(progressValue);
