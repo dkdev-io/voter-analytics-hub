@@ -73,34 +73,32 @@ export function DashboardHeader({
         <DataMigrationAlert isDataMigrated={isDataMigrated} />
       )}
       
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Voter Analytics Dashboard</h1>
+      <h1 className="text-2xl font-bold">Voter Analytics Dashboard</h1>
+      
+      <div className="flex space-x-2">
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={handleRefresh}
+          disabled={isLoading}
+        >
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Refresh
+        </Button>
         
-        <div className="flex space-x-2">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={handleRefresh}
-            disabled={isLoading}
-          >
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
-          
-          <DataImportButton 
-            onImport={importNewData} 
-            isLoading={isLoading} 
-          />
-          
-          <Button 
-            variant="default"
-            size="sm"
-            onClick={() => setIsUploadDialogOpen(true)}
-          >
-            <FileUp className="h-4 w-4 mr-2" />
-            Upload CSV
-          </Button>
-        </div>
+        <DataImportButton 
+          onImport={importNewData} 
+          isLoading={isLoading} 
+        />
+        
+        <Button 
+          variant="default"
+          size="sm"
+          onClick={() => setIsUploadDialogOpen(true)}
+        >
+          <FileUp className="h-4 w-4 mr-2" />
+          Upload CSV
+        </Button>
       </div>
       
       <CSVUploadDialog 
