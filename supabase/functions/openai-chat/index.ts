@@ -34,7 +34,7 @@ serve(async (req) => {
       
       // Use different system prompts based on the task
       const systemPrompt = isParameterExtraction 
-        ? 'You are a helpful assistant that extracts structured parameters from natural language queries about voter data. Return only valid JSON with no additional text, explanations, or markdown formatting. Never use backticks or code blocks in your response, just the raw JSON.'
+        ? 'You are a helpful assistant that extracts structured parameters from natural language queries about voter data. Return only valid JSON with no additional text, explanations, or markdown formatting. Never use backticks or code blocks in your response, just the raw JSON. If the query mentions "phone", set tactic to "Phone". If it mentions "SMS" or "sms", set tactic to "SMS". If it mentions "canvas", set tactic to "Canvas". Be exact with person names and dates.'
         : 'You are a helpful assistant that provides clear and concise responses.'
       
       const response = await fetch('https://api.openai.com/v1/chat/completions', {

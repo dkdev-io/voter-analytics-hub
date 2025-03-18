@@ -41,15 +41,21 @@ export const useLLMProcessor = ({ setQuery }: UseLLMProcessorOptions) => {
             Example 2:
             Query: "Show me phone calls by Team Tony"
             Response: {"tactic":"Phone","team":"Team Tony"}
+            
+            Example 3:
+            Query: "How many Phone attempts did Jane Doe make on 2025-01-02?"
+            Response: {"tactic":"Phone","person":"Jane Doe","date":"2025-01-02","resultType":"attempts"}
           `
         }
       });
 
       if (error) {
+        console.error("Error from Supabase function:", error);
         throw new Error(error.message);
       }
 
       if (!data || !data.answer) {
+        console.error("No response from AI");
         throw new Error("No response from AI");
       }
 
@@ -69,13 +75,22 @@ export const useLLMProcessor = ({ setQuery }: UseLLMProcessorOptions) => {
         const extractedParams = JSON.parse(cleanedResponse);
         console.log("LLM extracted parameters:", extractedParams);
         
+        // Validate extracted parameters
+        if (Object.keys(extractedParams).length === 0) {
+          console.error("No parameters extracted from query");
+          throw new Error("Could not extract search parameters from your query");
+        }
+        
         // Only update the query if we have a setQuery function
         if (setQuery) {
           // Preserve the original searchQuery
-          setQuery({
+          const updatedQuery = {
             ...extractedParams,
             searchQuery: userQuery
-          });
+          };
+          
+          console.log("Setting query with parameters:", updatedQuery);
+          setQuery(updatedQuery);
           
           toast({
             title: "Query Processed",

@@ -1,4 +1,3 @@
-
 import { type QueryParams } from '@/types/analytics';
 import { 
   migrateTestDataToSupabase, 
@@ -23,7 +22,11 @@ export const initializeSupabaseConnection = async () => {
  * Calculate result based on query parameters
  */
 export const calculateQueryResult = async (query: Partial<QueryParams>) => {
-  if (!query.tactic && !query.resultType && !query.person && !query.date && !query.searchQuery) {
+  console.log("Starting calculation with query:", query);
+  
+  // Check if we have any meaningful query parameters
+  if (!query.tactic && !query.resultType && !query.person && !query.date && !query.team && !query.searchQuery) {
+    console.log("No query parameters provided");
     return { error: "Please select at least one field or enter a search term", result: null };
   }
 

@@ -42,7 +42,9 @@ export const useAnalyticsActions = ({
   };
 
   const calculateResult = async () => {
-    if (!query.tactic && !query.resultType && !query.person && !query.date && !searchQuery) {
+    console.log("Starting calculateResult with query:", query, "searchQuery:", searchQuery);
+    
+    if (!query.tactic && !query.resultType && !query.person && !query.date && !query.team && !searchQuery) {
       setError("Please select at least one field or enter a search term");
       return;
     }
@@ -55,6 +57,8 @@ export const useAnalyticsActions = ({
         ...query,
         searchQuery: searchQuery
       };
+      
+      console.log("Calculating result with updatedQuery:", updatedQuery);
       
       const { result: calculatedResult, error: calculationError } = await calculateQueryResult(updatedQuery);
       

@@ -46,12 +46,18 @@ export const SearchField: React.FC<SearchFieldProps> = ({
     
     if (setQuery) {
       try {
+        console.log("Processing query with LLM before submission");
         const success = await processWithLLM(inputValue);
+        console.log("LLM processing result:", success);
         if (success) {
           // Only submit if we successfully processed the query
+          console.log("Submitting search after successful LLM processing");
           onSubmit();
+        } else {
+          console.log("LLM processing failed, not submitting search");
         }
       } catch (error) {
+        console.error("Error in LLM processing:", error);
         toast({
           title: "Query Processing Error",
           description: error instanceof Error ? error.message : "Failed to process your query",
