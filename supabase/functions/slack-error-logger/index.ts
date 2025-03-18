@@ -20,8 +20,20 @@ serve(async (req) => {
     
     console.log("Received error log:", { message, source, route });
     
+    // If no webhook URL is set, log to console but return success
+    // This prevents errors from propagating to the client
     if (!slackWebhookUrl) {
-      throw new Error("SLACK_WEBHOOK_URL environment variable is not set");
+      console.warn("SLACK_WEBHOOK_URL environment variable is not set. Logging to console only.");
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          message: "Error logged to console (SLACK_WEBHOOK_URL not configured)" 
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        }
+      );
     }
 
     // Format message for Slack
@@ -120,10 +132,11 @@ serve(async (req) => {
     });
   } catch (error) {
     console.error("Error in slack-error-logger function:", error);
+    // Still return a 200 response to prevent client errors
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ success: false, message: error.message }),
       {
-        status: 500,
+        status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     );

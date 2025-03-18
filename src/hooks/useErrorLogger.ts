@@ -1,9 +1,11 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { useLocation } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
 
 export function useErrorLogger() {
   const location = useLocation();
+  const { toast } = useToast();
   
   const logError = async (error: Error | string, source: string, metadata?: Record<string, any>) => {
     const errorMessage = typeof error === 'string' ? error : error.message;
@@ -12,7 +14,7 @@ export function useErrorLogger() {
     console.error(`[ERROR] ${source}:`, error);
     
     try {
-      const { error: logError } = await supabase.functions.invoke('slack-error-logger', {
+      const { data, error: logError } = await supabase.functions.invoke('slack-error-logger', {
         body: {
           message: errorMessage,
           stack: errorStack,
@@ -23,11 +25,11 @@ export function useErrorLogger() {
       });
       
       if (logError) {
-        console.error('Failed to log error to Slack:', logError);
+        console.warn('Failed to log error to logging service:', logError);
       }
     } catch (loggingError) {
       // Don't throw from the error logger to avoid recursive errors
-      console.error('Error while sending to error logger:', loggingError);
+      console.warn('Error while sending to error logger:', loggingError);
     }
   };
   
@@ -60,11 +62,11 @@ export function useErrorLogger() {
         }
       });
     } catch (loggingError) {
-      console.error('Error while sending auth flow log:', loggingError);
+      console.warn('Error while sending auth flow log:', loggingError);
     }
   };
   
-  // New function to log data issues specifically for the Dan Kelly debugging
+  // Function to log data issues specifically for debugging
   const logDataIssue = async (source: string, metadata: Record<string, any>) => {
     console.warn(`[DATA ISSUE] ${source}:`, metadata);
     
@@ -87,7 +89,7 @@ export function useErrorLogger() {
         }
       });
     } catch (loggingError) {
-      console.error('Error while sending data issue log:', loggingError);
+      console.warn('Error while sending data issue log:', loggingError);
     }
   };
   
