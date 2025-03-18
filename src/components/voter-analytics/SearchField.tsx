@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Search, Loader2 } from 'lucide-react';
@@ -45,8 +46,11 @@ export const SearchField: React.FC<SearchFieldProps> = ({
     
     if (setQuery) {
       try {
-        await processWithLLM(inputValue);
-        onSubmit();
+        const success = await processWithLLM(inputValue);
+        if (success) {
+          // Only submit if we successfully processed the query
+          onSubmit();
+        }
       } catch (error) {
         toast({
           title: "Query Processing Error",
@@ -60,7 +64,6 @@ export const SearchField: React.FC<SearchFieldProps> = ({
   };
 
   const handleAiAssist = async () => {
-    onChange(inputValue);
     await getAIAssistance(inputValue);
   };
 

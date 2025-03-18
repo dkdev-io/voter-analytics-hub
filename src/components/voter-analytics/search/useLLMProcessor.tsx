@@ -17,6 +17,8 @@ export const useLLMProcessor = ({ setQuery }: UseLLMProcessorOptions) => {
   const processWithLLM = useCallback(async (userQuery: string) => {
     setIsProcessingQuery(true);
     try {
+      console.log("Processing query with LLM:", userQuery);
+      
       const { data, error } = await supabase.functions.invoke('openai-chat', {
         body: { 
           prompt: `
@@ -31,6 +33,14 @@ export const useLLMProcessor = ({ setQuery }: UseLLMProcessorOptions) => {
             
             Only include fields that are explicitly mentioned or strongly implied in the query.
             Return ONLY the JSON with no additional text.
+            
+            Example 1:
+            Query: "How many SMS attempts did Jane Doe make on 2025-01-31?"
+            Response: {"tactic":"SMS","person":"Jane Doe","date":"2025-01-31","resultType":"attempts"}
+            
+            Example 2:
+            Query: "Show me phone calls by Team Tony"
+            Response: {"tactic":"Phone","team":"Team Tony"}
           `
         }
       });
@@ -43,9 +53,20 @@ export const useLLMProcessor = ({ setQuery }: UseLLMProcessorOptions) => {
         throw new Error("No response from AI");
       }
 
+      console.log("LLM raw response:", data.answer);
+
       // Try to parse the JSON response
       try {
-        const extractedParams = JSON.parse(data.answer.trim());
+        // Clean the response of any markdown formatting or extra text
+        let cleanedResponse = data.answer.trim();
+        if (cleanedResponse.startsWith('```') && cleanedResponse.endsWith('```')) {
+          cleanedResponse = cleanedResponse.substring(3, cleanedResponse.length - 3).trim();
+        }
+        if (cleanedResponse.startsWith('json')) {
+          cleanedResponse = cleanedResponse.substring(4).trim();
+        }
+        
+        const extractedParams = JSON.parse(cleanedResponse);
         console.log("LLM extracted parameters:", extractedParams);
         
         // Only update the query if we have a setQuery function
@@ -55,9 +76,18 @@ export const useLLMProcessor = ({ setQuery }: UseLLMProcessorOptions) => {
             ...extractedParams,
             searchQuery: userQuery
           });
+          
+          toast({
+            title: "Query Processed",
+            description: `Interpreted as: ${Object.entries(extractedParams)
+              .map(([key, value]) => `${key}: ${value}`)
+              .join(', ')}`,
+          });
+          
+          return true;
         }
         
-        return true;
+        return false;
       } catch (parseError) {
         console.error("Failed to parse LLM response:", data.answer);
         console.error("Parse error:", parseError);
@@ -70,7 +100,7 @@ export const useLLMProcessor = ({ setQuery }: UseLLMProcessorOptions) => {
     } finally {
       setIsProcessingQuery(false);
     }
-  }, [setQuery, logError]);
+  }, [setQuery, logError, toast]);
 
   return {
     isProcessingQuery,

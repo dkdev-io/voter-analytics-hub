@@ -25,7 +25,7 @@ serve(async (req) => {
       throw new Error('OpenAI API key not configured')
     }
 
-    console.log(`Processing prompt: ${prompt.substring(0, 50)}...`)
+    console.log(`Processing prompt: ${prompt.substring(0, 100)}...`)
 
     try {
       // Check if this is a parameter extraction request
@@ -34,7 +34,7 @@ serve(async (req) => {
       
       // Use different system prompts based on the task
       const systemPrompt = isParameterExtraction 
-        ? 'You are a helpful assistant that extracts structured parameters from natural language queries about voter data. Return only valid JSON with no additional text.'
+        ? 'You are a helpful assistant that extracts structured parameters from natural language queries about voter data. Return only valid JSON with no additional text, explanations, or markdown formatting. Never use backticks or code blocks in your response, just the raw JSON.'
         : 'You are a helpful assistant that provides clear and concise responses.'
       
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -68,6 +68,9 @@ serve(async (req) => {
 
       const data = await response.json()
       const answer = data.choices[0].message.content
+
+      // Log for debugging
+      console.log("OpenAI answer:", answer)
 
       return new Response(
         JSON.stringify({ answer }),

@@ -24,6 +24,8 @@ export const useAIAssistant = () => {
     setAiResponse(null);
 
     try {
+      console.log("Getting AI assistance for:", inputValue);
+      
       const { data, error } = await supabase.functions.invoke('openai-chat', {
         body: { prompt: `Based on this voter analytics query: "${inputValue}", provide insights and suggestions for the user.` }
       });
@@ -36,7 +38,9 @@ export const useAIAssistant = () => {
         throw new Error(data.error);
       }
 
+      console.log("AI response received:", data.answer);
       setAiResponse(data.answer);
+      
       toast({
         title: "AI Analysis Complete",
         description: "The AI has analyzed your query and provided insights.",
