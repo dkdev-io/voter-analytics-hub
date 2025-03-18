@@ -1,12 +1,12 @@
-import { useState, useCallback } from 'react';
-import { Input } from '@/components/ui/input';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Search, Loader2, Sparkle } from 'lucide-react';
+import { Search, Loader2 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import { useErrorLogger } from '@/hooks/useErrorLogger';
 import { type QueryParams } from '@/types/analytics';
+import { useLLMProcessor } from './search/useLLMProcessor';
+import { useAIAssistant } from './search/useAIAssistant';
+import { AIAssistantResponse } from './search/AIAssistantResponse';
 
 interface SearchFieldProps {
   value: string;
@@ -24,69 +24,10 @@ export const SearchField: React.FC<SearchFieldProps> = ({
   setQuery
 }) => {
   const [inputValue, setInputValue] = useState(value);
-  const [aiResponse, setAiResponse] = useState<string | null>(null);
-  const [isAiLoading, setIsAiLoading] = useState(false);
-  const [isProcessingQuery, setIsProcessingQuery] = useState(false);
   const { toast } = useToast();
-  const { logError } = useErrorLogger();
-
-  const processWithLLM = useCallback(async (userQuery: string) => {
-    setIsProcessingQuery(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('openai-chat', {
-        body: { 
-          prompt: `
-            Given this natural language query about voter analytics: "${userQuery}", 
-            extract structured parameters for searching a voter database. 
-            The result should be a valid JSON object with these possible fields:
-            - tactic: "Phone", "SMS", or "Canvas" (type of voter contact)
-            - person: The full name of the person, with proper capitalization
-            - date: In YYYY-MM-DD format
-            - resultType: "attempts", "contacts", "support", "oppose", "undecided", "notHome", "refusal", or "badData"
-            - team: The team name if mentioned
-            
-            Only include fields that are explicitly mentioned or strongly implied in the query.
-            Return ONLY the JSON with no additional text.
-          `
-        }
-      });
-
-      if (error) {
-        throw new Error(error.message);
-      }
-
-      if (!data || !data.answer) {
-        throw new Error("No response from AI");
-      }
-
-      // Try to parse the JSON response
-      try {
-        const extractedParams = JSON.parse(data.answer.trim());
-        console.log("LLM extracted parameters:", extractedParams);
-        
-        // Only update the query if we have a setQuery function
-        if (setQuery) {
-          // Preserve the original searchQuery
-          setQuery({
-            ...extractedParams,
-            searchQuery: userQuery
-          });
-        }
-        
-        return true;
-      } catch (parseError) {
-        console.error("Failed to parse LLM response:", data.answer);
-        console.error("Parse error:", parseError);
-        throw new Error("Failed to parse parameters from the query");
-      }
-    } catch (error) {
-      console.error('Error processing with LLM:', error);
-      logError(error as Error, 'SearchField.processWithLLM');
-      throw error;
-    } finally {
-      setIsProcessingQuery(false);
-    }
-  }, [setQuery, logError]);
+  
+  const { isProcessingQuery, processWithLLM } = useLLMProcessor({ setQuery });
+  const { aiResponse, isAiLoading, getAIAssistance } = useAIAssistant();
 
   const handleSubmit = async () => {
     if (!inputValue.trim()) {
@@ -100,16 +41,11 @@ export const SearchField: React.FC<SearchFieldProps> = ({
 
     console.log("Submitting natural language query:", inputValue);
     
-    // Update the search value
     onChange(inputValue);
     
-    // If we have a setQuery function, try to process with LLM first
     if (setQuery) {
       try {
-        // Instead of updating local isLoading, we're setting isProcessingQuery
-        setIsProcessingQuery(true);
         await processWithLLM(inputValue);
-        // After processing, submit the query
         onSubmit();
       } catch (error) {
         toast({
@@ -117,61 +53,15 @@ export const SearchField: React.FC<SearchFieldProps> = ({
           description: error instanceof Error ? error.message : "Failed to process your query",
           variant: "destructive",
         });
-      } finally {
-        setIsProcessingQuery(false);
       }
     } else {
-      // Otherwise just submit directly
       onSubmit();
     }
   };
 
   const handleAiAssist = async () => {
-    if (!inputValue.trim()) {
-      toast({
-        title: "Empty Query",
-        description: "Please enter a question or query before submitting.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsAiLoading(true);
-    setAiResponse(null);
-    
-    // Update the search value but don't submit
     onChange(inputValue);
-
-    try {
-      const { data, error } = await supabase.functions.invoke('openai-chat', {
-        body: { prompt: `Based on this voter analytics query: "${inputValue}", provide insights and suggestions for the user.` }
-      });
-
-      if (error) {
-        throw new Error(error.message);
-      }
-
-      if (data.error) {
-        throw new Error(data.error);
-      }
-
-      setAiResponse(data.answer);
-      toast({
-        title: "AI Analysis Complete",
-        description: "The AI has analyzed your query and provided insights.",
-      });
-    } catch (error) {
-      console.error('Error calling OpenAI:', error);
-      logError(error as Error, 'SearchField.handleAiAssist');
-      
-      toast({
-        title: "AI Assistant Error",
-        description: error instanceof Error ? error.message : "Failed to get response from AI assistant",
-        variant: "destructive",
-      });
-    } finally {
-      setIsAiLoading(false);
-    }
+    await getAIAssistance(inputValue);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -214,12 +104,7 @@ export const SearchField: React.FC<SearchFieldProps> = ({
         </Button>
       </div>
 
-      {aiResponse && (
-        <div className="mt-4 p-3 bg-gray-50 border border-gray-200 rounded-md">
-          <h3 className="text-xs font-medium mb-2">AI Assistant:</h3>
-          <div className="text-xs whitespace-pre-wrap">{aiResponse}</div>
-        </div>
-      )}
+      <AIAssistantResponse response={aiResponse} />
     </div>
   );
 }
