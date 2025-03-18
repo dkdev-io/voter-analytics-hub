@@ -77,7 +77,8 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
     try {
       console.log("Deleting ALL existing records before import...");
       
-      const { error: truncateError } = await supabase.rpc('truncate_voter_contacts');
+      const { error: truncateError } = await supabase
+        .rpc('truncate_voter_contacts', {});
       
       if (truncateError) {
         console.error("Error truncating table:", truncateError);
