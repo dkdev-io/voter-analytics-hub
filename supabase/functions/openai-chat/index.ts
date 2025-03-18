@@ -15,7 +15,13 @@ serve(async (req) => {
   }
 
   try {
-    const { prompt, includeData = false, queryParams, conciseResponse = false } = await req.json()
+    const { 
+      prompt, 
+      includeData = false, 
+      queryParams, 
+      conciseResponse = false,
+      dataSummary = null // New parameter for structured data summary
+    } = await req.json()
     
     if (!prompt) {
       throw new Error('No prompt provided')
@@ -27,7 +33,7 @@ serve(async (req) => {
     }
 
     console.log(`Processing prompt: ${prompt.substring(0, 100)}...`)
-    console.log(`Include data: ${includeData}, Query params:`, queryParams)
+    console.log(`Include data: ${includeData}, Data summary provided: ${!!dataSummary}`)
     console.log(`Concise response: ${conciseResponse}`)
 
     try {
@@ -39,87 +45,106 @@ serve(async (req) => {
       let dataContext = ""
       
       if (includeData) {
-        // Initialize Supabase client
-        const supabaseUrl = Deno.env.get('SUPABASE_URL') || ''
-        const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
-        const supabase = createClient(supabaseUrl, supabaseKey)
-        
-        // Build query based on parameters
-        let query = supabase.from('voter_contacts').select('*')
-        
-        // Apply user-specific filtering - only get their own data
-        if (req.headers.get('authorization')) {
-          try {
-            const token = req.headers.get('authorization')?.split('Bearer ')[1] || '';
-            const { data: userData, error: userError } = await supabase.auth.getUser(token);
-            
-            if (userError) {
-              console.error('Error getting user:', userError);
-            } else if (userData?.user) {
-              query = query.eq('user_id', userData.user.id);
-              console.log(`Filtering data for user: ${userData.user.id}`);
-            }
-          } catch (authError) {
-            console.error('Error authenticating user:', authError);
-          }
-        }
-        
-        // Apply query parameters if provided
-        if (queryParams) {
-          if (queryParams.tactic) {
-            query = query.ilike('tactic', `%${queryParams.tactic}%`)
-          }
-          if (queryParams.person) {
-            query = query.or(`first_name.ilike.%${queryParams.person}%,last_name.ilike.%${queryParams.person}%`)
-          }
-          if (queryParams.date) {
-            query = query.eq('date', queryParams.date)
-          }
-          if (queryParams.team) {
-            query = query.ilike('team', `%${queryParams.team}%`)
-          }
-        }
-        
-        // First get a count of the total matching records
-        const { count, error: countError } = await query.count();
-        
-        if (countError) {
-          console.error('Error counting data:', countError);
-        } else {
-          console.log(`Total matching records: ${count}`);
-        }
-        
-        // Then get a sample of the data
-        // Limit has to be reasonable for the prompt - we'll use aggregation for large datasets
-        const { data: sampleData, error } = await query.limit(50);
-        
-        if (error) {
-          console.error('Error fetching data from Supabase:', error);
-        } else if (sampleData && sampleData.length > 0) {
-          // For large datasets, also fetch aggregated statistics
-          let statsContext = "";
+        // If we have a structured data summary, use that instead of querying the database
+        if (dataSummary) {
+          console.log("Using provided data summary instead of querying database");
           
-          if (count && count > 50) {
-            // Fetch summary statistics
-            const statsQueries = [];
-            
-            // Total attempts by tactic
-            statsQueries.push(supabase.rpc('sum_by_tactic', { user_id_param: req.headers.get('authorization')?.split('Bearer ')[1] || '' }));
-            
-            // Total by team
-            statsQueries.push(supabase.rpc('sum_by_team', { user_id_param: req.headers.get('authorization')?.split('Bearer ')[1] || '' }));
-            
-            // Results by date
-            statsQueries.push(supabase.rpc('sum_by_date', { user_id_param: req.headers.get('authorization')?.split('Bearer ')[1] || '' }));
-            
+          dataContext = `
+Here is a summary of the voter contact data:
+
+Total rows: ${dataSummary.totalRows}
+
+Column statistics:
+${JSON.stringify(dataSummary.columnStats, null, 2)}
+
+Sample rows:
+${JSON.stringify(dataSummary.sampleRows, null, 2)}
+
+Based on this data summary, please answer the user's question. Focus on providing specific insights and numerical values from the data. If the data is insufficient to answer the question completely, acknowledge that limitation in your response.`
+          
+          console.log("Using structured data summary for context");
+        } else {
+          // Initialize Supabase client
+          const supabaseUrl = Deno.env.get('SUPABASE_URL') || ''
+          const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
+          const supabase = createClient(supabaseUrl, supabaseKey)
+          
+          // Build query based on parameters
+          let query = supabase.from('voter_contacts').select('*')
+          
+          // Apply user-specific filtering - only get their own data
+          if (req.headers.get('authorization')) {
             try {
-              // Execute all queries in parallel
-              const [tacticStats, teamStats, dateStats] = await Promise.all(statsQueries);
+              const token = req.headers.get('authorization')?.split('Bearer ')[1] || '';
+              const { data: userData, error: userError } = await supabase.auth.getUser(token);
               
-              if (!tacticStats.error && tacticStats.data && 
-                  !teamStats.error && teamStats.data && 
-                  !dateStats.error && dateStats.data) {
-                statsContext = `
+              if (userError) {
+                console.error('Error getting user:', userError);
+              } else if (userData?.user) {
+                query = query.eq('user_id', userData.user.id);
+                console.log(`Filtering data for user: ${userData.user.id}`);
+              }
+            } catch (authError) {
+              console.error('Error authenticating user:', authError);
+            }
+          }
+          
+          // Apply query parameters if provided
+          if (queryParams) {
+            if (queryParams.tactic) {
+              query = query.ilike('tactic', `%${queryParams.tactic}%`)
+            }
+            if (queryParams.person) {
+              query = query.or(`first_name.ilike.%${queryParams.person}%,last_name.ilike.%${queryParams.person}%`)
+            }
+            if (queryParams.date) {
+              query = query.eq('date', queryParams.date)
+            }
+            if (queryParams.team) {
+              query = query.ilike('team', `%${queryParams.team}%`)
+            }
+          }
+          
+          // First get a count of the total matching records
+          const { count, error: countError } = await query.count();
+          
+          if (countError) {
+            console.error('Error counting data:', countError);
+          } else {
+            console.log(`Total matching records: ${count}`);
+          }
+          
+          // Then get a sample of the data
+          // Limit has to be reasonable for the prompt - we'll use aggregation for large datasets
+          const { data: sampleData, error } = await query.limit(50);
+          
+          if (error) {
+            console.error('Error fetching data from Supabase:', error);
+          } else if (sampleData && sampleData.length > 0) {
+            // For large datasets, also fetch aggregated statistics
+            let statsContext = "";
+            
+            if (count && count > 50) {
+              // Fetch summary statistics
+              const statsQueries = [];
+              
+              // Total attempts by tactic
+              statsQueries.push(supabase.rpc('sum_by_tactic', { user_id_param: req.headers.get('authorization')?.split('Bearer ')[1] || '' }));
+              
+              // Total by team
+              statsQueries.push(supabase.rpc('sum_by_team', { user_id_param: req.headers.get('authorization')?.split('Bearer ')[1] || '' }));
+              
+              // Results by date
+              statsQueries.push(supabase.rpc('sum_by_date', { user_id_param: req.headers.get('authorization')?.split('Bearer ')[1] || '' }));
+              
+              try {
+                // Execute all queries in parallel
+                const [tacticStats, teamStats, dateStats] = await Promise.all(statsQueries);
+                
+                if (!tacticStats.error && tacticStats.data && 
+                    !teamStats.error && teamStats.data && 
+                    !dateStats.error && dateStats.data) {
+                  statsContext = `
 Here are the aggregated statistics for the entire dataset (${count} records):
 
 Tactic statistics:
@@ -131,26 +156,27 @@ ${JSON.stringify(teamStats.data, null, 2)}
 Date statistics:
 ${JSON.stringify(dateStats.data, null, 2)}
 `;
+                }
+              } catch (statsError) {
+                console.error('Error fetching statistics:', statsError);
+                // Continue with sample data only if stats fail
               }
-            } catch (statsError) {
-              console.error('Error fetching statistics:', statsError);
-              // Continue with sample data only if stats fail
             }
-          }
-          
-          // Format the data for inclusion in the prompt
-          dataContext = `
+            
+            // Format the data for inclusion in the prompt
+            dataContext = `
 Here is a sample of the relevant voter contact data (showing ${sampleData.length} out of ${count || 'unknown'} records):
 ${JSON.stringify(sampleData, null, 2)}
 
 ${statsContext}
 
 Based on this data${count && count > 50 ? ' and the aggregated statistics' : ''}, please answer the user's question. If the data is insufficient to answer the question completely, acknowledge that limitation in your response.`
-          
-          console.log(`Retrieved ${sampleData.length} records for context`);
-        } else {
-          dataContext = "Note: No matching data was found for the specified criteria.";
-          console.log("No matching data found");
+            
+            console.log(`Retrieved ${sampleData.length} records for context`);
+          } else {
+            dataContext = "Note: No matching data was found for the specified criteria.";
+            console.log("No matching data found");
+          }
         }
       }
       
