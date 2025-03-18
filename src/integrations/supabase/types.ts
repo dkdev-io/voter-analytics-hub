@@ -113,12 +113,78 @@ export type Database = {
           },
         ]
       }
+      voter_contacts: {
+        Row: {
+          attempts: number
+          bad_data: number
+          contacts: number
+          created_at: string | null
+          date: string
+          first_name: string
+          id: number
+          label: string | null
+          last_name: string
+          not_home: number
+          oppose: number
+          refusal: number
+          support: number
+          tactic: string
+          team: string
+          undecided: number
+          user_email: string | null
+          user_id: string | null
+        }
+        Insert: {
+          attempts?: number
+          bad_data?: number
+          contacts?: number
+          created_at?: string | null
+          date: string
+          first_name: string
+          id?: number
+          label?: string | null
+          last_name: string
+          not_home?: number
+          oppose?: number
+          refusal?: number
+          support?: number
+          tactic: string
+          team: string
+          undecided?: number
+          user_email?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          attempts?: number
+          bad_data?: number
+          contacts?: number
+          created_at?: string | null
+          date?: string
+          first_name?: string
+          id?: number
+          label?: string | null
+          last_name?: string
+          not_home?: number
+          oppose?: number
+          refusal?: number
+          support?: number
+          tactic?: string
+          team?: string
+          undecided?: number
+          user_email?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_voter_contacts_table: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

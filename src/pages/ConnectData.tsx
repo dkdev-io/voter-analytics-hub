@@ -41,23 +41,6 @@ const ConnectData = () => {
     navigate('/dashboard');
   };
 
-  const handleConnect = (source: string) => {
-    if (source === 'CSV Upload') {
-      // No need to set loading or use setTimeout since we already have the upload logic
-      return;
-    }
-    
-    setLoading(true);
-    // Simulate connection process for other sources
-    setTimeout(() => {
-      setLoading(false);
-      toast({
-        title: 'Connection initiated',
-        description: `Connecting to ${source}. This feature is coming soon.`,
-      });
-    }, 1500);
-  };
-
   const handleBack = () => {
     navigate('/dashboard');
   };
@@ -85,7 +68,12 @@ const ConnectData = () => {
         <div className="grid gap-6 md:grid-cols-2">
           <div 
             className="p-6 border border-gray-200 rounded-lg hover:border-blue-300 hover:shadow-md transition-all cursor-pointer"
-            onClick={() => handleConnect('VAN/NGP')}
+            onClick={() => {
+              toast({
+                title: 'Coming Soon',
+                description: 'VAN/NGP integration is coming soon.',
+              });
+            }}
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
@@ -101,7 +89,12 @@ const ConnectData = () => {
 
           <div 
             className="p-6 border border-gray-200 rounded-lg hover:border-blue-300 hover:shadow-md transition-all cursor-pointer"
-            onClick={() => handleConnect('PDI')}
+            onClick={() => {
+              toast({
+                title: 'Coming Soon',
+                description: 'PDI integration is coming soon.',
+              });
+            }}
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
@@ -194,19 +187,6 @@ const ConnectData = () => {
             </div>
           )}
         </div>
-
-        {step === 'upload' && (
-          <div className="flex flex-col items-center justify-center">
-            <Button 
-              variant="outline" 
-              className="flex items-center space-x-2 py-3 px-6 text-gray-700 hover:text-blue-600"
-              onClick={handleSkip}
-            >
-              <span>Skip for Now</span>
-              <ArrowRight className="w-4 h-4" />
-            </Button>
-          </div>
-        )}
       </div>
     </div>
   );
