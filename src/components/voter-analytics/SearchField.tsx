@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Search, Loader2 } from 'lucide-react';
+import { Search, Loader2, Lightbulb } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { type QueryParams } from '@/types/analytics';
@@ -25,6 +25,7 @@ export const SearchField: React.FC<SearchFieldProps> = ({
   setQuery
 }) => {
   const [inputValue, setInputValue] = useState(value);
+  const [currentQuery, setCurrentQuery] = useState<Partial<QueryParams>>({});
   const { toast } = useToast();
   
   const { isProcessingQuery, processWithLLM } = useLLMProcessor({ setQuery });
@@ -53,6 +54,12 @@ export const SearchField: React.FC<SearchFieldProps> = ({
         console.log("LLM processing result:", success);
         
         if (success) {
+          // Store the current query for AI assistance
+          setCurrentQuery({
+            ...currentQuery,
+            searchQuery: inputValue
+          });
+          
           // Only submit if we successfully processed the query
           console.log("Submitting search after successful LLM processing");
           onSubmit();
@@ -74,7 +81,8 @@ export const SearchField: React.FC<SearchFieldProps> = ({
   };
 
   const handleAiAssist = async () => {
-    await getAIAssistance(inputValue);
+    // Pass both the query text and the structured parameters to the AI assistant
+    await getAIAssistance(inputValue, currentQuery);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -103,7 +111,7 @@ export const SearchField: React.FC<SearchFieldProps> = ({
           onClick={handleSubmit}
           disabled={isLoading || isAiLoading || isProcessingQuery}
           variant="default"
-          className="w-full"
+          className="w-1/2"
           size="sm"
         >
           {isLoading || isProcessingQuery ? (
@@ -113,6 +121,26 @@ export const SearchField: React.FC<SearchFieldProps> = ({
             </span>
           ) : (
             "Submit"
+          )}
+        </Button>
+        
+        <Button
+          onClick={handleAiAssist}
+          disabled={isLoading || isAiLoading || isProcessingQuery || !inputValue.trim()}
+          variant="outline"
+          className="w-1/2"
+          size="sm"
+        >
+          {isAiLoading ? (
+            <span className="flex items-center">
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Analyzing Data...
+            </span>
+          ) : (
+            <span className="flex items-center">
+              <Lightbulb className="mr-2 h-4 w-4" />
+              Get AI Insights
+            </span>
           )}
         </Button>
       </div>

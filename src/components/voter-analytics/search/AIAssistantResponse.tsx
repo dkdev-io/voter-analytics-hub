@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface AIAssistantResponseProps {
   response: string | null;
@@ -9,9 +10,15 @@ export const AIAssistantResponse: React.FC<AIAssistantResponseProps> = ({ respon
   if (!response) return null;
   
   return (
-    <div className="mt-4 p-3 bg-gray-50 border border-gray-200 rounded-md">
-      <h3 className="text-xs font-medium mb-2">AI Assistant:</h3>
-      <div className="text-xs whitespace-pre-wrap">{response}</div>
-    </div>
+    <Card className="mt-4">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm">AI Data Analysis</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="text-sm whitespace-pre-wrap prose prose-sm max-w-none">
+          {response}
+        </div>
+      </CardContent>
+    </Card>
   );
 };

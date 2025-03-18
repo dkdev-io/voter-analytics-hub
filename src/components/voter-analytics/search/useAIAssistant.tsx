@@ -3,6 +3,7 @@ import { useState, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useErrorLogger } from '@/hooks/useErrorLogger';
 import { supabase } from '@/integrations/supabase/client';
+import { type QueryParams } from '@/types/analytics';
 
 export const useAIAssistant = () => {
   const [aiResponse, setAiResponse] = useState<string | null>(null);
@@ -10,7 +11,7 @@ export const useAIAssistant = () => {
   const { toast } = useToast();
   const { logError } = useErrorLogger();
 
-  const getAIAssistance = useCallback(async (inputValue: string) => {
+  const getAIAssistance = useCallback(async (inputValue: string, queryParams?: Partial<QueryParams>) => {
     if (!inputValue.trim()) {
       toast({
         title: "Empty Query",
@@ -25,9 +26,14 @@ export const useAIAssistant = () => {
 
     try {
       console.log("Getting AI assistance for:", inputValue);
+      console.log("With query parameters:", queryParams);
       
       const { data, error } = await supabase.functions.invoke('openai-chat', {
-        body: { prompt: `Based on this voter analytics query: "${inputValue}", provide insights and suggestions for the user.` }
+        body: { 
+          prompt: `Analyze the following voter analytics query and provide insights: "${inputValue}"`,
+          includeData: true, // Tell the function to include data in the analysis
+          queryParams // Pass the extracted parameters to filter relevant data
+        }
       });
 
       if (error) {
@@ -43,7 +49,7 @@ export const useAIAssistant = () => {
       
       toast({
         title: "AI Analysis Complete",
-        description: "The AI has analyzed your query and provided insights.",
+        description: "The AI has analyzed your data and provided insights.",
       });
     } catch (error) {
       console.error('Error calling OpenAI:', error);

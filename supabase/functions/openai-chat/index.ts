@@ -1,6 +1,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import "https://deno.land/x/xhr@0.1.0/mod.ts"
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -14,7 +15,7 @@ serve(async (req) => {
   }
 
   try {
-    const { prompt } = await req.json()
+    const { prompt, includeData = false, queryParams } = await req.json()
     
     if (!prompt) {
       throw new Error('No prompt provided')
@@ -26,16 +27,67 @@ serve(async (req) => {
     }
 
     console.log(`Processing prompt: ${prompt.substring(0, 100)}...`)
+    console.log(`Include data: ${includeData}, Query params:`, queryParams)
 
     try {
       // Check if this is a parameter extraction request
       const isParameterExtraction = prompt.includes("extract structured parameters") || 
                                    prompt.includes("valid JSON object")
       
+      // For data analysis requests, we need to fetch the relevant data
+      let dataContext = ""
+      
+      if (includeData && queryParams) {
+        // Initialize Supabase client
+        const supabaseUrl = Deno.env.get('SUPABASE_URL') || ''
+        const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
+        const supabase = createClient(supabaseUrl, supabaseKey)
+        
+        // Build query based on parameters
+        let query = supabase.from('voter_contacts').select('*')
+        
+        if (queryParams.tactic) {
+          query = query.ilike('tactic', `%${queryParams.tactic}%`)
+        }
+        if (queryParams.person) {
+          query = query.or(`first_name.ilike.%${queryParams.person}%,last_name.ilike.%${queryParams.person}%`)
+        }
+        if (queryParams.date) {
+          query = query.eq('date', queryParams.date)
+        }
+        if (queryParams.team) {
+          query = query.ilike('team', `%${queryParams.team}%`)
+        }
+        
+        // Limit to a reasonable sample size
+        const { data: sampleData, error } = await query.limit(50)
+        
+        if (error) {
+          console.error('Error fetching data from Supabase:', error)
+        } else if (sampleData && sampleData.length > 0) {
+          // Format the data for inclusion in the prompt
+          dataContext = `
+Here is a sample of the relevant voter contact data (showing ${sampleData.length} records):
+${JSON.stringify(sampleData, null, 2)}
+
+Based on this data sample, please answer the user's question. If the data is insufficient to answer the question completely, acknowledge that limitation in your response.`
+          
+          console.log(`Retrieved ${sampleData.length} records for context`)
+        } else {
+          dataContext = "Note: No matching data was found for the specified criteria."
+          console.log("No matching data found")
+        }
+      }
+      
       // Use different system prompts based on the task
       const systemPrompt = isParameterExtraction 
         ? 'You are a helpful assistant that extracts structured parameters from natural language queries about voter data. Return only valid JSON with no additional text, explanations, or markdown formatting. Never use backticks or code blocks in your response, just the raw JSON. If the query mentions "phone", set tactic to "Phone". If it mentions "SMS" or "sms", set tactic to "SMS". If it mentions "canvas", set tactic to "Canvas". Be exact with person names and dates. Here are specific examples: For "How many Phone attempts did Jane Doe make on 2025-01-02?" your response must be exactly {"tactic":"Phone","person":"Jane Doe","date":"2025-01-02","resultType":"attempts"}'
-        : 'You are a helpful assistant that provides clear and concise responses.'
+        : `You are a helpful assistant that analyzes voter contact data and provides clear, concise insights. Your responses should be insightful, data-driven, and focused on answering the user's specific question. Be precise in your analysis and use specific numbers from the data when applicable. Present your findings in a way that's easy to understand.`
+      
+      // Include the data context in the user prompt for data analysis requests
+      const userPrompt = includeData && dataContext 
+        ? `${prompt}\n\n${dataContext}`
+        : prompt
       
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
@@ -47,10 +99,10 @@ serve(async (req) => {
           model: 'gpt-4o-mini',
           messages: [
             { role: 'system', content: systemPrompt },
-            { role: 'user', content: prompt }
+            { role: 'user', content: userPrompt }
           ],
           temperature: isParameterExtraction ? 0.1 : 0.7, // Lower temperature for more deterministic results in parameter extraction
-          max_tokens: 500,
+          max_tokens: includeData ? 1000 : 500, // Allow more tokens for data analysis
         }),
       })
 
@@ -70,7 +122,7 @@ serve(async (req) => {
       const answer = data.choices[0].message.content
 
       // Log for debugging
-      console.log("OpenAI answer:", answer)
+      console.log("OpenAI answer:", answer.substring(0, 100) + "...")
 
       return new Response(
         JSON.stringify({ answer }),
