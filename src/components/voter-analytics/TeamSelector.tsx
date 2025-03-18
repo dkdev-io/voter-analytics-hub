@@ -24,13 +24,13 @@ export const TeamSelector = ({
   const displayTeams = teams.length > 0 ? teams : [];
   
   return (
-    <div className="inline-block min-w-[180px]">
+    <div className="w-full">
       <Select
         value={value || "All"}
         onValueChange={onChange}
         disabled={isLoading}
       >
-        <SelectTrigger className="min-w-[180px]">
+        <SelectTrigger className="w-full">
           <SelectValue placeholder={isLoading ? "Loading..." : "Select Team"} />
         </SelectTrigger>
         <SelectContent 

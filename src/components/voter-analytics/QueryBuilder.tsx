@@ -7,6 +7,7 @@ import { ResultTypeSelector } from './ResultTypeSelector';
 import { TeamSelector } from './TeamSelector';
 import { PersonSelector } from './PersonSelector';
 import { DateSelector } from './DateSelector';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface QueryBuilderProps {
   query: Partial<QueryParams>;
@@ -125,63 +126,68 @@ export const QueryBuilder = ({
   });
 
   return (
-    <div className="space-y-6">
-      {/* First row: Show + Tactic + Metric all on same line */}
-      <div className="flex items-center gap-2 mb-4">
-        <span className="text-lg text-gray-700 whitespace-nowrap">Show</span>
-        <TacticSelector 
-          value={safeQuery.tactic}
-          onChange={handleTacticChange}
-          tactics={tactics}
-          isLoading={isLoading}
-        />
-        <ResultTypeSelector 
-          value={safeQuery.resultType}
-          onChange={handleResultTypeChange}
-          isLoading={isLoading}
-        />
-      </div>
-      
-      {/* Second row: By + Team + Person all on same line */}
-      <div className="flex items-center gap-2 mb-4">
-        <span className="text-lg text-gray-700 whitespace-nowrap">By</span>
-        <TeamSelector 
-          value={selectedTeam}
-          onChange={handleTeamChange}
-          teams={teams}
-          isLoading={isLoading}
-        />
-        <PersonSelector 
-          value={safeQuery.person}
-          onChange={handlePersonChange}
-          people={filteredPeople}
-          disabled={false}
-          isLoading={isLoading}
-        />
-      </div>
-      
-      {/* Third row: From date + To date */}
-      <div className="flex items-center gap-2">
-        <span className="text-lg text-gray-700">From</span>
+    <ScrollArea className="pr-4 max-h-[calc(100vh-300px)]">
+      <div className="space-y-6">
+        {/* First row: Show + Tactic + Metric all as stacked items */}
+        <div className="space-y-2">
+          <span className="text-sm font-medium text-gray-700 block">Show</span>
+          <div className="flex flex-col gap-2">
+            <TacticSelector 
+              value={safeQuery.tactic}
+              onChange={handleTacticChange}
+              tactics={tactics}
+              isLoading={isLoading}
+            />
+            <ResultTypeSelector 
+              value={safeQuery.resultType}
+              onChange={handleResultTypeChange}
+              isLoading={isLoading}
+            />
+          </div>
+        </div>
         
-        <DateSelector 
-          value={safeQuery.date}
-          onChange={handleDateSelect}
-          availableDates={availableDates}
-          isLoading={isLoading}
-          label="Start Date"
-        />
+        {/* Second row: By + Team + Person all as stacked items */}
+        <div className="space-y-2">
+          <span className="text-sm font-medium text-gray-700 block">By</span>
+          <div className="flex flex-col gap-2">
+            <TeamSelector 
+              value={selectedTeam}
+              onChange={handleTeamChange}
+              teams={teams}
+              isLoading={isLoading}
+            />
+            <PersonSelector 
+              value={safeQuery.person}
+              onChange={handlePersonChange}
+              people={filteredPeople}
+              disabled={false}
+              isLoading={isLoading}
+            />
+          </div>
+        </div>
         
-        <span className="text-lg text-gray-700 ml-4">To</span>
-        
-        <DateSelector 
-          value={safeQuery.endDate}
-          onChange={handleEndDateSelect}
-          availableDates={availableDates}
-          isLoading={isLoading}
-          label="End Date"
-        />
+        {/* Third row: Date range as stacked items */}
+        <div className="space-y-2">
+          <span className="text-sm font-medium text-gray-700 block">Time Period</span>
+          <div className="flex flex-col gap-2">
+            <DateSelector 
+              value={safeQuery.date}
+              onChange={handleDateSelect}
+              availableDates={availableDates}
+              isLoading={isLoading}
+              label="Start Date"
+            />
+            
+            <DateSelector 
+              value={safeQuery.endDate}
+              onChange={handleEndDateSelect}
+              availableDates={availableDates}
+              isLoading={isLoading}
+              label="End Date"
+            />
+          </div>
+        </div>
       </div>
-    </div>
+    </ScrollArea>
   );
 }

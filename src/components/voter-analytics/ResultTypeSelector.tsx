@@ -26,13 +26,13 @@ export const ResultTypeSelector = ({
   }, [isLoading]);
 
   return (
-    <div className="inline-block min-w-[150px]">
+    <div className="w-full">
       <Select
         value={value || ""}
         onValueChange={onChange}
         disabled={isLoading}
       >
-        <SelectTrigger className="min-w-[150px]">
+        <SelectTrigger className="w-full">
           <SelectValue placeholder={isLoading ? "Loading..." : "Select Metric"} />
         </SelectTrigger>
         <SelectContent className="bg-white z-50">

@@ -36,7 +36,7 @@ export function QuerySection({
         isDataMigrated={isDataMigrated}
         onRefresh={onRefresh}
       />
-      <div className="mt-4 flex justify-center">
+      <div className="mt-4">
         <Button 
           onClick={onSubmit}
           disabled={isLoading}

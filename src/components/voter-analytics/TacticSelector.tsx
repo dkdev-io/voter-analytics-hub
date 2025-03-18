@@ -17,13 +17,13 @@ export const TacticSelector = ({
   console.log("TacticSelector - tactics:", tactics, "isLoading:", isLoading);
   
   return (
-    <div className="inline-block min-w-[150px]">
+    <div className="w-full">
       <Select
         value={value}
         onValueChange={onChange}
         disabled={isLoading}
       >
-        <SelectTrigger className="min-w-[150px]">
+        <SelectTrigger className="w-full">
           <SelectValue placeholder={isLoading ? "Loading..." : "Select Tactic"} />
         </SelectTrigger>
         <SelectContent className="bg-white z-50 max-h-[300px] overflow-y-auto">
