@@ -106,7 +106,8 @@ export const SearchField: React.FC<SearchFieldProps> = ({
     // If we have a setQuery function, try to process with LLM first
     if (setQuery) {
       try {
-        setIsLoading(true);
+        // Instead of updating local isLoading, we're setting isProcessingQuery
+        setIsProcessingQuery(true);
         await processWithLLM(inputValue);
         // After processing, submit the query
         onSubmit();
@@ -117,7 +118,7 @@ export const SearchField: React.FC<SearchFieldProps> = ({
           variant: "destructive",
         });
       } finally {
-        setIsLoading(false);
+        setIsProcessingQuery(false);
       }
     } else {
       // Otherwise just submit directly
