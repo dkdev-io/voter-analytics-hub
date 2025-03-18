@@ -26,16 +26,11 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
         
         if (!isDataMigrated) {
           console.log("Data not migrated yet, skipping metadata fetch");
-          // Set fallback values for better UX
-          setTactics(["SMS", "Phone", "Canvas", "Email"]);
-          setTeams(["Team Alpha", "Team Beta", "Team Gamma", "Team Delta"]);
-          setAvailableDates(["2023-02-01", "2023-03-01", "2023-04-01"]);
-          const fallbackPeople = [
-            "Michael Garcia", "Sarah Rodriguez", "David Smith", 
-            "Emily Johnson", "Joshua Williams"
-          ];
-          setAllPeople(fallbackPeople);
-          setFilteredPeople(fallbackPeople);
+          setTactics([]);
+          setTeams([]);
+          setAvailableDates([]);
+          setAllPeople([]);
+          setFilteredPeople([]);
           return;
         }
         
@@ -74,16 +69,12 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
           variant: "destructive"
         });
         
-        // Set fallback values if fetch fails
-        setTactics(["SMS", "Phone", "Canvas", "Email"]);
-        setTeams(["Team Alpha", "Team Beta", "Team Gamma", "Team Delta"]);
-        setAvailableDates(["2023-02-01", "2023-03-01", "2023-04-01"]);
-        const fallbackPeople = [
-          "Michael Garcia", "Sarah Rodriguez", "David Smith", 
-          "Emily Johnson", "Joshua Williams"
-        ];
-        setAllPeople(fallbackPeople);
-        setFilteredPeople(fallbackPeople);
+        // Set empty arrays if fetch fails
+        setTactics([]);
+        setTeams([]);
+        setAvailableDates([]);
+        setAllPeople([]);
+        setFilteredPeople([]);
       } finally {
         setIsLoading(false);
       }
@@ -131,12 +122,8 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
           variant: "destructive"
         });
         
-        // Fallback to at least showing something
-        const fallbackPeople = [
-          "Michael Garcia", "Sarah Rodriguez", "David Smith", 
-          "Emily Johnson", "Joshua Williams"
-        ];
-        setFilteredPeople(fallbackPeople);
+        // Set empty array if fetch fails
+        setFilteredPeople([]);
       } finally {
         setIsLoading(false);
       }

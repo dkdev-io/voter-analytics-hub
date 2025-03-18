@@ -20,12 +20,6 @@ export const TeamSelector = ({
     console.log("TeamSelector received teams:", teams);
   }, [teams]);
   
-  // Ensure expected teams are always available
-  const expectedTeams = ["Team Tony", "Local Party", "Candidate"];
-  
-  // Combine uploaded teams with expected teams, removing duplicates
-  const allTeams = [...new Set([...teams, ...expectedTeams])].sort();
-  
   return (
     <div className="inline-block min-w-[180px]">
       <Select
@@ -43,15 +37,15 @@ export const TeamSelector = ({
           align="start"
         >
           <SelectItem value="All">All Teams</SelectItem>
-          {allTeams.length > 0 ? (
-            allTeams.map(team => (
+          {teams.length > 0 ? (
+            teams.map(team => (
               <SelectItem key={team} value={team}>
                 {team}
               </SelectItem>
             ))
           ) : (
             <SelectItem value="no-data" disabled>
-              {isLoading ? "Loading teams..." : "No data in database yet"}
+              {isLoading ? "Loading teams..." : "No team data available"}
             </SelectItem>
           )}
         </SelectContent>
