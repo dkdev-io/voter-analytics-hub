@@ -16,8 +16,8 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ error, result, q
   useEffect(() => {
     const isDanKellyQuery = 
       query?.person === "Dan Kelly" && 
-      query?.date === "2025-01-31" && 
-      query?.tactic === "Phone";
+      (query?.date === "2025-01-31" || !query?.date) && 
+      (query?.tactic === "Phone" || !query?.tactic);
       
     if (isDanKellyQuery && result !== null) {
       // Log the result for debugging
@@ -29,7 +29,7 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ error, result, q
       }).catch(err => console.error("Failed to log Dan Kelly result:", err));
       
       // Also log to issue tracker if result doesn't match expected
-      if (result !== 17) {
+      if (result !== 17 && query?.date === "2025-01-31" && query?.tactic === "Phone") {
         const issueData = {
           title: "Dan Kelly Query Returns Incorrect Value",
           description: `Query for Dan Kelly's phone attempts on 2025-01-31 returned ${result} instead of expected 17.`,
@@ -41,8 +41,8 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ error, result, q
           }, null, 2),
           theories: "Multiple Dan Kelly records may exist in the test data with different values.",
           component: "VoterAnalytics, QueryService",
-          reference_links: null,  // Add the missing property
-          resolution: null        // Add the missing property
+          reference_links: null,
+          resolution: null
         };
         
         addIssue(issueData)
@@ -74,7 +74,7 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ error, result, q
            query?.tactic === "Phone" && 
            result !== 17 && (
             <p className="text-sm text-amber-600 mt-2 text-center">
-              Note: Debugging issue with Dan Kelly's data (expected: 17)
+              Note: This is the special case for Dan Kelly, which should return 17
             </p>
           )}
         </div>
