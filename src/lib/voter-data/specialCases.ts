@@ -3,20 +3,31 @@ import type { QueryParams } from '@/types/analytics';
 import { addIssue } from '@/lib/issue-log/issueLogService';
 
 /**
- * Handles special case for Dan Kelly's data query
+ * Handles special case for Dan Kelly's data query with improved detection
  */
 export const handleDanKellySpecialCase = async (query: Partial<QueryParams>, data: any[]) => {
-  // Check if this is a Dan Kelly query - either direct or via natural language
-  const isDanKellyQuery = 
-    (query.person === "Dan Kelly" || 
-     (query.searchQuery && query.searchQuery.toLowerCase().includes("dan kelly"))) && 
-    (query.tactic === "Phone" || 
-     (query.searchQuery && query.searchQuery.toLowerCase().includes("phone")));
+  // Check if this is a Dan Kelly query using improved detection
+  let isDanKellyQuery = false;
+  
+  if (query.person === "Dan Kelly" && query.tactic === "Phone") {
+    // Direct query for Dan Kelly's phone activity
+    isDanKellyQuery = true;
+  } else if (query.searchQuery) {
+    const searchLower = query.searchQuery.toLowerCase();
+    
+    // Use regex for better pattern matching
+    const hasDanKelly = /\bdan\s+kelly\b/i.test(searchLower);
+    const hasPhoneOrCall = /\bphone\b|\bcall(s|ed)?\b/i.test(searchLower);
+    const hasOtherTeam = /\bteam\s+(?!dan|kelly)\w+/i.test(searchLower);
+    
+    // Only apply special case if it's explicitly about Dan Kelly and not about another team
+    isDanKellyQuery = hasDanKelly && hasPhoneOrCall && !hasOtherTeam;
+  }
 
   if (isDanKellyQuery) {
     try {
       // Log directly to console since we can't use hooks here
-      console.log("Dan Kelly Special Case Triggered", {
+      console.log("Dan Kelly Special Case Triggered with improved detection", {
         query,
         message: "Handling Dan Kelly phone data",
         timestamp: new Date().toISOString()

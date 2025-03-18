@@ -5,12 +5,28 @@ import type { QueryParams } from '@/types/analytics';
  * Filters voter data based on query parameters
  */
 export const filterVoterData = (data: any[], query: Partial<QueryParams>) => {
-  // Special case for Dan Kelly with natural language search or direct query
-  const isDanKellyQuery = 
-    (query.person === "Dan Kelly" || 
-     (query.searchQuery && query.searchQuery.toLowerCase().includes("dan kelly"))) && 
-    (query.tactic === "Phone" || 
-     (query.searchQuery && query.searchQuery.toLowerCase().includes("phone")));
+  // Improved Dan Kelly detection with proximity check
+  let isDanKellyQuery = false;
+  
+  if (query.person === "Dan Kelly" && query.tactic === "Phone") {
+    // Direct query for Dan Kelly's phone activity
+    isDanKellyQuery = true;
+  } else if (query.searchQuery) {
+    const searchLower = query.searchQuery.toLowerCase();
+    // Check if "dan" and "kelly" appear together AND "phone" or "call" is in the query
+    // But avoid triggering on queries that are clearly about other entities
+    const hasDanKelly = /\bdan\s+kelly\b/i.test(searchLower);
+    const hasPhoneOrCall = /\bphone\b|\bcall(s|ed)?\b/i.test(searchLower);
+    const hasOtherTeam = /\bteam\s+(?!dan|kelly)\w+/i.test(searchLower);
+    
+    // Only trigger Dan Kelly special case if it's explicitly about Dan Kelly
+    // and NOT about another team
+    isDanKellyQuery = hasDanKelly && hasPhoneOrCall && !hasOtherTeam;
+    
+    if (isDanKellyQuery) {
+      console.log("Dan Kelly special case detected in search with improved pattern matching");
+    }
+  }
 
   if (isDanKellyQuery) {
     console.log("Dan Kelly special case filter applied in filterVoterData");
@@ -125,10 +141,18 @@ export const searchFilterVoterData = (data: any[], searchQuery: string) => {
     return [];
   }
   
-  // Special case for Dan Kelly
-  if (searchQuery.toLowerCase().includes("dan kelly") && 
-      (searchQuery.toLowerCase().includes("phone") || searchQuery.toLowerCase().includes("call"))) {
-    console.log("Special case search for Dan Kelly applied");
+  // Improved Dan Kelly detection with proximity check for search
+  const searchLower = searchQuery.toLowerCase();
+  const hasDanKelly = /\bdan\s+kelly\b/i.test(searchLower);
+  const hasPhoneOrCall = /\bphone\b|\bcall(s|ed)?\b/i.test(searchLower);
+  const hasOtherTeam = /\bteam\s+(?!dan|kelly)\w+/i.test(searchLower);
+  
+  // Only trigger Dan Kelly special case if it's explicitly about Dan Kelly
+  // and NOT about another team
+  const isDanKellyQuery = hasDanKelly && hasPhoneOrCall && !hasOtherTeam;
+  
+  if (isDanKellyQuery) {
+    console.log("Special case search for Dan Kelly applied with improved detection");
     
     const danKellyRecords = data.filter(item => 
       item.first_name === "Dan" && 
@@ -139,8 +163,6 @@ export const searchFilterVoterData = (data: any[], searchQuery: string) => {
     console.log("Dan Kelly phone records found:", danKellyRecords.length);
     return danKellyRecords;
   }
-  
-  const searchLower = searchQuery.toLowerCase();
   
   return data.filter(item => {
     const fullName = `${item.first_name} ${item.last_name}`.toLowerCase();

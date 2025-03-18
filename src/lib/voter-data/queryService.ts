@@ -20,12 +20,20 @@ export const calculateResultFromSupabase = async (query: Partial<QueryParams>) =
     const data = await getTestData();
     console.log("Raw data count:", data.length);
     
-    // Check for natural language queries about Dan Kelly
+    // Check for natural language queries with improved Dan Kelly detection
     if (query.searchQuery) {
       const searchLower = query.searchQuery.toLowerCase();
-      if (searchLower.includes("dan kelly") && 
-          (searchLower.includes("phone") || searchLower.includes("call"))) {
-        console.log("Natural language query about Dan Kelly detected");
+      
+      // Use regex for better pattern matching to ensure "dan kelly" appears as a phrase
+      // and check that the query does not explicitly mention other teams
+      const hasDanKelly = /\bdan\s+kelly\b/i.test(searchLower);
+      const hasPhoneOrCall = /\bphone\b|\bcall(s|ed)?\b/i.test(searchLower);
+      const hasOtherTeam = /\bteam\s+(?!dan|kelly)\w+/i.test(searchLower);
+      
+      // Only apply Dan Kelly special case if it's explicitly about Dan Kelly
+      // and NOT about another team
+      if (hasDanKelly && hasPhoneOrCall && !hasOtherTeam) {
+        console.log("Natural language query about Dan Kelly detected with improved pattern matching");
         
         // Explicitly set the query parameters for Dan Kelly's phone calls
         query.person = "Dan Kelly";
