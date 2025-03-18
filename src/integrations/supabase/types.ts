@@ -124,29 +124,31 @@ export type Database = {
           id: number
           last_name: string
           not_home: number
-          oppose: number | null
-          refusal: number | null
-          support: number | null
+          oppose: number
+          refusal: number
+          support: number
           tactic: string
           team: string
-          undecided: number | null
+          undecided: number
+          user_id: string | null
         }
         Insert: {
-          attempts: number
-          bad_data: number
-          contacts: number
+          attempts?: number
+          bad_data?: number
+          contacts?: number
           created_at?: string | null
           date: string
           first_name: string
           id?: number
           last_name: string
-          not_home: number
-          oppose?: number | null
-          refusal?: number | null
-          support?: number | null
+          not_home?: number
+          oppose?: number
+          refusal?: number
+          support?: number
           tactic: string
           team: string
-          undecided?: number | null
+          undecided?: number
+          user_id?: string | null
         }
         Update: {
           attempts?: number
@@ -158,12 +160,13 @@ export type Database = {
           id?: number
           last_name?: string
           not_home?: number
-          oppose?: number | null
-          refusal?: number | null
-          support?: number | null
+          oppose?: number
+          refusal?: number
+          support?: number
           tactic?: string
           team?: string
-          undecided?: number | null
+          undecided?: number
+          user_id?: string | null
         }
         Relationships: []
       }

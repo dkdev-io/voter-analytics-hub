@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
 interface HeaderMappingResult {
@@ -112,29 +113,41 @@ export const validateAndEnhanceData = (transformedData: Record<string, any>[]): 
       enhancedRow.team = 'Team Tony';
     }
     
+    // Add the current user's ID to each row
+    enhancedRow.user_id = supabase.auth.getSession().then(({ data }) => data.session?.user.id) || null;
+    
     return enhancedRow;
   }).filter(row => 
     row.first_name && row.last_name && row.team && row.date && row.tactic);
 };
 
 /**
- * Clear existing voter contacts data
+ * Clear existing voter contacts data for the current user
  */
 export const clearExistingContacts = async (): Promise<void> => {
-  console.log("Deleting ALL voter contact records...");
+  // Get the current user's ID
+  const { data: sessionData } = await supabase.auth.getSession();
+  const userId = sessionData.session?.user.id;
   
-  // Using a simpler approach that works with the Supabase types
+  if (!userId) {
+    console.error("No user ID found when clearing contacts");
+    throw new Error("You must be logged in to upload data");
+  }
+  
+  console.log(`Deleting voter contact records for user ${userId}...`);
+  
+  // Delete only this user's records
   const { error } = await supabase
     .from('voter_contacts')
     .delete()
-    .neq('id', -1); // This condition is always true, so it will delete all records
+    .eq('user_id', userId);
   
   if (error) {
     console.error("Error deleting records:", error);
     throw new Error(`Failed to clear existing records. Please try again or contact support. Error: ${error.message}`);
   }
   
-  console.log("Successfully deleted all voter contact records");
+  console.log(`Successfully deleted voter contact records for user ${userId}`);
 };
 
 /**
@@ -147,8 +160,23 @@ export const uploadDataBatches = async (
   const batchSize = 100;
   const batches = [];
   
-  for (let i = 0; i < validData.length; i += batchSize) {
-    batches.push(validData.slice(i, i + batchSize));
+  // Get the current user's ID
+  const { data: sessionData } = await supabase.auth.getSession();
+  const userId = sessionData.session?.user.id;
+  
+  if (!userId) {
+    console.error("No user ID found when uploading data");
+    throw new Error("You must be logged in to upload data");
+  }
+  
+  // Add the user ID to each row
+  const dataWithUserId = validData.map(item => ({
+    ...item,
+    user_id: userId
+  }));
+  
+  for (let i = 0; i < dataWithUserId.length; i += batchSize) {
+    batches.push(dataWithUserId.slice(i, i + batchSize));
   }
   
   for (let i = 0; i < batches.length; i++) {

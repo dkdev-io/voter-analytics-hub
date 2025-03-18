@@ -10,6 +10,7 @@ type AuthMode = 'login' | 'signup';
 export function useAuthForm(redirectPath: string = '/connect-data') {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLogin, setIsLogin] = useState(true);
@@ -52,6 +53,11 @@ export function useAuthForm(redirectPath: string = '/connect-data') {
         const { error } = await supabase.auth.signUp({
           email,
           password,
+          options: {
+            data: {
+              full_name: fullName,
+            },
+          }
         });
 
         if (error) throw error;
@@ -94,6 +100,8 @@ export function useAuthForm(redirectPath: string = '/connect-data') {
     setEmail,
     password, 
     setPassword,
+    fullName,
+    setFullName,
     loading,
     error,
     isLogin,

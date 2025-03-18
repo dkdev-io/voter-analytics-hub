@@ -1,145 +1,132 @@
+
+// This file contains functions for importing and migrating voter data into Supabase
 import { supabase } from '@/integrations/supabase/client';
 
-// Cache the test data to avoid repeated calls
-let testDataCache: any[] | null = null;
-let lastFetchTime = 0;
-const CACHE_TIMEOUT = 5000; // 5 seconds - reduced from 10s to ensure fresh data
+// Type for voter contact data
+export interface VoterContactRow {
+  id?: number;
+  first_name: string;
+  last_name: string;
+  team: string;
+  date: string;
+  tactic: string;
+  attempts: number; 
+  contacts: number;
+  not_home: number;
+  refusal: number;
+  bad_data: number;
+  support: number;
+  oppose: number;
+  undecided: number;
+  user_id?: string | null;
+}
 
-// Function to check Supabase connection and data availability
-export const migrateTestDataToSupabase = async (forceRefresh = false): Promise<{ success: boolean; message: string }> => {
-  try {
-    console.log("Checking Supabase connection...");
-    
-    // Clear the cache if a refresh is forced
-    if (forceRefresh) {
-      console.log("Force refresh requested, clearing cache");
-      testDataCache = null;
-      lastFetchTime = 0;
-    }
-    
-    // Attempt to connect to Supabase by querying the voter_contacts table
-    const { data, error } = await supabase
-      .from('voter_contacts')
-      .select('count')
-      .limit(1);
-    
-    if (error) {
-      console.error("Supabase connection error:", error);
-      return { 
-        success: false, 
-        message: error.message 
-      };
-    }
-    
-    // Check if there's data in the voter_contacts table
-    const { count, error: countError } = await supabase
-      .from('voter_contacts')
-      .select('*', { count: 'exact', head: true });
-    
-    if (countError) {
-      console.error("Error checking voter_contacts count:", countError);
-      return { 
-        success: true, 
-        message: "Connected to Supabase, but couldn't check data count: " + countError.message
-      };
-    }
-    
-    if (!count || count === 0) {
-      console.log("No data found in voter_contacts table");
-      return { 
-        success: true, 
-        message: "Connected to Supabase, but no data found in voter_contacts table." 
-      };
-    }
-    
-    console.log(`Found ${count} records in voter_contacts table`);
-    return { 
-      success: true, 
-      message: `Connected to Supabase, found ${count} records in voter_contacts table.` 
-    };
-  } catch (error) {
-    console.error("Error checking Supabase connection:", error);
-    return { 
-      success: false, 
-      message: "Failed to connect to Supabase: " + String(error) 
-    };
-  }
-};
+// Return value for the migration function
+interface MigrationResult {
+  success: boolean;
+  message: string;
+}
 
-// Function to get test data from Supabase or generate fake data if needed
-export const getTestData = async (): Promise<any[]> => {
+// Function to get test voter data from Supabase
+export const getTestData = async (): Promise<VoterContactRow[]> => {
   try {
-    const now = Date.now(); // Fix: Use Date.now() instead of now
+    console.log("Fetching data from Supabase...");
     
-    // Always clear cache when requested - ensures we get fresh data
-    testDataCache = null;
-    lastFetchTime = 0;
+    // Get the current user's ID
+    const { data: sessionData } = await supabase.auth.getSession();
+    const userId = sessionData.session?.user.id;
     
-    // Use cached data if available and not expired
-    if (testDataCache && now - lastFetchTime < CACHE_TIMEOUT) {
-      console.log("Using cached test data");
-      return testDataCache;
-    }
-    
-    console.log("Fetching voter_contacts data from Supabase...");
-    
-    // Fetch ALL data from the voter_contacts table, not just a limited set
-    const { data, error } = await supabase
+    let query = supabase
       .from('voter_contacts')
       .select('*')
-      .order('id', { ascending: true });
+      .limit(1000);
+      
+    // If user is logged in, fetch only their data + any system data (null user_id)
+    if (userId) {
+      query = query.or(`user_id.eq.${userId},user_id.is.null`);
+    }
+    
+    const { data, error } = await query;
     
     if (error) {
-      console.error("Error fetching data from Supabase:", error);
-      throw error;
+      console.error("Error fetching voter data from Supabase:", error);
+      return [];
     }
     
-    // If data exists, use it
-    if (data && data.length > 0) {
-      console.log(`Fetched ${data.length} records from voter_contacts`);
-      testDataCache = data;
-      lastFetchTime = now;
-      return data;
+    if (!data || data.length === 0) {
+      console.log("No data found in Supabase");
+      return [];
     }
     
-    // We no longer generate fake data as a fallback
-    // This ensures that only uploaded data appears in the UI
-    console.log("No data found in Supabase, returning empty array");
-    testDataCache = [];
-    lastFetchTime = now;
-    return []; // Fix: Return an empty array to match the Promise<any[]> return type
+    console.log(`Retrieved ${data.length} records from Supabase`);
+    console.log("Sample data:", data.slice(0, 2));
+    
+    return data as VoterContactRow[];
   } catch (error) {
-    console.error("Error getting test data:", error);
-    
-    // Return empty array instead of fake data
-    console.log("Error occurred, returning empty array");
-    testDataCache = [];
-    lastFetchTime = Date.now(); // Fix: Use Date.now() instead of now
+    console.error("Error in getTestData:", error);
     return [];
   }
 };
 
-// For development use only - don't use this in production
-function generateFakeData(count: number): any[] {
-  // This function is kept for reference but we're not using it anymore
-  const fakeData = [];
-  for (let i = 0; i < count; i++) {
-    fakeData.push({
-      id: i + 1,
-      first_name: `Test${i}`,
-      last_name: 'User',
-      team: 'TestTeam',
-      date: new Date().toISOString().slice(0, 10),
-      tactic: 'Phone',
-      attempts: Math.floor(Math.random() * 10),
-      contacts: Math.floor(Math.random() * 5),
-      not_home: Math.floor(Math.random() * 3),
-      refusal: Math.floor(Math.random() * 2),
-      bad_data: Math.floor(Math.random() * 1),
-      support: Math.random() > 0.5,
-      oppose: Math.random() < 0.2,
-      undecided: Math.random() >= 0.2 && Math.random() <= 0.5,
-    });
+// Function to check Supabase connection and create/migrate data
+export const migrateTestDataToSupabase = async (forceRefresh = false): Promise<MigrationResult> => {
+  try {
+    console.log("Checking Supabase connection...");
+    
+    // First, check if we can connect to Supabase
+    const { data: testData, error: testError } = await supabase
+      .from('voter_contacts')
+      .select('*')
+      .limit(1);
+    
+    if (testError && testError.code !== 'PGRST116') {
+      // If it's not just an empty result error
+      console.error("Supabase connection test failed:", testError);
+      return { 
+        success: false, 
+        message: `Failed to connect to Supabase: ${testError.message}` 
+      };
+    }
+    
+    console.log("Supabase connection successful");
+    
+    // Get the current user's ID
+    const { data: sessionData } = await supabase.auth.getSession();
+    const userId = sessionData.session?.user.id;
+    
+    // Check if we have data in the table
+    const { count, error: countError } = await supabase
+      .from('voter_contacts')
+      .select('*', { count: 'exact', head: true })
+      // If user is logged in, check for their data or system data
+      .or(userId ? `user_id.eq.${userId},user_id.is.null` : 'user_id.is.null');
+    
+    if (countError) {
+      console.error("Error checking data count:", countError);
+      return { 
+        success: false, 
+        message: `Error checking data: ${countError.message}` 
+      };
+    }
+    
+    if (count && count > 0 && !forceRefresh) {
+      console.log(`Found ${count} existing records, no need to migrate`);
+      return { 
+        success: true, 
+        message: `Connected to Supabase. Found ${count} existing records.` 
+      };
+    } else {
+      console.log("No data found or force refresh requested, would need to import data");
+      return { 
+        success: true, 
+        message: "Connected to Supabase, but no data found. Use the CSV upload or data import features." 
+      };
+    }
+  } catch (error: any) {
+    console.error("Error in migrateTestDataToSupabase:", error);
+    return { 
+      success: false, 
+      message: `Error connecting to Supabase: ${error.message}` 
+    };
   }
-  return fakeData; // Added a return value to ensure the function returns an array
-}
+};
