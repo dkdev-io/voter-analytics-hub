@@ -101,26 +101,27 @@ export const SearchField: React.FC<SearchFieldProps> = ({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <div className="relative w-full">
-        <Search className="absolute left-3 top-4 text-gray-400 h-4 w-4" />
+        <Search className="absolute left-3 top-3 text-gray-400 h-4 w-4" />
         <Textarea
           placeholder="Try asking: 'How many SMS did Jane Doe make on 2025-01-03?'"
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={handleKeyPress}
-          className="pl-10 w-full min-h-[150px] resize-none" 
+          className="pl-10 w-full min-h-[100px] resize-none" 
           disabled={isLoading || isAiLoading}
         />
         <div className="text-xs text-gray-500 mt-1 text-right">Press ⌘+Enter to submit</div>
       </div>
       
-      <div className="mt-6 flex justify-center gap-2">
+      <div className="mt-4 flex justify-center gap-2">
         <Button 
           onClick={handleSubmit}
           disabled={isLoading || isAiLoading}
           variant="default"
-          className="w-full sm:w-auto"
+          className="w-full"
+          size="sm"
         >
           {isLoading ? (
             <span className="flex items-center">
@@ -131,13 +132,12 @@ export const SearchField: React.FC<SearchFieldProps> = ({
             "Submit"
           )}
         </Button>
-        
       </div>
 
       {aiResponse && (
-        <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-md">
-          <h3 className="text-sm font-medium mb-2">AI Assistant:</h3>
-          <div className="text-sm whitespace-pre-wrap">{aiResponse}</div>
+        <div className="mt-4 p-3 bg-gray-50 border border-gray-200 rounded-md">
+          <h3 className="text-xs font-medium mb-2">AI Assistant:</h3>
+          <div className="text-xs whitespace-pre-wrap">{aiResponse}</div>
         </div>
       )}
     </div>

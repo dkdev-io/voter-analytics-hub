@@ -5,9 +5,9 @@ import { QuerySection } from './dashboard/QuerySection';
 import { SearchSection } from './dashboard/SearchSection';
 import { ResultsSection } from './dashboard/ResultsSection';
 import { DashboardCharts } from './DashboardCharts';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 
 export const VoterAnalytics = () => {
   const {
@@ -53,81 +53,92 @@ export const VoterAnalytics = () => {
         importNewData={importNewData}
       />
       
-      <div className="bg-white rounded-lg shadow-sm p-6 welcome-section hidden-print">
-        <div className="text-center mb-8">
-          <h2 className="text-2xl font-bold text-gray-800">Welcome to VoterContact.io</h2>
-          
-          {hasUserUploadedData && (
-            <p className="mt-2 text-gray-600">
-              You're now working from the dataset that you uploaded. If you want to delete and replace this dataset, {" "}
-              <Link to="/connect-data" className="text-blue-600 hover:text-blue-800 underline">
-                click here
-              </Link>
-            </p>
-          )}
-        </div>
-        
-        <Tabs 
-          defaultValue="metric" 
-          value={activeTab} 
-          onValueChange={(value) => setActiveTab(value as "metric" | "question")}
-          className="w-full tabs-container"
-        >
-          <div className="grid grid-cols-2 gap-4 mb-6">
-            <button 
-              onClick={() => setActiveTab("metric")}
-              className={`py-3 px-4 text-center rounded-md transition-colors ${
-                activeTab === "metric" 
-                  ? "bg-primary text-white" 
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-              }`}
-            >
-              Pick a metric
-            </button>
-            <button 
-              onClick={() => setActiveTab("question")}
-              className={`py-3 px-4 text-center rounded-md transition-colors ${
-                activeTab === "question" 
-                  ? "bg-primary text-white" 
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-              }`}
-            >
-              Ask a question
-            </button>
-          </div>
-
-          <div className="mt-6">
-            {activeTab === "metric" ? (
-              <QuerySection 
-                query={query}
-                setQuery={setQuery}
-                setError={setError}
-                isLoading={isLoading}
-                isDataMigrated={isDataMigrated}
-                onRefresh={handleRefreshData}
-                onSubmit={calculateResult}
-              />
-            ) : (
-              <SearchSection 
-                searchQuery={searchQuery}
-                setSearchQuery={setSearchQuery}
-                isLoading={isLoading}
-                onSubmit={calculateResult}
-              />
+      <ResizablePanelGroup
+        direction="horizontal"
+        className="bg-white rounded-lg shadow-sm border border-gray-200 h-full min-h-[80vh] overflow-hidden"
+      >
+        {/* Left Panel - Search Options */}
+        <ResizablePanel defaultSize={25} minSize={20} maxSize={40} className="p-4 border-r border-gray-200">
+          <div className="h-full flex flex-col">
+            <div className="text-lg font-semibold mb-4">Search Options</div>
+            
+            <div className="mb-4">
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <button 
+                  onClick={() => setActiveTab("metric")}
+                  className={`py-3 px-4 text-center rounded-md transition-colors ${
+                    activeTab === "metric" 
+                      ? "bg-primary text-white" 
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  }`}
+                >
+                  Pick a metric
+                </button>
+                <button 
+                  onClick={() => setActiveTab("question")}
+                  className={`py-3 px-4 text-center rounded-md transition-colors ${
+                    activeTab === "question" 
+                      ? "bg-primary text-white" 
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  }`}
+                >
+                  Ask a question
+                </button>
+              </div>
+            </div>
+            
+            <div className="flex-grow overflow-y-auto">
+              {activeTab === "metric" ? (
+                <QuerySection 
+                  query={query}
+                  setQuery={setQuery}
+                  setError={setError}
+                  isLoading={isLoading}
+                  isDataMigrated={isDataMigrated}
+                  onRefresh={handleRefreshData}
+                  onSubmit={calculateResult}
+                />
+              ) : (
+                <SearchSection 
+                  searchQuery={searchQuery}
+                  setSearchQuery={setSearchQuery}
+                  isLoading={isLoading}
+                  onSubmit={calculateResult}
+                />
+              )}
+            </div>
+            
+            {hasUserUploadedData && (
+              <div className="mt-auto pt-4 text-xs text-gray-500 border-t border-gray-200">
+                <p>
+                  Working with uploaded dataset.{" "}
+                  <Link to="/connect-data" className="text-blue-600 hover:text-blue-800 underline">
+                    Replace dataset
+                  </Link>
+                </p>
+              </div>
             )}
           </div>
-        </Tabs>
-      </div>
-
-      {/* Section 3: Dashboard Charts */}
-      <DashboardCharts 
-        isLoading={isLoading} 
-        query={query}
-        showFilteredData={showFilteredData}
-      />
-      
-      {/* Results Display */}
-      <ResultsSection error={error} result={result} />
+        </ResizablePanel>
+        
+        {/* Resizable Handle */}
+        <ResizableHandle withHandle />
+        
+        {/* Right Panel - Results */}
+        <ResizablePanel defaultSize={75} className="p-4 overflow-y-auto">
+          <div className="space-y-6">
+            {/* Results Display */}
+            <ResultsSection error={error} result={result} query={query} />
+            
+            {/* Dashboard Charts */}
+            <DashboardCharts 
+              isLoading={isLoading} 
+              query={query}
+              showFilteredData={showFilteredData}
+            />
+          </div>
+        </ResizablePanel>
+      </ResizablePanelGroup>
     </div>
   );
 }

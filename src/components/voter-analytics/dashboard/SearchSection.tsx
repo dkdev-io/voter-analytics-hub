@@ -15,9 +15,9 @@ export function SearchSection({
   onSubmit
 }: SearchSectionProps) {
   return (
-    <div className="space-y-4">
-      <p className="text-sm text-gray-600 mb-4">
-        Ask a question about your voter data and get AI-powered insights. For example, try asking about trends, performance comparisons, or specific metrics.
+    <div className="space-y-3">
+      <p className="text-xs text-gray-600 mb-2">
+        Ask a question about your voter data and get AI-powered insights.
       </p>
       
       <SearchField

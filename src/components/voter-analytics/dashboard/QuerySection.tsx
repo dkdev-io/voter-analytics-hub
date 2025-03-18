@@ -23,9 +23,9 @@ export function QuerySection({
   onSubmit
 }: QuerySectionProps) {
   return (
-    <div className="space-y-6">
-      <p className="text-sm text-gray-600 mb-4">
-        Select parameters below to filter your voter data and generate metrics. You can combine multiple filters to get specific insights.
+    <div className="space-y-4">
+      <p className="text-xs text-gray-600 mb-2">
+        Select parameters to filter your voter data.
       </p>
       
       <QueryBuilder
@@ -36,12 +36,13 @@ export function QuerySection({
         isDataMigrated={isDataMigrated}
         onRefresh={onRefresh}
       />
-      <div className="mt-6 flex justify-center">
+      <div className="mt-4 flex justify-center">
         <Button 
           onClick={onSubmit}
           disabled={isLoading}
           variant="default"
-          className="px-6"
+          className="w-full"
+          size="sm"
         >
           {isLoading ? (
             <span className="flex items-center">
