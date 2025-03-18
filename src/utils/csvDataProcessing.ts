@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
 interface HeaderMappingResult {
@@ -48,7 +49,9 @@ export const mapHeaders = (headers: string[]): HeaderMappingResult => {
  * Transforms CSV data into the format expected by the database
  */
 export const transformCSVData = (csvData: string[][], headerMapping: Record<number, string>): Record<string, any>[] => {
-  const transformedData = csvData.map(row => {
+  console.log(`Starting transformation of ${csvData.length} rows with mapping:`, headerMapping);
+  
+  const transformedData = csvData.map((row, rowIndex) => {
     const transformedRow: Record<string, any> = {};
     
     Object.entries(headerMapping).forEach(([index, dbField]) => {
@@ -86,9 +89,15 @@ export const transformCSVData = (csvData: string[][], headerMapping: Record<numb
       }
     });
     
+    // Debug rows that might be problematic
+    if (rowIndex < 5 || rowIndex === csvData.length - 1) {
+      console.log(`Transformed row ${rowIndex}:`, transformedRow);
+    }
+    
     return transformedRow;
   });
 
+  console.log(`Transformed ${transformedData.length} rows`);
   return transformedData;
 };
 
@@ -104,10 +113,15 @@ export interface ValidationResult {
  * Enhance and validate the transformed data
  */
 export const validateAndEnhanceData = (transformedData: Record<string, any>[]): ValidationResult => {
+  console.log(`Validating ${transformedData.length} rows`);
+  
   const validData: Record<string, any>[] = [];
   const invalidData: Array<{row: Record<string, any>, reason: string}> = [];
   
-  transformedData.forEach(row => {
+  // Count for each type of missing field for reporting
+  const missingFieldCounts: Record<string, number> = {};
+  
+  transformedData.forEach((row, index) => {
     const enhancedRow = { ...row };
     
     // Set default values for numeric fields
@@ -125,12 +139,29 @@ export const validateAndEnhanceData = (transformedData: Record<string, any>[]): 
       enhancedRow.team = 'Team Tony';
     }
     
-    // Validate required fields
+    // Auto-fill missing first/last name with placeholders if possible
+    if (!enhancedRow.first_name && enhancedRow.last_name) {
+      enhancedRow.first_name = "Unknown";
+    }
+    
+    if (!enhancedRow.last_name && enhancedRow.first_name) {
+      enhancedRow.last_name = "Unknown";
+    }
+    
+    // Set default date if missing
+    if (!enhancedRow.date) {
+      enhancedRow.date = new Date().toISOString().split('T')[0];
+    }
+    
+    // Set default tactic if missing
+    if (!enhancedRow.tactic) {
+      enhancedRow.tactic = 'Unknown';
+    }
+    
+    // Validate required fields - more lenient now with defaults
     const missingFields = [];
     if (!enhancedRow.first_name) missingFields.push('first_name');
     if (!enhancedRow.last_name) missingFields.push('last_name');
-    if (!enhancedRow.date) missingFields.push('date');
-    if (!enhancedRow.tactic) missingFields.push('tactic');
     
     // Add to valid or invalid data based on validation
     if (missingFields.length === 0) {
@@ -140,8 +171,23 @@ export const validateAndEnhanceData = (transformedData: Record<string, any>[]): 
         row: enhancedRow,
         reason: `Missing required fields: ${missingFields.join(', ')}`
       });
+      
+      // Log sample invalid rows for debugging
+      if (index < 5 || invalidData.length < 5) {
+        console.warn(`Invalid row ${index}:`, enhancedRow, `Missing: ${missingFields.join(', ')}`);
+      }
+      
+      // Count missing field types
+      missingFields.forEach(field => {
+        missingFieldCounts[field] = (missingFieldCounts[field] || 0) + 1;
+      });
     }
   });
+  
+  console.log(`Validation results: ${validData.length} valid rows, ${invalidData.length} invalid rows`);
+  if (invalidData.length > 0) {
+    console.log(`Missing field counts:`, missingFieldCounts);
+  }
   
   return { validData, invalidData };
 };
@@ -218,7 +264,7 @@ export const uploadDataBatches = async (
   onProgressUpdate: (progress: number) => void,
   userEmail?: string
 ): Promise<void> => {
-  const batchSize = 100;
+  const batchSize = 50; // Reduced batch size for more reliable uploads
   const batches = [];
   
   // Get the current user's ID
@@ -249,20 +295,45 @@ export const uploadDataBatches = async (
     batches.push(dataWithUserInfo.slice(i, i + batchSize));
   }
   
+  console.log(`Prepared ${batches.length} batches of max ${batchSize} rows each`);
+  
+  let successfulBatches = 0;
+  let failedBatches = 0;
+  let totalRowsUploaded = 0;
+  
   for (let i = 0; i < batches.length; i++) {
     const batch = batches[i];
     
-    const { error } = await supabase
-      .from('voter_contacts')
-      .insert(batch);
-    
-    if (error) {
-      console.error("Error inserting batch:", error);
-      throw error;
+    try {
+      const { error, data } = await supabase
+        .from('voter_contacts')
+        .insert(batch)
+        .select('id');
+      
+      if (error) {
+        console.error(`Error inserting batch ${i+1}/${batches.length}:`, error);
+        failedBatches++;
+        throw error;
+      }
+      
+      successfulBatches++;
+      totalRowsUploaded += batch.length;
+      console.log(`Successfully uploaded batch ${i+1}/${batches.length} (${batch.length} rows)`);
+    } catch (error) {
+      console.error(`Failed to upload batch ${i+1}/${batches.length}:`, error);
+      failedBatches++;
+      // Continue with next batch instead of stopping the whole process
     }
     
     const progressValue = Math.round(((i + 1) / batches.length) * 100);
     onProgressUpdate(progressValue);
+  }
+  
+  console.log(`Upload complete: ${successfulBatches} successful batches, ${failedBatches} failed batches`);
+  console.log(`Total rows uploaded: ${totalRowsUploaded} of ${dataWithUserInfo.length}`);
+  
+  if (failedBatches > 0) {
+    throw new Error(`Some data failed to upload (${failedBatches} of ${batches.length} batches). Please try again or contact support.`);
   }
 };
 

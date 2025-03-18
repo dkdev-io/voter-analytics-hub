@@ -3,7 +3,7 @@ import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Database, ChevronRight, ArrowRight, ArrowLeft, FileUp, FileText, Upload, Loader2 } from 'lucide-react';
+import { Database, ChevronRight, ArrowRight, ArrowLeft, FileUp, FileText, Upload, Loader2, AlertCircle } from 'lucide-react';
 import { Progress } from "@/components/ui/progress";
 import { useCSVUpload } from '@/hooks/useCSVUpload';
 import { ProcessingStep } from '@/components/voter-analytics/csv-upload/ProcessingStep';
@@ -62,7 +62,7 @@ const ConnectData = () => {
         </div>
         
         <p className="mt-2 text-gray-600">
-          Connect to your voter file or import your data to get started.
+          Import your voter contact data to get started with analytics.
         </p>
 
         <div className="grid gap-6 md:grid-cols-2">
@@ -129,6 +129,22 @@ const ConnectData = () => {
                 <p className="text-xs text-gray-500 mt-2">
                   CSV files only, up to 10MB
                 </p>
+                
+                <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md text-blue-800 text-left">
+                  <div className="flex">
+                    <AlertCircle className="h-5 w-5 mr-2 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium">CSV Requirements:</p>
+                      <ul className="text-xs mt-1 list-disc list-inside">
+                        <li>Must include both first name and last name columns</li>
+                        <li>Date and tactic columns are recommended</li>
+                        <li>Contact results (attempts, contacts, support, etc.) will be processed if available</li>
+                        <li>Headers should be clearly named (e.g., "first_name", "last_name", "date")</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+                
                 <input
                   type="file"
                   ref={fileInputRef}

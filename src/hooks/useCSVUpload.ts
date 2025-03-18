@@ -82,6 +82,7 @@ export function useCSVUpload(onSuccess: () => void) {
     
     try {
       console.log("Setting up for data import...");
+      console.log(`Total rows from CSV: ${csvData.length}`);
       
       // First ensure the table exists
       await ensureVoterContactsTableExists();
@@ -94,6 +95,8 @@ export function useCSVUpload(onSuccess: () => void) {
       console.log("Header mapping:", headerMapping);
       
       const transformedData = transformCSVData(csvData, headerMapping);
+      console.log(`Transformed data count: ${transformedData.length}`);
+      
       const { validData, invalidData } = validateAndEnhanceData(transformedData);
       
       console.log("Valid data count:", validData.length);
@@ -101,7 +104,7 @@ export function useCSVUpload(onSuccess: () => void) {
       console.log("Sample valid data:", validData.slice(0, 2));
       
       if (validData.length === 0) {
-        throw new Error('No valid data found in CSV. Please ensure CSV contains required fields: first_name, last_name, team, date, and tactic.');
+        throw new Error('No valid data found in CSV. Please ensure CSV contains required fields: first_name and last_name.');
       }
       
       // Collect stats on invalid records
