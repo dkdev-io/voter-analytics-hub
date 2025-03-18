@@ -121,15 +121,20 @@ export const validateAndEnhanceData = (transformedData: Record<string, any>[]): 
  * Clear existing voter contacts data
  */
 export const clearExistingContacts = async (): Promise<void> => {
-  // Fix: The RPC call needs an empty object as parameter instead of a string
-  const { error } = await supabase.rpc('truncate_voter_contacts', {});
+  console.log("Deleting ALL voter contact records...");
+  
+  // Using delete query directly instead of RPC call for more reliable deletion
+  const { error } = await supabase
+    .from('voter_contacts')
+    .delete()
+    .is('id', is_not(null)); // This will delete all records
   
   if (error) {
-    console.error("Error truncating table:", error);
-    throw new Error(`Failed to clear existing records. Please try again or contact support.`);
+    console.error("Error deleting records:", error);
+    throw new Error(`Failed to clear existing records. Please try again or contact support. Error: ${error.message}`);
   }
   
-  console.log("Successfully truncated table using RPC call");
+  console.log("Successfully deleted all voter contact records");
 };
 
 /**
@@ -159,3 +164,10 @@ export const uploadDataBatches = async (
     onProgressUpdate(progressValue);
   }
 };
+
+// Helper function for is_not condition
+function is_not(value: any) {
+  return {
+    __is_not: value
+  };
+}
