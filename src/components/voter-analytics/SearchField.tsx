@@ -49,21 +49,25 @@ export const SearchField: React.FC<SearchFieldProps> = ({
     if (setQuery) {
       try {
         // Process the query with LLM to extract structured parameters
-        const success = await processWithLLM(inputValue);
+        const extractedParams = await processWithLLM(inputValue);
         
-        if (success) {
-          // Get the latest extracted parameters
-          const extractedParams = {
-            ...currentQuery,
+        if (extractedParams) {
+          // Make sure we have the full set of parameters (extractedParams + searchQuery)
+          const fullParams = {
+            ...extractedParams,
             searchQuery: inputValue
           };
           
-          // Store the current query for AI assistance
-          setCurrentQuery(extractedParams);
+          // Store the current query for future reference
+          setCurrentQuery(fullParams);
           
-          // Get insights with the FULL extracted parameters
-          console.log("Getting AI assistance with parameters:", extractedParams);
-          await getAIAssistance(inputValue, extractedParams);
+          console.log("Sending query with full parameters:", fullParams);
+          
+          // Get AI insights with the FULL parameters
+          await getAIAssistance(inputValue, fullParams);
+          
+          // Trigger the main search action if needed
+          onSubmit();
         }
       } catch (error) {
         console.error("Error in query processing:", error);

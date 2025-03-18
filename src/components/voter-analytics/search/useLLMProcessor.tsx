@@ -88,14 +88,8 @@ export const useLLMProcessor = ({ setQuery }: UseLLMProcessorOptions) => {
           throw new Error("Could not extract search parameters from your query");
         }
         
-        // Preserve the original searchQuery and merge with extracted parameters
-        const updatedQuery = {
-          ...extractedParams,
-          searchQuery: userQuery
-        };
-        
-        console.log("Setting query with parameters:", updatedQuery);
-        setQuery(updatedQuery);
+        // Update the query state with the extracted parameters
+        setQuery(extractedParams);
         
         toast({
           title: "Query Processed",
@@ -104,7 +98,8 @@ export const useLLMProcessor = ({ setQuery }: UseLLMProcessorOptions) => {
             .join(', ')}`,
         });
         
-        return updatedQuery;
+        // Return the extracted parameters for further use
+        return extractedParams;
       } catch (parseError) {
         console.error("Failed to parse LLM response:", data.answer);
         console.error("Parse error:", parseError);

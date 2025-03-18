@@ -35,6 +35,7 @@ serve(async (req) => {
     console.log(`Processing prompt: ${prompt.substring(0, 100)}...`)
     console.log(`Include data: ${includeData}, Data summary provided: ${!!dataSummary}`)
     console.log(`Concise response: ${conciseResponse}`)
+    console.log(`Query parameters:`, queryParams)
 
     try {
       // Check if this is a parameter extraction request
@@ -60,7 +61,7 @@ ${JSON.stringify(dataSummary.columnStats, null, 2)}
 Sample rows:
 ${JSON.stringify(dataSummary.sampleRows, null, 2)}
 
-Based on this data summary, please answer the user's question. Focus on providing specific insights and numerical values from the data. If the data is insufficient to answer the question completely, acknowledge that limitation in your response.`
+IMPORTANT: Use this data to answer the question comprehensively. Refer to specific numbers and statistics from the provided data summary.`
           
           console.log("Using structured data summary for context");
         } else {
@@ -91,6 +92,7 @@ Based on this data summary, please answer the user's question. Focus on providin
           
           // Apply query parameters if provided
           if (queryParams) {
+            console.log("Applying query parameters to database query:", queryParams);
             if (queryParams.tactic) {
               query = query.ilike('tactic', `%${queryParams.tactic}%`)
             }
@@ -172,11 +174,11 @@ ${JSON.stringify(sampleData, null, 2)}
 
 ${statsContext}
 
-Based on this data${count && count > 50 ? ' and the aggregated statistics' : ''}, please answer the user's question. If the data is insufficient to answer the question completely, acknowledge that limitation in your response.`
+IMPORTANT: You MUST use the data above to provide a specific, data-driven answer to the user's question. DO NOT say you don't have access to the data - it's provided right here for you to analyze. If you can't find exact information for the query, analyze what IS available and provide the closest relevant insight.`
             
             console.log(`Retrieved ${sampleData.length} records for context`);
           } else {
-            dataContext = "Note: No matching data was found for the specified criteria.";
+            dataContext = "Note: No matching data was found for the specified criteria. Please provide an answer based on this fact, without claiming you don't have access to data.";
             console.log("No matching data found");
           }
         }
@@ -186,8 +188,8 @@ Based on this data${count && count > 50 ? ' and the aggregated statistics' : ''}
       const systemPrompt = isParameterExtraction 
         ? 'You are a helpful assistant that extracts structured parameters from natural language queries about voter data. Return only valid JSON with no additional text, explanations, or markdown formatting. Never use backticks or code blocks in your response, just the raw JSON. If the query mentions "phone", set tactic to "Phone". If it mentions "SMS" or "sms", set tactic to "SMS". If it mentions "canvas", set tactic to "Canvas". Be exact with person names and dates. Here are specific examples: For "How many Phone attempts did Jane Doe make on 2025-01-02?" your response must be exactly {"tactic":"Phone","person":"Jane Doe","date":"2025-01-02","resultType":"attempts"}'
         : conciseResponse 
-          ? `You are a data analyst providing insights about voter contact data. Your responses should be concise, emphasizing key numbers and insights. Always directly answer the user's question with specific numbers from the data provided. Remember that you have access to the data shown in the context section - use it to provide accurate answers. Never say you don't have access to the data when it's provided to you. If the data provided doesn't contain the exact information requested, analyze what is available and provide the closest relevant insight.`
-          : `You are a helpful assistant that analyzes voter contact data and provides clear, concise insights. Your responses should be insightful, data-driven, and focused on answering the user's specific question. Be precise in your analysis and use specific numbers from the data when applicable. Present your findings in a way that's easy to understand. Remember that you have access to the data shown in the context section - never say you don't have access to the data when it's provided to you.`
+          ? `You are a data analyst providing insights about voter contact data. Your responses should be concise, emphasizing key numbers and insights. Always directly answer the user's question with specific numbers from the data provided. NEVER say you don't have access to the data - it's provided in the context of this message. You have full access to analyze the voter contact data shown. If the exact data requested isn't available, analyze what IS available and provide the closest relevant insight. Focus on being helpful and data-driven.`
+          : `You are a helpful assistant that analyzes voter contact data and provides clear, concise insights. Your responses should be insightful, data-driven, and focused on answering the user's specific question. Be precise in your analysis and use specific numbers from the data when applicable. Present your findings in a way that's easy to understand. NEVER say you don't have access to the data - it's provided in the context of this message and you have full access to analyze it. If the exact data requested isn't available, analyze what IS available and provide the closest relevant insight.`
       
       // Include the data context in the user prompt for data analysis requests
       const userPrompt = includeData && dataContext 
@@ -207,7 +209,7 @@ Based on this data${count && count > 50 ? ' and the aggregated statistics' : ''}
             { role: 'user', content: userPrompt }
           ],
           temperature: isParameterExtraction ? 0.1 : 0.7, // Lower temperature for more deterministic results in parameter extraction
-          max_tokens: conciseResponse ? 150 : 500, // Less tokens for concise responses
+          max_tokens: conciseResponse ? 200 : 500, // Less tokens for concise responses
         }),
       })
 
