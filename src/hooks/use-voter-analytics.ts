@@ -1,228 +1,74 @@
 
-import { useState, useEffect, useCallback } from 'react';
-import { type QueryParams } from '@/types/analytics';
-import { useToast } from "@/hooks/use-toast";
-import { 
-  initializeSupabaseConnection,
-  calculateQueryResult,
-  refreshSupabaseData,
-  importNewDataset
-} from '@/services/voter-analytics-service';
+import { useQueryState } from './voter-analytics/use-query-state';
+import { useDataState } from './voter-analytics/use-data-state';
+import { useAnalyticsActions } from './voter-analytics/use-analytics-actions';
 
 export const useVoterAnalytics = () => {
-  const [query, setQuery] = useState<Partial<QueryParams>>({});
-  const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<number | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isDataMigrated, setIsDataMigrated] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [showFilteredData, setShowFilteredData] = useState(false);
-  const [dataStats, setDataStats] = useState<any>(null);
-  const [dataLastUpdated, setDataLastUpdated] = useState<Date | null>(null);
-  const { toast } = useToast();
+  // Query and result state management
+  const {
+    query, 
+    setQuery,
+    error,
+    setError, 
+    result,
+    searchQuery,
+    setSearchQuery,
+    showFilteredData,
+    setShowFilteredData,
+  } = useQueryState();
 
-  // Initial data migration and check
-  useEffect(() => {
-    const initialize = async () => {
-      setIsLoading(true);
-      try {
-        const migrateResult = await initializeSupabaseConnection();
-        
-        if (migrateResult.success) {
-          toast({
-            title: "Supabase Connection",
-            description: migrateResult.message,
-            variant: "default"
-          });
-          
-          setIsDataMigrated(true);
-          setDataLastUpdated(new Date());
-          
-          // If we're connected but no data found, try to import data
-          if (migrateResult.message.includes("no data found")) {
-            console.log("No data found in Supabase, attempting to import...");
-            await importNewData();
-          }
-        } else {
-          toast({
-            title: "Error",
-            description: "Failed to connect to Supabase: " + migrateResult.message,
-            variant: "destructive"
-          });
-        }
-      } catch (err) {
-        console.error("Error in data initialization:", err);
-        toast({
-          title: "Error",
-          description: "Failed to initialize Supabase connection.",
-          variant: "destructive"
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    initialize();
-  }, [toast]);
+  // Data loading and status state
+  const {
+    isLoading,
+    isDataMigrated,
+    dataStats,
+    dataLastUpdated,
+    setDataLastUpdated,
+    setDataStats
+  } = useDataState();
 
-  const calculateResult = async () => {
-    if (!query.tactic && !query.resultType && !query.person && !query.date && !searchQuery) {
-      setError("Please select at least one field or enter a search term");
-      setResult(null);
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-      
-      // Update the query with searchQuery if provided
-      const updatedQuery = {
-        ...query,
-        searchQuery: searchQuery
-      };
-      
-      const { result: calculatedResult, error: calculationError } = await calculateQueryResult(updatedQuery);
-      
-      if (calculationError) {
-        setError(calculationError);
-        setResult(null);
-        return;
-      }
-      
-      if (calculatedResult === 0) {
-        setResult(0);
-        setError(null);
-        toast({
-          title: "No data found",
-          description: "No matching data for these criteria. Result set to 0.",
-          variant: "default"
-        });
-      } else {
-        setResult(calculatedResult);
-        setError(null);
-      }
-      
-      // Update the query state with the searchQuery
-      setQuery(updatedQuery);
-      
-      // Show filtered data in charts
-      setShowFilteredData(true);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const refreshData = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const result = await refreshSupabaseData();
-      
-      if (result.success) {
-        toast({
-          title: "Data Refresh",
-          description: "Successfully refreshed connection to Supabase.",
-          variant: "default"
-        });
-        
-        setDataLastUpdated(new Date());
-        return true;
-      } else {
-        toast({
-          title: "Refresh Error",
-          description: "Failed to refresh connection: " + result.message,
-          variant: "destructive"
-        });
-        return false;
-      }
-    } catch (err) {
-      console.error("Error refreshing data:", err);
-      toast({
-        title: "Refresh Error",
-        description: "Failed to refresh data.",
-        variant: "destructive"
-      });
-      return false;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [toast]);
-
-  const importNewData = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const result = await importNewDataset();
-      
-      if (result.success) {
-        toast({
-          title: "Data Import Successful",
-          description: `Imported ${result.message}`,
-          variant: "default"
-        });
-        
-        setDataStats(result.stats);
-        setDataLastUpdated(new Date());
-        
-        // Refresh the data after successful import
-        await refreshData();
-        return true;
-      } else {
-        toast({
-          title: "Import Error",
-          description: result.message,
-          variant: "destructive"
-        });
-        return false;
-      }
-    } catch (err) {
-      console.error("Error in data import:", err);
-      toast({
-        title: "Import Error",
-        description: "Failed to import new dataset.",
-        variant: "destructive"
-      });
-      return false;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [toast, refreshData]);
-
-  // Function to handle successful CSV upload
-  const handleCsvUploadSuccess = useCallback(async () => {
-    console.log("CSV upload success, refreshing data...");
-    setDataLastUpdated(new Date());
-    
-    // Clear any cached data and force a complete refresh of all metadata
-    const success = await refreshData();
-    
-    if (success) {
-      toast({
-        title: "Data Refreshed",
-        description: "Successfully refreshed data after CSV upload.",
-        variant: "default"
-      });
-      
-      // Clear the query state to avoid showing stale results
-      setQuery({});
-      setResult(null);
-    }
-  }, [refreshData, toast]);
-
-  return {
+  // Actions for data operations
+  const {
+    calculateResult,
+    importNewData,
+    refreshData,
+    handleCsvUploadSuccess
+  } = useAnalyticsActions({
     query,
     setQuery,
     error,
     setError,
     result,
+    searchQuery,
     isLoading,
-    isDataMigrated,
+    setShowFilteredData,
+    setDataStats,
+    setDataLastUpdated
+  });
+
+  return {
+    // Query state
+    query,
+    setQuery,
+    error,
+    setError,
+    result,
     searchQuery,
     setSearchQuery,
     showFilteredData,
+    
+    // Loading state
+    isLoading,
+    isDataMigrated,
+    
+    // Data state
+    dataStats,
+    dataLastUpdated,
+    
+    // Actions
     calculateResult,
     importNewData,
     refreshData,
-    dataStats,
-    dataLastUpdated,
     handleCsvUploadSuccess
   };
 };
