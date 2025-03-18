@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 interface HeaderMappingResult {
@@ -122,6 +121,7 @@ export const validateAndEnhanceData = (transformedData: Record<string, any>[]): 
  * Clear existing voter contacts data
  */
 export const clearExistingContacts = async (): Promise<void> => {
+  // Fix: The RPC call needs an empty object as parameter instead of a string
   const { error } = await supabase.rpc('truncate_voter_contacts', {});
   
   if (error) {
