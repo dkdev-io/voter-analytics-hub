@@ -102,7 +102,7 @@ export const SearchField: React.FC<SearchFieldProps> = ({
           disabled={isLoading || isAiLoading || isProcessingQuery}
           variant="default"
           className="w-full"
-          size="md"
+          size="default"
         >
           {isLoading || isProcessingQuery || isAiLoading ? (
             <span className="flex items-center">
