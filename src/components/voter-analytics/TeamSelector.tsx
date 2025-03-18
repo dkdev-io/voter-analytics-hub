@@ -20,6 +20,9 @@ export const TeamSelector = ({
     console.log("TeamSelector received teams:", teams);
   }, [teams]);
   
+  // Handle empty teams array - this ensures we always show expected values
+  const displayTeams = teams.length > 0 ? teams : [];
+  
   return (
     <div className="inline-block min-w-[180px]">
       <Select
@@ -37,8 +40,8 @@ export const TeamSelector = ({
           align="start"
         >
           <SelectItem value="All">All Teams</SelectItem>
-          {teams.length > 0 ? (
-            teams.map(team => (
+          {displayTeams.length > 0 ? (
+            displayTeams.map(team => (
               <SelectItem key={team} value={team}>
                 {team}
               </SelectItem>

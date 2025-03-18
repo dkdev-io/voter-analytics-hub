@@ -39,10 +39,14 @@ export const fetchTeams = async (): Promise<string[]> => {
   try {
     console.log("Fetching teams...");
     
+    // Define the valid team names we want to show
+    const validTeams = ["Team Tony", "Local Party", "Candidate"];
+    
     // Try to fetch directly from Supabase first
     const { data: teamsData, error } = await supabase
       .from('voter_contacts')
       .select('team')
+      .in('team', validTeams)
       .limit(1000);
     
     if (error) {
