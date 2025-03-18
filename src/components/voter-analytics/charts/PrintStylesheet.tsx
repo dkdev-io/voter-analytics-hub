@@ -45,6 +45,10 @@ export const PrintStylesheet: React.FC<PrintStylesheetProps> = ({ onCleanup }) =
           width: 100% !important;
           margin-top: 20px !important;
         }
+        /* Hide elements that shouldn't be in the print view */
+        button, .hidden-print {
+          display: none !important;
+        }
       }
     `;
     document.head.appendChild(style);

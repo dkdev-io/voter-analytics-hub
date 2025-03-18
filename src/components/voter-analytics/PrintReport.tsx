@@ -11,7 +11,7 @@ interface PrintReportProps {
 
 export const PrintReport: React.FC<PrintReportProps> = ({ query, onPrint }) => {
   return (
-    <div className="mb-4">
+    <div className="mb-4 hidden-print">
       <Button 
         onClick={onPrint}
         variant="outline"

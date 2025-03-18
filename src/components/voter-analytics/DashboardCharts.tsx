@@ -59,7 +59,7 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
       </div>
       
       <div id="report-container">
-        {/* Report title component for printing */}
+        {/* Report title component */}
         <ReportTitle query={query} />
         
         {/* Pie charts row component */}
