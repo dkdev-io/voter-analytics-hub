@@ -42,7 +42,7 @@ class ErrorBoundary extends Component<Props, State> {
         }
       });
     } catch (loggingError) {
-      console.warn('Failed to log error to logging service:', loggingError);
+      console.error('Failed to log error to Slack:', loggingError);
     }
   }
 
