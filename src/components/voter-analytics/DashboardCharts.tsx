@@ -58,7 +58,7 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
         <PrintReport query={query} onPrint={handlePrint} />
       </div>
       
-      <div id="report-container" className="print:block">
+      <div id="report-container" className="print:block print:mt-0">
         {/* Report title component - always render but only visible in print */}
         <ReportTitle query={query} />
         
