@@ -15,7 +15,7 @@ export const Navbar = () => {
     <header className="fixed top-0 left-0 right-0 bg-white border-b z-50">
       <div className="container mx-auto py-4 px-4 md:px-6">
         <div className="flex justify-between items-center">
-          <Link to="/" className="font-bold text-xl">Dashboard</Link>
+          <Link to="/" className="font-bold text-xl">VoterContact.io</Link>
           
           {isMobile ? (
             <div>

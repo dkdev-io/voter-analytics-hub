@@ -13,7 +13,7 @@ export const DataAccess = () => {
             of helping them understand and refine their voter contact programs.
           </p>
           <p className="text-xl font-semibold">
-            Dashboard makes that data accessible to everyone.
+            VoterContact.io makes that data accessible to everyone.
           </p>
         </div>
       </div>

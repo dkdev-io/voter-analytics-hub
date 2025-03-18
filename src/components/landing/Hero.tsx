@@ -7,7 +7,7 @@ export const Hero = () => {
     <section className="pt-32 pb-20 px-4 md:px-6">
       <div className="container mx-auto max-w-4xl text-center">
         <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6">
-          Dashboard Makes Tracking and Analyzing Your Voter Contact Easy
+          VoterContact.io Makes Tracking and Analyzing Your Voter Contact Easy
         </h1>
         <p className="text-lg md:text-xl text-gray-700 mb-8 max-w-3xl mx-auto">
           Our AI-powered tool helps you track, analyze and understand your voter contact data without tedious searches, 

@@ -55,7 +55,7 @@ export const VoterAnalytics = () => {
       
       <div className="bg-white rounded-lg shadow-sm p-6 welcome-section hidden-print">
         <div className="text-center mb-8">
-          <h2 className="text-2xl font-bold text-gray-800">Welcome to Dashboard</h2>
+          <h2 className="text-2xl font-bold text-gray-800">Welcome to VoterContact.io</h2>
           
           {hasUserUploadedData && (
             <p className="mt-2 text-gray-600">

@@ -18,7 +18,7 @@ export const HowItWorks = () => {
             <CardContent className="pt-6">
               <h3 className="text-xl font-bold mb-4">Connect Your Data</h3>
               <p>
-                Connect your data source however you keep your data. Dashboard integrates with the leading voter file software.
+                Connect your data source however you keep your data. VoterContact.io integrates with the leading voter file software.
               </p>
             </CardContent>
           </Card>

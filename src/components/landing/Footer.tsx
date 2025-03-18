@@ -7,7 +7,7 @@ export const Footer = () => {
       <div className="container mx-auto max-w-6xl">
         <div className="grid md:grid-cols-4 gap-8">
           <div>
-            <h3 className="font-bold text-lg mb-4">Dashboard</h3>
+            <h3 className="font-bold text-lg mb-4">VoterContact.io</h3>
             <p className="text-sm text-blue-100">
               Making voter data accessible and actionable for campaigns of all sizes.
             </p>
@@ -42,7 +42,7 @@ export const Footer = () => {
         </div>
         
         <div className="border-t border-blue-400 mt-8 pt-8 text-center text-blue-100">
-          <p>&copy; {new Date().getFullYear()} Dashboard. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} VoterContact.io. All rights reserved.</p>
         </div>
       </div>
     </footer>
