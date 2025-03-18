@@ -48,7 +48,7 @@ export const VoterAnalytics = () => {
         importNewData={importNewData}
       />
       
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div className="bg-white rounded-lg shadow-sm p-6">
         <div className="text-center mb-8">
           <h2 className="text-2xl font-bold text-gray-800">Welcome to Dashboard</h2>
         </div>
