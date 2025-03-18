@@ -1,7 +1,6 @@
 
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { useAuthForm } from '@/hooks/useAuthForm';
 import { useErrorLogger } from '@/hooks/useErrorLogger';
 import { AuthForm } from '@/components/auth/AuthForm';
 import { AuthContainer } from '@/components/auth/AuthContainer';
@@ -14,19 +13,6 @@ const Auth = () => {
   
   // Get the redirect path from location state, default to connect-data
   const from = location.state?.from || "/connect-data";
-  const { 
-    email, 
-    setEmail, 
-    password, 
-    setPassword, 
-    loading, 
-    error, 
-    isLogin, 
-    signupSuccess,
-    toggleAuthMode, 
-    handleSubmit, 
-    handleSkipAuth 
-  } = useAuthForm(from);
   
   useEffect(() => {
     // Clear skipAuth on mount to ensure proper authentication
@@ -43,19 +29,7 @@ const Auth = () => {
 
   return (
     <AuthContainer>
-      <AuthForm
-        email={email}
-        setEmail={setEmail}
-        password={password}
-        setPassword={setPassword}
-        error={error}
-        loading={loading}
-        isLogin={isLogin}
-        signupSuccess={signupSuccess}
-        onToggleMode={toggleAuthMode}
-        onSubmit={handleSubmit}
-        onSkipAuth={handleSkipAuth}
-      />
+      <AuthForm redirectPath={from} />
     </AuthContainer>
   );
 };

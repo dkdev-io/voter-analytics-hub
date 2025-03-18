@@ -1,5 +1,4 @@
 
-import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -9,7 +8,11 @@ import { AuthToggleMode } from './AuthToggleMode';
 import { AuthFormFooter } from './AuthFormFooter';
 import { useAuthForm } from '@/hooks/useAuthForm';
 
-export function AuthForm({ redirectPath = '/connect-data' }: { redirectPath?: string }) {
+export interface AuthFormProps {
+  redirectPath?: string;
+}
+
+export function AuthForm({ redirectPath = '/connect-data' }: AuthFormProps) {
   const { 
     email, 
     setEmail, 
