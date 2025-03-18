@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -142,24 +141,6 @@ export const SearchField: React.FC<SearchFieldProps> = ({
           )}
         </Button>
         
-        <Button 
-          onClick={handleAiAssist}
-          disabled={isLoading || isAiLoading}
-          variant="outline"
-          className="w-full sm:w-auto"
-        >
-          {isAiLoading ? (
-            <span className="flex items-center">
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              AI Processing...
-            </span>
-          ) : (
-            <>
-              <Sparkle className="mr-2 h-4 w-4" />
-              Get AI Insights
-            </>
-          )}
-        </Button>
       </div>
 
       {aiResponse && (
