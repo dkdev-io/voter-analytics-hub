@@ -6,6 +6,7 @@ import { TacticsPieChart } from './charts/TacticsPieChart';
 import { ContactsPieChart } from './charts/ContactsPieChart';
 import { NotReachedPieChart } from './charts/NotReachedPieChart';
 import { ActivityLineChart } from './charts/ActivityLineChart';
+import { PrintReport } from './PrintReport';
 import { CHART_COLORS } from '@/types/analytics';
 
 interface DashboardChartsProps {
@@ -82,6 +83,42 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
     loadChartData();
   }, [query, showFilteredData]);
   
+  // Handle print functionality
+  const handlePrint = () => {
+    // Add a print-specific stylesheet
+    const style = document.createElement('style');
+    style.innerHTML = `
+      @media print {
+        body * {
+          visibility: hidden;
+        }
+        #report-container, #report-container *, #report-title, #report-title * {
+          visibility: visible;
+        }
+        #report-container {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 100%;
+        }
+        #report-title {
+          display: block !important;
+          margin: 20px;
+          text-align: center;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+    
+    // Trigger print
+    window.print();
+    
+    // Clean up
+    setTimeout(() => {
+      document.head.removeChild(style);
+    }, 1000);
+  };
+  
   if (loading || isLoading) {
     return (
       <div className="bg-white p-6 rounded-lg shadow-md">
@@ -98,21 +135,26 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
-      <h2 className="text-xl font-semibold mb-4">Analytics {showFilteredData ? '(Filtered Results)' : '(Overall)'}</h2>
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Chart 1: Tactics Distribution */}
-        <TacticsPieChart data={tacticsData} total={totalAttempts} />
-        
-        {/* Chart 2: Contact Results */}
-        <ContactsPieChart data={contactsData} total={totalContacts} />
-        
-        {/* Chart 3: Not Reached Breakdown */}
-        <NotReachedPieChart data={notReachedData} total={totalNotReached} />
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-semibold">Analytics {showFilteredData ? '(Filtered Results)' : '(Overall)'}</h2>
+        <PrintReport query={query} onPrint={handlePrint} />
       </div>
       
-      {/* Line chart showing attempts, contacts, and issues by date */}
-      <ActivityLineChart data={lineChartData} />
+      <div id="report-container">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Chart 1: Tactics Distribution */}
+          <TacticsPieChart data={tacticsData} total={totalAttempts} />
+          
+          {/* Chart 2: Contact Results */}
+          <ContactsPieChart data={contactsData} total={totalContacts} />
+          
+          {/* Chart 3: Not Reached Breakdown */}
+          <NotReachedPieChart data={notReachedData} total={totalNotReached} />
+        </div>
+        
+        {/* Line chart showing attempts, contacts, and issues by date */}
+        <ActivityLineChart data={lineChartData} />
+      </div>
     </div>
   );
 };
