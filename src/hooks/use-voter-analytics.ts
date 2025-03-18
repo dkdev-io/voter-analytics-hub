@@ -3,10 +3,11 @@ import { useState, useEffect, useCallback } from 'react';
 import { type QueryParams } from '@/types/analytics';
 import { useToast } from "@/hooks/use-toast";
 import { 
-  migrateTestDataToSupabase, 
-  calculateResultFromSupabase 
-} from '@/lib/voter-data';
-import { supabase } from '@/integrations/supabase/client';
+  initializeSupabaseConnection,
+  calculateQueryResult,
+  refreshSupabaseData,
+  importNewDataset
+} from '@/services/voter-analytics-service';
 
 export const useVoterAnalytics = () => {
   const [query, setQuery] = useState<Partial<QueryParams>>({});
@@ -22,13 +23,10 @@ export const useVoterAnalytics = () => {
 
   // Initial data migration and check
   useEffect(() => {
-    const initializeData = async () => {
+    const initialize = async () => {
       setIsLoading(true);
       try {
-        console.log("Initializing Supabase connection...");
-        
-        // First, check Supabase connection
-        const migrateResult = await migrateTestDataToSupabase();
+        const migrateResult = await initializeSupabaseConnection();
         
         if (migrateResult.success) {
           toast({
@@ -64,7 +62,7 @@ export const useVoterAnalytics = () => {
       }
     };
     
-    initializeData();
+    initialize();
   }, [toast]);
 
   const calculateResult = async () => {
@@ -83,11 +81,7 @@ export const useVoterAnalytics = () => {
         searchQuery: searchQuery
       };
       
-      console.log("Calculating result for query:", updatedQuery);
-      
-      const { result: calculatedResult, error: calculationError } = await calculateResultFromSupabase(updatedQuery);
-      
-      console.log("Calculation result:", calculatedResult, "Error:", calculationError);
+      const { result: calculatedResult, error: calculationError } = await calculateQueryResult(updatedQuery);
       
       if (calculationError) {
         setError(calculationError);
@@ -113,10 +107,6 @@ export const useVoterAnalytics = () => {
       
       // Show filtered data in charts
       setShowFilteredData(true);
-    } catch (e) {
-      console.error("Error calculating result:", e);
-      setError("Unknown error");
-      setResult(null);
     } finally {
       setIsLoading(false);
     }
@@ -125,34 +115,9 @@ export const useVoterAnalytics = () => {
   const refreshData = useCallback(async () => {
     setIsLoading(true);
     try {
-      console.log("Refreshing data from Supabase...");
+      const result = await refreshSupabaseData();
       
-      // Get current data count to confirm refresh
-      const { count: beforeCount, error: countError } = await supabase
-        .from('voter_contacts')
-        .select('*', { count: 'exact', head: true });
-      
-      if (countError) {
-        console.error("Error getting data count:", countError);
-      } else {
-        console.log(`Current record count before refresh: ${beforeCount || 0}`);
-      }
-      
-      // Force refresh by clearing cache
-      const migrateResult = await migrateTestDataToSupabase(true); // Pass true to force refresh
-      
-      if (migrateResult.success) {
-        // Get new data count to confirm refresh worked
-        const { count: afterCount, error: countError2 } = await supabase
-          .from('voter_contacts')
-          .select('*', { count: 'exact', head: true });
-          
-        if (countError2) {
-          console.error("Error getting data count after refresh:", countError2);
-        } else {
-          console.log(`Record count after refresh: ${afterCount || 0}`);
-        }
-        
+      if (result.success) {
         toast({
           title: "Data Refresh",
           description: "Successfully refreshed connection to Supabase.",
@@ -164,7 +129,7 @@ export const useVoterAnalytics = () => {
       } else {
         toast({
           title: "Refresh Error",
-          description: "Failed to refresh connection: " + migrateResult.message,
+          description: "Failed to refresh connection: " + result.message,
           variant: "destructive"
         });
         return false;
@@ -185,30 +150,16 @@ export const useVoterAnalytics = () => {
   const importNewData = useCallback(async () => {
     setIsLoading(true);
     try {
-      console.log("Importing new dataset from Google Sheet...");
+      const result = await importNewDataset();
       
-      const { data, error } = await supabase.functions.invoke('import-voter-data-from-sheet');
-      
-      if (error) {
-        console.error("Error importing data:", error);
-        toast({
-          title: "Import Error",
-          description: "Failed to import new dataset: " + error.message,
-          variant: "destructive"
-        });
-        return false;
-      }
-      
-      console.log("Import result:", data);
-      
-      if (data.success) {
+      if (result.success) {
         toast({
           title: "Data Import Successful",
-          description: `Imported ${data.message}`,
+          description: `Imported ${result.message}`,
           variant: "default"
         });
         
-        setDataStats(data.stats);
+        setDataStats(result.stats);
         setDataLastUpdated(new Date());
         
         // Refresh the data after successful import
@@ -217,7 +168,7 @@ export const useVoterAnalytics = () => {
       } else {
         toast({
           title: "Import Error",
-          description: data.error || "Unknown error during import",
+          description: result.message,
           variant: "destructive"
         });
         return false;
