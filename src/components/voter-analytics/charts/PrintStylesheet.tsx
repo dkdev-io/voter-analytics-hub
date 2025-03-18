@@ -14,11 +14,13 @@ export const PrintStylesheet: React.FC<PrintStylesheetProps> = ({ onCleanup }) =
         /* Hide everything by default */
         body * {
           visibility: hidden;
+          display: none;
         }
         
         /* Only show the report container and its contents */
         #report-container, #report-container * {
           visibility: visible;
+          display: block;
         }
         
         /* Position the report at the top of the page */
@@ -29,6 +31,7 @@ export const PrintStylesheet: React.FC<PrintStylesheetProps> = ({ onCleanup }) =
           width: 100%;
           padding: 20px;
           margin: 0;
+          box-sizing: border-box;
         }
         
         /* Ensure the report title is visible and properly positioned */
@@ -47,47 +50,50 @@ export const PrintStylesheet: React.FC<PrintStylesheetProps> = ({ onCleanup }) =
           flex-direction: row !important;
           justify-content: space-between !important;
           width: 100% !important;
+          break-inside: avoid;
         }
         
         .pie-chart-container {
           width: 32% !important;
           max-width: 32% !important;
+          min-width: 32% !important;
+          break-inside: avoid;
         }
         
         /* Line chart should be full width below */
         #line-chart-container {
           width: 100% !important;
           margin-top: 20px !important;
+          break-before: auto;
+          break-after: auto;
         }
         
         /* Hide specific elements that shouldn't appear in print */
-        button, 
+        .tabs-container,
+        .welcome-section,
         .hidden-print,
+        button, 
         nav,
         header,
         footer,
-        .tabs-container,
-        .welcome-section,
         [role="tablist"],
         input,
         select,
-        form,
-        .bg-white.rounded-lg.shadow-sm.p-6 {
+        form {
           display: none !important;
           visibility: hidden !important;
         }
-
-        /* Additional rules to hide everything before the report title */
-        #report-container ~ *,
-        #report-container ~ * * {
+        
+        /* Important: Force hide everything outside the report container */
+        #report-container ~ * {
           display: none !important;
           visibility: hidden !important;
         }
-
-        /* Ensure no unwanted elements appear above the report */
-        #report-title ~ *:not(#pie-charts-row):not(#line-chart-container):not(.pie-chart-container) {
-          display: none !important;
-          visibility: hidden !important;
+        
+        /* Make sure charts are properly sized and spaced */
+        .recharts-wrapper {
+          width: 100% !important;
+          height: auto !important;
         }
       }
     `;
