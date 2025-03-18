@@ -123,11 +123,11 @@ export const validateAndEnhanceData = (transformedData: Record<string, any>[]): 
 export const clearExistingContacts = async (): Promise<void> => {
   console.log("Deleting ALL voter contact records...");
   
-  // Using delete query directly instead of RPC call for more reliable deletion
+  // Using a simpler approach that works with the Supabase types
   const { error } = await supabase
     .from('voter_contacts')
     .delete()
-    .is('id', is_not(null)); // This will delete all records
+    .neq('id', -1); // This condition is always true, so it will delete all records
   
   if (error) {
     console.error("Error deleting records:", error);
