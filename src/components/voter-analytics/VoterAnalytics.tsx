@@ -7,6 +7,7 @@ import { ResultsSection } from './dashboard/ResultsSection';
 import { DashboardCharts } from './DashboardCharts';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 export const VoterAnalytics = () => {
   const {
@@ -22,7 +23,8 @@ export const VoterAnalytics = () => {
     showFilteredData,
     calculateResult,
     importNewData,
-    refreshData
+    refreshData,
+    dataStats
   } = useVoterAnalytics();
 
   const [activeTab, setActiveTab] = useState<"metric" | "question">("metric");
@@ -32,6 +34,9 @@ export const VoterAnalytics = () => {
     await refreshData();
     // No return value, which makes this Promise<void>
   };
+
+  // Check if data was uploaded by user
+  const hasUserUploadedData = dataStats && dataStats.source === 'csv-upload';
 
   return (
     <div className="max-w-7xl mx-auto p-4 space-y-6">
@@ -51,6 +56,15 @@ export const VoterAnalytics = () => {
       <div className="bg-white rounded-lg shadow-sm p-6">
         <div className="text-center mb-8">
           <h2 className="text-2xl font-bold text-gray-800">Welcome to Dashboard</h2>
+          
+          {hasUserUploadedData && (
+            <p className="mt-2 text-gray-600">
+              You're now working from the dataset that you uploaded. If you want to delete and replace this dataset, {" "}
+              <Link to="/connect-data" className="text-blue-600 hover:text-blue-800 underline">
+                click here
+              </Link>
+            </p>
+          )}
         </div>
         
         <Tabs 
