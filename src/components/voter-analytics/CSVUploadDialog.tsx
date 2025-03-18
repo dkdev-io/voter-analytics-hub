@@ -22,7 +22,8 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
     validationStats,
     handleFileChange,
     handleSubmitFile,
-    resetUpload
+    resetUpload,
+    userEmail
   } = useCSVUpload(onSuccess);
 
   const handleClose = () => {
@@ -39,6 +40,7 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
           <DialogTitle>Import Voter Data</DialogTitle>
           <DialogDescription>
             Upload a CSV file with your voter contact data.
+            {userEmail && <div className="mt-1 text-xs">Data will be saved as "voter contact - {userEmail}"</div>}
           </DialogDescription>
         </DialogHeader>
 
@@ -53,7 +55,8 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
         {step === 'processing' && (
           <ProcessingStep 
             progress={progress}
-            validationStats={validationStats} 
+            validationStats={validationStats}
+            userEmail={userEmail}
           />
         )}
 

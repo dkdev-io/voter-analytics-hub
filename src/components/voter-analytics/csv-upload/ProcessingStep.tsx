@@ -11,9 +11,10 @@ interface ProcessingStepProps {
     invalid: number;
     reasons: Record<string, number>;
   } | null;
+  userEmail?: string | null;
 }
 
-export function ProcessingStep({ progress, validationStats }: ProcessingStepProps) {
+export function ProcessingStep({ progress, validationStats, userEmail }: ProcessingStepProps) {
   return (
     <div className="py-10 text-center">
       <Loader2 className="h-10 w-10 mx-auto animate-spin text-primary" />
@@ -28,6 +29,12 @@ export function ProcessingStep({ progress, validationStats }: ProcessingStepProp
       <p className="text-xs text-gray-500 mt-2">
         {progress}% complete
       </p>
+      
+      {userEmail && (
+        <p className="text-xs text-gray-500 mt-2">
+          Uploading as: {userEmail}
+        </p>
+      )}
       
       {validationStats && validationStats.invalid > 0 && progress > 0 && (
         <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md text-left">

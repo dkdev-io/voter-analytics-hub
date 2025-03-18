@@ -134,7 +134,6 @@ export const validateAndEnhanceData = (transformedData: Record<string, any>[]): 
     
     // Add to valid or invalid data based on validation
     if (missingFields.length === 0) {
-      enhancedRow.user_id = supabase.auth.getSession().then(({ data }) => data.session?.user.id) || null;
       validData.push(enhancedRow);
     } else {
       invalidData.push({
@@ -181,7 +180,8 @@ export const clearExistingContacts = async (): Promise<void> => {
  */
 export const uploadDataBatches = async (
   validData: Record<string, any>[], 
-  onProgressUpdate: (progress: number) => void
+  onProgressUpdate: (progress: number) => void,
+  userEmail?: string
 ): Promise<void> => {
   const batchSize = 100;
   const batches = [];
@@ -189,20 +189,26 @@ export const uploadDataBatches = async (
   // Get the current user's ID
   const { data: sessionData } = await supabase.auth.getSession();
   const userId = sessionData.session?.user.id;
+  const email = userEmail || sessionData.session?.user.email;
   
   if (!userId) {
     console.error("No user ID found when uploading data");
     throw new Error("You must be logged in to upload data");
   }
   
-  // Add the user ID to each row
-  const dataWithUserId = validData.map(item => ({
+  // Create label for the data
+  const label = `voter contact - ${email}`;
+  
+  // Add the user ID, email, and label to each row
+  const dataWithUserInfo = validData.map(item => ({
     ...item,
-    user_id: userId
+    user_id: userId,
+    user_email: email,
+    label: label
   }));
   
-  for (let i = 0; i < dataWithUserId.length; i += batchSize) {
-    batches.push(dataWithUserId.slice(i, i + batchSize));
+  for (let i = 0; i < dataWithUserInfo.length; i += batchSize) {
+    batches.push(dataWithUserInfo.slice(i, i + batchSize));
   }
   
   for (let i = 0; i < batches.length; i++) {

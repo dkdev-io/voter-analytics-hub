@@ -19,6 +19,8 @@ export interface VoterContactRow {
   oppose: number;
   undecided: number;
   user_id?: string | null;
+  user_email?: string | null;
+  label?: string | null;
 }
 
 // Return value for the migration function
@@ -32,7 +34,7 @@ export const getTestData = async (): Promise<VoterContactRow[]> => {
   try {
     console.log("Fetching data from Supabase...");
     
-    // Get the current user's ID
+    // Get the current user's ID and email
     const { data: sessionData } = await supabase.auth.getSession();
     const userId = sessionData.session?.user.id;
     
@@ -41,9 +43,9 @@ export const getTestData = async (): Promise<VoterContactRow[]> => {
       .select('*')
       .limit(1000);
       
-    // If user is logged in, fetch only their data + any system data (null user_id)
+    // If user is logged in, fetch ONLY their data (no more mixing with system data)
     if (userId) {
-      query = query.or(`user_id.eq.${userId},user_id.is.null`);
+      query = query.eq('user_id', userId);
     }
     
     const { data, error } = await query;
@@ -54,11 +56,11 @@ export const getTestData = async (): Promise<VoterContactRow[]> => {
     }
     
     if (!data || data.length === 0) {
-      console.log("No data found in Supabase");
+      console.log("No data found in Supabase for this user");
       return [];
     }
     
-    console.log(`Retrieved ${data.length} records from Supabase`);
+    console.log(`Retrieved ${data.length} records from Supabase for the current user`);
     console.log("Sample data:", data.slice(0, 2));
     
     return data as VoterContactRow[];
@@ -94,12 +96,12 @@ export const migrateTestDataToSupabase = async (forceRefresh = false): Promise<M
     const { data: sessionData } = await supabase.auth.getSession();
     const userId = sessionData.session?.user.id;
     
-    // Check if we have data in the table
+    // Check if we have data in the table for this specific user
     const { count, error: countError } = await supabase
       .from('voter_contacts')
       .select('*', { count: 'exact', head: true })
-      // If user is logged in, check for their data or system data
-      .or(userId ? `user_id.eq.${userId},user_id.is.null` : 'user_id.is.null');
+      // Only check for the current user's data
+      .eq('user_id', userId || '');
     
     if (countError) {
       console.error("Error checking data count:", countError);
@@ -110,16 +112,16 @@ export const migrateTestDataToSupabase = async (forceRefresh = false): Promise<M
     }
     
     if (count && count > 0 && !forceRefresh) {
-      console.log(`Found ${count} existing records, no need to migrate`);
+      console.log(`Found ${count} existing records for the current user, no need to migrate`);
       return { 
         success: true, 
         message: `Connected to Supabase. Found ${count} existing records.` 
       };
     } else {
-      console.log("No data found or force refresh requested, would need to import data");
+      console.log("No data found for this user or force refresh requested, would need to import data");
       return { 
         success: true, 
-        message: "Connected to Supabase, but no data found. Use the CSV upload or data import features." 
+        message: "Connected to Supabase, but no data found for your account. Use the CSV upload or data import features." 
       };
     }
   } catch (error: any) {

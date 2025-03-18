@@ -113,63 +113,6 @@ export type Database = {
           },
         ]
       }
-      voter_contacts: {
-        Row: {
-          attempts: number
-          bad_data: number
-          contacts: number
-          created_at: string | null
-          date: string
-          first_name: string
-          id: number
-          last_name: string
-          not_home: number
-          oppose: number
-          refusal: number
-          support: number
-          tactic: string
-          team: string
-          undecided: number
-          user_id: string | null
-        }
-        Insert: {
-          attempts?: number
-          bad_data?: number
-          contacts?: number
-          created_at?: string | null
-          date: string
-          first_name: string
-          id?: number
-          last_name: string
-          not_home?: number
-          oppose?: number
-          refusal?: number
-          support?: number
-          tactic: string
-          team: string
-          undecided?: number
-          user_id?: string | null
-        }
-        Update: {
-          attempts?: number
-          bad_data?: number
-          contacts?: number
-          created_at?: string | null
-          date?: string
-          first_name?: string
-          id?: number
-          last_name?: string
-          not_home?: number
-          oppose?: number
-          refusal?: number
-          support?: number
-          tactic?: string
-          team?: string
-          undecided?: number
-          user_id?: string | null
-        }
-        Relationships: []
-      }
     }
     Views: {
       [_ in never]: never

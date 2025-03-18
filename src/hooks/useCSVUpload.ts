@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { parseCSV } from '@/utils/csvUtils';
 import { 
@@ -9,6 +9,7 @@ import {
   clearExistingContacts, 
   uploadDataBatches 
 } from '@/utils/csvDataProcessing';
+import { useAuth } from '@/hooks/useAuth';
 
 export function useCSVUpload(onSuccess: () => void) {
   const [file, setFile] = useState<File | null>(null);
@@ -24,6 +25,7 @@ export function useCSVUpload(onSuccess: () => void) {
     reasons: Record<string, number>;
   } | null>(null);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -108,13 +110,15 @@ export function useCSVUpload(onSuccess: () => void) {
         invalid: invalidData.length,
         reasons: reasonCounts
       });
+
+      const userEmail = user?.email || 'unknown';
       
-      await uploadDataBatches(validData, setProgress);
+      await uploadDataBatches(validData, setProgress, userEmail);
       
       // Provide detailed information about the import
       const importMessage = validData.length === transformedData.length
-        ? `${validData.length} records imported to your database.`
-        : `${validData.length} of ${transformedData.length} records imported. ${invalidData.length} records were skipped due to missing required fields.`;
+        ? `${validData.length} records imported to your database as "voter contact - ${userEmail}".`
+        : `${validData.length} of ${transformedData.length} records imported as "voter contact - ${userEmail}". ${invalidData.length} records were skipped due to missing required fields.`;
       
       toast({
         title: 'Data uploaded successfully',
@@ -172,6 +176,7 @@ export function useCSVUpload(onSuccess: () => void) {
     validationStats,
     handleFileChange,
     handleSubmitFile,
-    resetUpload
+    resetUpload,
+    userEmail: user?.email
   };
 }
