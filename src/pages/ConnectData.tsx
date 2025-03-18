@@ -193,49 +193,19 @@ const ConnectData = () => {
               />
             </div>
           )}
-
-          <div 
-            className="p-6 border border-gray-200 rounded-lg hover:border-blue-300 hover:shadow-md transition-all cursor-pointer"
-            onClick={() => handleConnect('API')}
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <Database className="w-8 h-8 text-blue-600" />
-                <h3 className="text-lg font-medium">API</h3>
-              </div>
-              <ChevronRight className="w-5 h-5 text-gray-400" />
-            </div>
-            <p className="mt-3 text-sm text-gray-500">
-              Connect using our API for custom integrations.
-            </p>
-          </div>
         </div>
 
         {step === 'upload' && (
-          <>
-            <div className="relative my-6">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-4 text-gray-500 bg-white">Or</span>
-              </div>
-            </div>
-
-            <div className="flex flex-col items-center justify-center">
-              <Button 
-                variant="outline" 
-                className="flex items-center space-x-2 py-3 px-6 text-gray-700 hover:text-blue-600"
-                onClick={handleSkip}
-              >
-                <span>Skip for Now</span>
-                <ArrowRight className="w-4 h-4" />
-              </Button>
-              <p className="mt-2 text-sm text-gray-500">
-                You can always connect your data later in settings
-              </p>
-            </div>
-          </>
+          <div className="flex flex-col items-center justify-center">
+            <Button 
+              variant="outline" 
+              className="flex items-center space-x-2 py-3 px-6 text-gray-700 hover:text-blue-600"
+              onClick={handleSkip}
+            >
+              <span>Skip for Now</span>
+              <ArrowRight className="w-4 h-4" />
+            </Button>
+          </div>
         )}
       </div>
     </div>
