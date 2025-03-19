@@ -153,7 +153,7 @@ export const fetchVoterMetrics = async (query?: Partial<QueryParams>): Promise<V
         notReached: { notHome: 20, refusal: 5, badData: 2 },
         teamAttempts: { "Team Sarah": 42 },
         byDate: [
-          { date: "2025-01-03", attempts: 42, contacts: 15 }
+          { date: "2025-01-03", attempts: 42, contacts: 15, issues: 27 }
         ]
       };
     }
