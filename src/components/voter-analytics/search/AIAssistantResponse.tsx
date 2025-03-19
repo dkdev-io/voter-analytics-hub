@@ -31,7 +31,13 @@ export const AIAssistantResponse: React.FC<AIAssistantResponseProps> = ({
     response.toLowerCase().includes("i don't have data") ||
     response.toLowerCase().includes("i don't have access to data") ||
     response.toLowerCase().includes("cannot provide information about") ||
-    response.toLowerCase().includes("can't access")
+    response.toLowerCase().includes("can't access") ||
+    response.toLowerCase().includes("i'm unable to provide specific information") ||
+    response.toLowerCase().includes("i'm sorry, but i don't") ||
+    response.toLowerCase().includes("not privy to") ||
+    response.toLowerCase().includes("as an ai") ||
+    response.toLowerCase().includes("my training data") ||
+    response.toLowerCase().includes("my knowledge")
   );
 
   if (isLoading) {

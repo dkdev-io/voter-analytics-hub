@@ -8,7 +8,9 @@ export function handleDanKellySpecialCase(query: string): boolean {
   // More comprehensive pattern matching
   return normalizedQuery.includes('dan kelly') || 
          (normalizedQuery.includes('dan') && normalizedQuery.includes('kelly')) ||
-         normalizedQuery.includes('kelly, dan');
+         normalizedQuery.includes('kelly, dan') ||
+         normalizedQuery.match(/\bdan\s+kelly\b/i) !== null ||
+         normalizedQuery.match(/\bkelly,\s*dan\b/i) !== null;
 }
 
 /**
