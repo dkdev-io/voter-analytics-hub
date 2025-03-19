@@ -6,20 +6,23 @@ import { DataAccess } from '@/components/landing/DataAccess';
 import { Features } from '@/components/landing/Features';
 import { Pricing } from '@/components/landing/Pricing';
 import { Footer } from '@/components/landing/Footer';
+import { PasswordGate } from '@/components/landing/PasswordGate';
 
 const Landing = () => {
   return (
-    <div className="min-h-screen font-sans">
-      <Navbar />
-      <main>
-        <Hero />
-        <HowItWorks />
-        <DataAccess />
-        <Features />
-        <Pricing />
-      </main>
-      <Footer />
-    </div>
+    <PasswordGate>
+      <div className="min-h-screen font-sans">
+        <Navbar />
+        <main>
+          <Hero />
+          <HowItWorks />
+          <DataAccess />
+          <Features />
+          <Pricing />
+        </main>
+        <Footer />
+      </div>
+    </PasswordGate>
   );
 };
 
