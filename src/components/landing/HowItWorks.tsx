@@ -14,9 +14,7 @@ export const HowItWorks = () => {
           <Card className="bg-white text-black border-0">
             <CardContent className="pt-6">
               <h3 className="text-xl font-bold mb-4">Connect Your Data</h3>
-              <p>
-                Connect your data source however you keep your data. VoterContact.io integrates with the leading voter file software.
-              </p>
+              <p>Upload your data or connect to your voter file software. Your data stays safe and secure.</p>
             </CardContent>
           </Card>
           
