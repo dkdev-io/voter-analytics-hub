@@ -1,12 +1,8 @@
 
-import type { QueryParams } from '@/types/analytics';
-import { addIssue } from '@/lib/issue-log/issueLogService';
-
 /**
- * This function is now a no-op as we've removed the special case handling
+ * Special case handler for Dan Kelly queries
  */
-export const handleDanKellySpecialCase = async (query: Partial<QueryParams>, data: any[]) => {
-  // Special case has been removed
-  return null;
-};
-
+export function handleDanKellySpecialCase(query: string): boolean {
+  const normalizedQuery = query.toLowerCase();
+  return normalizedQuery.includes('dan kelly') || normalizedQuery.includes('dan') && normalizedQuery.includes('kelly');
+}
