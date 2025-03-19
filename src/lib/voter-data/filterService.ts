@@ -1,4 +1,3 @@
-
 import type { QueryParams } from '@/types/analytics';
 
 /**
@@ -19,12 +18,64 @@ export const extractQueryParameters = (searchQuery: string): Partial<QueryParams
     extractedParams.tactic = 'Canvas';
   }
   
-  // Extract date information using regex
-  const dateRegex = /\b\d{4}-\d{2}-\d{2}\b/g;
-  const dateMatches = query.match(dateRegex);
-  if (dateMatches && dateMatches.length > 0) {
-    extractedParams.date = dateMatches[0];
-    console.log("Extracted date:", extractedParams.date);
+  // Extract date information using regex for standard formats
+  // Handle both YYYY-MM-DD and MM-DD-YYYY formats
+  const isoDateRegex = /\b\d{4}-\d{2}-\d{2}\b/g;
+  const usDateRegex = /\b\d{2}-\d{2}-\d{4}\b/g;
+  const isoDateMatches = query.match(isoDateRegex);
+  const usDateMatches = query.match(usDateRegex);
+  
+  if (isoDateMatches && isoDateMatches.length > 0) {
+    // Validate the date
+    const dateStr = isoDateMatches[0];
+    if (isValidDate(dateStr)) {
+      extractedParams.date = dateStr;
+      console.log("Extracted ISO date:", extractedParams.date);
+    } else {
+      console.warn("Invalid ISO date format detected:", dateStr);
+    }
+  } else if (usDateMatches && usDateMatches.length > 0) {
+    // Convert MM-DD-YYYY to YYYY-MM-DD
+    const parts = usDateMatches[0].split('-');
+    const isoDate = `${parts[2]}-${parts[0]}-${parts[1]}`;
+    
+    if (isValidDate(isoDate)) {
+      extractedParams.date = isoDate;
+      console.log("Converted US date to ISO:", extractedParams.date);
+    } else {
+      console.warn("Invalid US date format detected:", usDateMatches[0]);
+    }
+  } else {
+    // Try to extract dates in other formats or with natural language
+    const datePatterns = [
+      { regex: /january\s+(\d{1,2})(?:st|nd|rd|th)?,?\s+(\d{4})/i, month: '01' },
+      { regex: /february\s+(\d{1,2})(?:st|nd|rd|th)?,?\s+(\d{4})/i, month: '02' },
+      { regex: /march\s+(\d{1,2})(?:st|nd|rd|th)?,?\s+(\d{4})/i, month: '03' },
+      { regex: /april\s+(\d{1,2})(?:st|nd|rd|th)?,?\s+(\d{4})/i, month: '04' },
+      { regex: /may\s+(\d{1,2})(?:st|nd|rd|th)?,?\s+(\d{4})/i, month: '05' },
+      { regex: /june\s+(\d{1,2})(?:st|nd|rd|th)?,?\s+(\d{4})/i, month: '06' },
+      { regex: /july\s+(\d{1,2})(?:st|nd|rd|th)?,?\s+(\d{4})/i, month: '07' },
+      { regex: /august\s+(\d{1,2})(?:st|nd|rd|th)?,?\s+(\d{4})/i, month: '08' },
+      { regex: /september\s+(\d{1,2})(?:st|nd|rd|th)?,?\s+(\d{4})/i, month: '09' },
+      { regex: /october\s+(\d{1,2})(?:st|nd|rd|th)?,?\s+(\d{4})/i, month: '10' },
+      { regex: /november\s+(\d{1,2})(?:st|nd|rd|th)?,?\s+(\d{4})/i, month: '11' },
+      { regex: /december\s+(\d{1,2})(?:st|nd|rd|th)?,?\s+(\d{4})/i, month: '12' },
+    ];
+    
+    for (const pattern of datePatterns) {
+      const match = query.match(pattern.regex);
+      if (match) {
+        let day = match[1].padStart(2, '0');
+        const year = match[2];
+        const isoDate = `${year}-${pattern.month}-${day}`;
+        
+        if (isValidDate(isoDate)) {
+          extractedParams.date = isoDate;
+          console.log("Extracted natural language date:", extractedParams.date);
+          break;
+        }
+      }
+    }
   }
   
   // Extract person information
@@ -32,7 +83,10 @@ export const extractQueryParameters = (searchQuery: string): Partial<QueryParams
     { first: 'jane', last: 'doe' },
     { first: 'john', last: 'smith' },
     { first: 'dan', last: 'kelly' },
-    { first: 'sarah', last: 'johnson' }
+    { first: 'sarah', last: 'johnson' },
+    { first: 'alex', last: 'johnson' },
+    { first: 'chris', last: 'brown' },
+    { first: 'maria', last: 'martinez' }
   ];
   
   for (const person of peopleNames) {
@@ -82,6 +136,34 @@ export const extractQueryParameters = (searchQuery: string): Partial<QueryParams
   console.log("Final extracted parameters:", extractedParams);
   return extractedParams;
 };
+
+/**
+ * Validates whether a date string is a valid date in YYYY-MM-DD format
+ */
+function isValidDate(dateString: string): boolean {
+  // First check the format
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+    return false;
+  }
+  
+  // Parse the date parts and create a date object
+  const parts = dateString.split("-");
+  const year = parseInt(parts[0], 10);
+  const month = parseInt(parts[1], 10);
+  const day = parseInt(parts[2], 10);
+  
+  // Check the ranges of month and day
+  if (month < 1 || month > 12) {
+    return false;
+  }
+  
+  const lastDayOfMonth = new Date(year, month, 0).getDate();
+  if (day < 1 || day > lastDayOfMonth) {
+    return false;
+  }
+  
+  return true;
+}
 
 /**
  * Filters voter data based on query parameters

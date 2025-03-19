@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertCircle, AlertTriangle, Zap } from 'lucide-react';
+import { AlertCircle, AlertTriangle, Zap, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface AIAssistantResponseProps {
@@ -39,6 +39,14 @@ export const AIAssistantResponse: React.FC<AIAssistantResponseProps> = ({
     response.toLowerCase().includes("my training data") ||
     response.toLowerCase().includes("my knowledge")
   );
+  
+  // Detect date validation errors
+  const isDateError = response && (
+    response.toLowerCase().includes("is not valid") && 
+    response.toLowerCase().includes("date") ||
+    (response.toLowerCase().includes("invalid date") && 
+    (response.toLowerCase().includes("month") || response.toLowerCase().includes("day")))
+  );
 
   if (isLoading) {
     return (
@@ -73,6 +81,26 @@ export const AIAssistantResponse: React.FC<AIAssistantResponseProps> = ({
           <div className="text-sm whitespace-pre-wrap prose prose-sm max-w-none">
             <p>The AI has incorrectly stated it doesn't have access to data. This is a system error.</p>
             <p className="text-xs text-gray-500 mt-2">Please try again with a different question or contact support if this persists.</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+  
+  // Handle date validation errors differently
+  if (isDateError) {
+    return (
+      <Card className="mt-4 border-amber-200">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-medium flex items-center text-amber-600">
+            <Calendar className="h-4 w-4 mr-2" />
+            Date Format Issue
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-sm whitespace-pre-wrap prose prose-sm max-w-none">
+            {response}
+            <p className="text-xs text-gray-500 mt-2">Try using the format YYYY-MM-DD (e.g., 2025-01-31 for January 31, 2025)</p>
           </div>
         </CardContent>
       </Card>

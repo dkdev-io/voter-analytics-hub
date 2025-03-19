@@ -32,9 +32,15 @@ export const useLLMProcessor = ({ setQuery }: UseLLMProcessorOptions) => {
             The result should be a valid JSON object with these possible fields:
             - tactic: "Phone", "SMS", or "Canvas" (type of voter contact)
             - person: The full name of the person, with proper capitalization
-            - date: In YYYY-MM-DD format
+            - date: In YYYY-MM-DD format (must be a valid date)
             - resultType: "attempts", "contacts", "support", "oppose", "undecided", "notHome", "refusal", or "badData"
             - team: The team name if mentioned
+            
+            IMPORTANT DATE INSTRUCTIONS:
+            - Always validate dates before returning them
+            - If someone mentions "January 31, 2025" convert it to "2025-01-31"
+            - If a date like "2025-31-01" is mentioned, it's likely in the wrong format and should be "2025-01-31"
+            - Never return an invalid date like February 30
             
             Only include fields that are explicitly mentioned or strongly implied in the query.
             Return ONLY the JSON with no additional text.
@@ -48,14 +54,16 @@ export const useLLMProcessor = ({ setQuery }: UseLLMProcessorOptions) => {
             Response: {"tactic":"Phone","team":"Team Tony"}
             
             Example 3:
-            Query: "How many Phone attempts did Jane Doe make on 2025-01-02?"
+            Query: "How many Phone attempts did Jane Doe make on January 2, 2025?"
             Response: {"tactic":"Phone","person":"Jane Doe","date":"2025-01-02","resultType":"attempts"}
             
-            Important: Be exact with person names and dates. Make sure to extract all parameters correctly.
+            Example 4:
+            Query: "Show SMS on 2025-31-01"
+            Response: {"tactic":"SMS","date":"2025-01-31"}
+            
+            Important: Be exact with person names and dates. Make sure to extract all parameters correctly and validate dates.
           `
         }
-        // Remove the options property as it's not supported in the type definition
-        // The timeout will be managed on the server side
       });
 
       if (error) {
@@ -95,6 +103,42 @@ export const useLLMProcessor = ({ setQuery }: UseLLMProcessorOptions) => {
           throw new Error("Could not extract search parameters from your query");
         }
         
+        // Extra validation for date field
+        if (extractedParams.date) {
+          // Check if the date is valid
+          if (!isValidDate(extractedParams.date)) {
+            console.error("Invalid date detected:", extractedParams.date);
+            toast({
+              title: "Invalid Date Format",
+              description: `The date '${extractedParams.date}' appears to be invalid. Please use YYYY-MM-DD format.`,
+              variant: "destructive",
+            });
+            
+            // Try to fix common date format issues
+            if (/^\d{4}-\d{2}-\d{2}$/.test(extractedParams.date)) {
+              const parts = extractedParams.date.split("-");
+              const year = parseInt(parts[0]);
+              const monthOrDay1 = parseInt(parts[1]);
+              const monthOrDay2 = parseInt(parts[2]);
+              
+              // Check if month is out of range but day might be valid
+              if (monthOrDay1 > 12 && monthOrDay2 <= 12) {
+                // Swap month and day
+                const correctedDate = `${year}-${parts[2]}-${parts[1]}`;
+                if (isValidDate(correctedDate)) {
+                  console.log("Corrected date format:", correctedDate);
+                  extractedParams.date = correctedDate;
+                  
+                  toast({
+                    title: "Date Format Corrected",
+                    description: `The date has been corrected to ${correctedDate}`,
+                  });
+                }
+              }
+            }
+          }
+        }
+        
         // Update the query state with the extracted parameters
         setQuery(extractedParams);
         
@@ -120,6 +164,34 @@ export const useLLMProcessor = ({ setQuery }: UseLLMProcessorOptions) => {
       setIsProcessingQuery(false);
     }
   }, [setQuery, logError, toast]);
+
+  /**
+   * Validates whether a date string is a valid date in YYYY-MM-DD format
+   */
+  function isValidDate(dateString: string): boolean {
+    // First check the format
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+      return false;
+    }
+    
+    // Parse the date parts and create a date object
+    const parts = dateString.split("-");
+    const year = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10);
+    const day = parseInt(parts[2], 10);
+    
+    // Check the ranges of month and day
+    if (month < 1 || month > 12) {
+      return false;
+    }
+    
+    const lastDayOfMonth = new Date(year, month, 0).getDate();
+    if (day < 1 || day > lastDayOfMonth) {
+      return false;
+    }
+    
+    return true;
+  }
 
   return {
     isProcessingQuery,
