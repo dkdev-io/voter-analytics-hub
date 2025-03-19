@@ -1,3 +1,4 @@
+
 import { useCallback } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -45,7 +46,7 @@ export const useAnalyticsActions = ({
     
     // Check if we have any query parameters to use
     if (!query.tactic && !query.resultType && !query.person && !query.date && !query.team && !query.searchQuery) {
-      setError("Please select at least one field or enter a search term");
+      setError("Please select at least one filter criteria or enter a search term");
       return;
     }
 
@@ -64,18 +65,28 @@ export const useAnalyticsActions = ({
       
       if (calculationError) {
         setError(calculationError);
+        toast({
+          title: "Query Error",
+          description: calculationError,
+          variant: "destructive"
+        });
         return;
       }
       
       if (calculatedResult === 0) {
         setError(null);
         toast({
-          title: "No data found",
-          description: "No matching data for these criteria. Result set to 0.",
+          title: "No Data Found",
+          description: "No records match your search criteria. Result is 0.",
           variant: "default"
         });
       } else {
         setError(null);
+        toast({
+          title: "Query Complete",
+          description: `Found result: ${calculatedResult}`,
+          variant: "default"
+        });
       }
       
       // Show filtered data in charts

@@ -1,5 +1,7 @@
 
 import React from 'react';
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { Card } from "@/components/ui/card";
 
 interface ResultsSectionProps {
   error: string | null;
@@ -13,19 +15,18 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ error, result, q
   return (
     <div className="space-y-6">
       {error && (
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <div className="text-red-600 font-medium text-center">
-            {error}
-          </div>
-        </div>
+        <Alert variant="destructive" className="mb-4">
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
 
       {result !== null && !error && (
-        <div className="bg-white p-6 rounded-lg shadow-md">
+        <Card className="bg-white p-6 rounded-lg shadow-md">
           <p className="text-xl font-medium text-gray-900 text-center">
             Result: {result}
           </p>
-        </div>
+        </Card>
       )}
     </div>
   );
