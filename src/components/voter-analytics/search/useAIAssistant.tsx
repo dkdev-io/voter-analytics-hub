@@ -75,7 +75,7 @@ export const useAIAssistant = () => {
         description: data.truncated 
           ? "Analysis may be incomplete due to data size limitations." 
           : "Here's what the data shows.",
-        variant: data.truncated ? "warning" : "default"
+        variant: "default" // Changed from "warning" to "default" to match the allowed toast variants
       });
     } catch (error) {
       console.error('Error calling OpenAI:', error);
