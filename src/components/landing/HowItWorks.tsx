@@ -23,9 +23,7 @@ export const HowItWorks = () => {
           <Card className="bg-white text-black border-0">
             <CardContent className="pt-6">
               <h3 className="text-xl font-bold mb-4">View the Metrics that Matter</h3>
-              <p>
-                Prebuilt and searchable reports that help you focus on metrics that drive your voter contact program.
-              </p>
+              <p>Prebuilt and searchable reports that help you focus on the metrics that shoulddrive your voter contact program.</p>
             </CardContent>
           </Card>
           
