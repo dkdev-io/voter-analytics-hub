@@ -116,14 +116,14 @@ IMPORTANT: Use this data to answer the question comprehensively. Refer to specif
             console.log(`Total matching records: ${count}`);
           }
           
-          // Then get a sample of the data
-          // Limit has to be reasonable for the prompt - we'll use aggregation for large datasets
-          const { data: sampleData, error } = await query.limit(50);
+          // Then get a sample of the data - NOTE: removed the limit
+          const { data: sampleData, error } = await query;
           
           if (error) {
             console.error('Error fetching data from Supabase:', error);
           } else if (sampleData && sampleData.length > 0) {
             console.log("Retrieved data from Supabase:", sampleData.length, "records");
+            console.log("Raw database response sample (first 3 records):", JSON.stringify(sampleData.slice(0, 3)));
             
             // For large datasets, also fetch aggregated statistics
             let statsContext = "";
@@ -195,6 +195,27 @@ IMPORTANT: You MUST use the data above to provide a specific, data-driven answer
       const userPrompt = includeData && dataContext 
         ? `${prompt}\n\n${dataContext}`
         : prompt
+        
+      // Added: Log the OpenAI request
+      const requestPayload = {
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt }
+        ],
+        temperature: isParameterExtraction ? 0.1 : 0.7,
+        max_tokens: conciseResponse ? 200 : 500
+      };
+      
+      console.log("OpenAI request:", JSON.stringify({
+        model: requestPayload.model,
+        messages: [
+          { role: 'system', content: systemPrompt.substring(0, 100) + '...' },
+          { role: 'user', content: prompt.substring(0, 100) + '...' }
+        ],
+        temperature: requestPayload.temperature,
+        max_tokens: requestPayload.max_tokens
+      }));
       
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
@@ -202,15 +223,7 @@ IMPORTANT: You MUST use the data above to provide a specific, data-driven answer
           'Authorization': `Bearer ${openAIApiKey}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt }
-          ],
-          temperature: isParameterExtraction ? 0.1 : 0.7, // Lower temperature for more deterministic results in parameter extraction
-          max_tokens: conciseResponse ? 200 : 500, // Less tokens for concise responses
-        }),
+        body: JSON.stringify(requestPayload),
       })
 
       if (!response.ok) {
@@ -226,6 +239,10 @@ IMPORTANT: You MUST use the data above to provide a specific, data-driven answer
       }
 
       const data = await response.json()
+      
+      // Added: Log the full OpenAI response
+      console.log("Full OpenAI response:", JSON.stringify(data));
+      
       const answer = data.choices[0].message.content
 
       // Log for debugging
