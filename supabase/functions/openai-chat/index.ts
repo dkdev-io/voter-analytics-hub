@@ -20,7 +20,8 @@ serve(async (req) => {
       includeData = false, 
       queryParams, 
       conciseResponse = false,
-      dataSummary = null // Parameter for structured data summary
+      dataSummary = null, // Parameter for structured data summary
+      useAdvancedModel = false // New parameter to toggle more powerful model
     } = await req.json()
     
     if (!prompt) {
@@ -34,7 +35,7 @@ serve(async (req) => {
 
     console.log(`Processing prompt: ${prompt.substring(0, 100)}...`)
     console.log(`Include data: ${includeData}, Data summary provided: ${!!dataSummary}`)
-    console.log(`Concise response: ${conciseResponse}`)
+    console.log(`Concise response: ${conciseResponse}, Advanced model: ${useAdvancedModel}`)
     console.log(`Query parameters:`, queryParams)
 
     try {
@@ -50,16 +51,20 @@ serve(async (req) => {
         if (dataSummary) {
           console.log("Using provided data summary instead of querying database");
           
+          // More compact JSON for data summary to save tokens
+          const compactColumnStats = JSON.stringify(dataSummary.columnStats);
+          const compactSampleRows = JSON.stringify(dataSummary.sampleRows);
+          
           dataContext = `
 Here is a summary of the voter contact data:
 
 Total rows: ${dataSummary.totalRows}
 
 Column statistics:
-${JSON.stringify(dataSummary.columnStats, null, 2)}
+${compactColumnStats}
 
 Sample rows:
-${JSON.stringify(dataSummary.sampleRows, null, 2)}
+${compactSampleRows}
 
 IMPORTANT: Use this data to answer the question comprehensively. Refer to specific numbers and statistics from the provided data summary.`
           
@@ -116,8 +121,17 @@ IMPORTANT: Use this data to answer the question comprehensively. Refer to specif
             console.log(`Total matching records: ${count}`);
           }
           
-          // Then get a sample of the data - NOTE: removed the limit
-          const { data: sampleData, error } = await query;
+          // For very large datasets, we'll limit the records to avoid token limits
+          // but still provide enough data for meaningful analysis
+          const MAX_RECORDS_FOR_CONTEXT = 200;
+          let limitedQuery = query;
+          
+          if (count && count > MAX_RECORDS_FOR_CONTEXT) {
+            console.log(`Dataset too large (${count} records), limiting to ${MAX_RECORDS_FOR_CONTEXT} records`);
+            limitedQuery = query.limit(MAX_RECORDS_FOR_CONTEXT);
+          }
+          
+          const { data: sampleData, error } = await limitedQuery;
           
           if (error) {
             console.error('Error fetching data from Supabase:', error);
@@ -148,17 +162,18 @@ IMPORTANT: Use this data to answer the question comprehensively. Refer to specif
                 if (!tacticStats.error && tacticStats.data && 
                     !teamStats.error && teamStats.data && 
                     !dateStats.error && dateStats.data) {
+                  // Use compact JSON formatting to save tokens
                   statsContext = `
 Here are the aggregated statistics for the entire dataset (${count} records):
 
 Tactic statistics:
-${JSON.stringify(tacticStats.data, null, 2)}
+${JSON.stringify(tacticStats.data)}
 
 Team statistics:
-${JSON.stringify(teamStats.data, null, 2)}
+${JSON.stringify(teamStats.data)}
 
 Date statistics:
-${JSON.stringify(dateStats.data, null, 2)}
+${JSON.stringify(dateStats.data)}
 `;
                 }
               } catch (statsError) {
@@ -167,10 +182,16 @@ ${JSON.stringify(dateStats.data, null, 2)}
               }
             }
             
-            // Format the data for inclusion in the prompt
+            // Calculate approximate token count for the data
+            // Rule of thumb: 1 token ≈ 4 characters for English text
+            const jsonDataStr = JSON.stringify(sampleData);
+            const approxTokens = Math.ceil(jsonDataStr.length / 4);
+            console.log(`Approximate token count for data: ${approxTokens}`);
+            
+            // Format the data for inclusion in the prompt - using compact JSON to save tokens
             dataContext = `
 Here is a sample of the relevant voter contact data (showing ${sampleData.length} out of ${count || 'unknown'} records):
-${JSON.stringify(sampleData, null, 2)}
+${JSON.stringify(sampleData)}
 
 ${statsContext}
 
@@ -196,15 +217,27 @@ IMPORTANT: You MUST use the data above to provide a specific, data-driven answer
         ? `${prompt}\n\n${dataContext}`
         : prompt
         
-      // Added: Log the OpenAI request
+      // Determine which model to use based on complexity
+      const modelToUse = useAdvancedModel ? 'gpt-4o' : 'gpt-4o-mini';
+      
+      // Calculate appropriate max tokens based on response type and model
+      // gpt-4o-mini has 128K context window, gpt-4o has 128K context window
+      // We'll use higher values for more complex analyses
+      const maxTokens = isParameterExtraction 
+        ? 500  // Parameter extraction needs less tokens
+        : useAdvancedModel
+          ? (conciseResponse ? 2000 : 8000)  // More tokens for gpt-4o
+          : (conciseResponse ? 1000 : 4000); // Increased tokens for gpt-4o-mini
+      
+      // Prepare the request payload
       const requestPayload = {
-        model: 'gpt-4o-mini',
+        model: modelToUse,
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
         ],
         temperature: isParameterExtraction ? 0.1 : 0.7,
-        max_tokens: conciseResponse ? 200 : 500
+        max_tokens: maxTokens
       };
       
       console.log("OpenAI request:", JSON.stringify({
@@ -247,9 +280,19 @@ IMPORTANT: You MUST use the data above to provide a specific, data-driven answer
 
       // Log for debugging
       console.log("OpenAI answer:", answer.substring(0, 100) + "...")
+      
+      // Check if the response appears to be truncated
+      const finishReason = data.choices[0].finish_reason;
+      if (finishReason === 'length') {
+        console.warn("WARNING: Response appears to be truncated due to max_tokens limit!");
+      }
 
       return new Response(
-        JSON.stringify({ answer }),
+        JSON.stringify({ 
+          answer,
+          truncated: finishReason === 'length',
+          model: modelToUse
+        }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     } catch (openAIError) {

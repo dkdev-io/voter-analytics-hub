@@ -1,17 +1,24 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, AlertTriangle, Zap } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface AIAssistantResponseProps {
   response: string | null;
   isLoading?: boolean;
+  isTruncated?: boolean;
+  model?: string | null;
+  onUseAdvancedModel?: () => void;
 }
 
 export const AIAssistantResponse: React.FC<AIAssistantResponseProps> = ({ 
   response,
-  isLoading = false
+  isLoading = false,
+  isTruncated = false,
+  model = null,
+  onUseAdvancedModel
 }) => {
   // Check if the response contains the "I don't have access" error message
   const isErrorResponse = response && (
@@ -60,15 +67,44 @@ export const AIAssistantResponse: React.FC<AIAssistantResponseProps> = ({
   }
   
   return (
-    <Card className="mt-4">
+    <Card className={`mt-4 ${isTruncated ? 'border-amber-200' : ''}`}>
       <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium">Insight</CardTitle>
+        <CardTitle className="text-sm font-medium flex items-center">
+          {isTruncated && (
+            <AlertTriangle className="h-4 w-4 mr-2 text-amber-500" />
+          )}
+          Insight
+          {model && (
+            <span className="text-xs bg-gray-100 rounded-full px-2 py-0.5 ml-2">
+              {model}
+            </span>
+          )}
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="text-sm whitespace-pre-wrap prose prose-sm max-w-none">
           {response}
         </div>
       </CardContent>
+      {isTruncated && onUseAdvancedModel && (
+        <CardFooter className="flex justify-start pt-0 px-6 pb-4">
+          <div className="text-xs text-amber-600 bg-amber-50 rounded-lg p-2 mb-2 flex items-start">
+            <AlertTriangle className="h-3 w-3 mr-1 mt-0.5 flex-shrink-0" />
+            <span>
+              This response was truncated due to data complexity. Try using a more advanced model for better results.
+            </span>
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            className="mt-2"
+            onClick={onUseAdvancedModel}
+          >
+            <Zap className="h-3 w-3 mr-1" />
+            Use Advanced Model
+          </Button>
+        </CardFooter>
+      )}
     </Card>
   );
 };

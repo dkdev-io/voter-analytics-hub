@@ -1,13 +1,14 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Search, Loader2 } from 'lucide-react';
+import { Search, Loader2, Zap } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { type QueryParams } from '@/types/analytics';
 import { useLLMProcessor } from './search/useLLMProcessor';
 import { useAIAssistant } from './search/useAIAssistant';
 import { AIAssistantResponse } from './search/AIAssistantResponse';
+import { Switch } from '@/components/ui/switch';
 
 interface SearchFieldProps {
   value: string;
@@ -26,10 +27,17 @@ export const SearchField: React.FC<SearchFieldProps> = ({
 }) => {
   const [inputValue, setInputValue] = useState(value);
   const [currentQuery, setCurrentQuery] = useState<Partial<QueryParams>>({});
+  const [useAdvancedModel, setUseAdvancedModel] = useState(false);
   const { toast } = useToast();
   
   const { isProcessingQuery, processWithLLM } = useLLMProcessor({ setQuery });
-  const { aiResponse, isAiLoading, getAIAssistance } = useAIAssistant();
+  const { 
+    aiResponse, 
+    isAiLoading, 
+    isResponseTruncated,
+    responseModel,
+    getAIAssistance 
+  } = useAIAssistant();
 
   const handleSubmit = async () => {
     if (!inputValue.trim()) {
@@ -42,6 +50,7 @@ export const SearchField: React.FC<SearchFieldProps> = ({
     }
 
     console.log("Processing query:", inputValue);
+    console.log("Using advanced model:", useAdvancedModel);
     
     // Update the parent component's search query value
     onChange(inputValue);
@@ -63,8 +72,8 @@ export const SearchField: React.FC<SearchFieldProps> = ({
           
           console.log("Sending query with full parameters:", fullParams);
           
-          // Get AI insights with the FULL parameters
-          await getAIAssistance(inputValue, fullParams);
+          // Get AI insights with the FULL parameters and model preference
+          await getAIAssistance(inputValue, fullParams, useAdvancedModel);
           
           // Trigger the main search action if needed
           onSubmit();
@@ -79,8 +88,13 @@ export const SearchField: React.FC<SearchFieldProps> = ({
       }
     } else {
       // If no setQuery function is provided, just get AI assistance
-      await getAIAssistance(inputValue);
+      await getAIAssistance(inputValue, undefined, useAdvancedModel);
     }
+  };
+  
+  const handleAdvancedModelRetry = async () => {
+    setUseAdvancedModel(true);
+    await getAIAssistance(inputValue, currentQuery, true);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -104,6 +118,24 @@ export const SearchField: React.FC<SearchFieldProps> = ({
         <div className="text-xs text-gray-500 mt-1 text-right">Press ⌘+Enter to submit</div>
       </div>
       
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          <Switch
+            id="advanced-model"
+            checked={useAdvancedModel}
+            onCheckedChange={setUseAdvancedModel}
+          />
+          <label 
+            htmlFor="advanced-model" 
+            className="text-sm cursor-pointer flex items-center"
+          >
+            <Zap className="h-3 w-3 mr-1 text-amber-500" />
+            Use Advanced Model
+            <span className="text-xs text-gray-500 ml-1">(Slower but handles complex data)</span>
+          </label>
+        </div>
+      </div>
+      
       <div className="mt-4">
         <Button 
           onClick={handleSubmit}
@@ -120,13 +152,19 @@ export const SearchField: React.FC<SearchFieldProps> = ({
           ) : (
             <span className="flex items-center">
               <Search className="mr-2 h-4 w-4" />
-              Get Insights
+              Get Insights {useAdvancedModel && <Zap className="ml-1 h-3 w-3" />}
             </span>
           )}
         </Button>
       </div>
 
-      <AIAssistantResponse response={aiResponse} isLoading={isAiLoading} />
+      <AIAssistantResponse 
+        response={aiResponse} 
+        isLoading={isAiLoading} 
+        isTruncated={isResponseTruncated}
+        model={responseModel}
+        onUseAdvancedModel={!useAdvancedModel && isResponseTruncated ? handleAdvancedModelRetry : undefined}
+      />
     </div>
   );
 };
