@@ -1,14 +1,9 @@
-
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-
 export const Hero = () => {
-  return (
-    <section className="pt-32 pb-20 px-4 md:px-6">
+  return <section className="pt-32 pb-20 px-4 md:px-6">
       <div className="container mx-auto max-w-4xl text-center">
-        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6">
-          VoterContact.io Makes Tracking and Analyzing Your Voter Contact Easy
-        </h1>
+        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6">Make Tracking and Analyzing Your Voter Contact Easy</h1>
         <p className="text-lg md:text-xl text-gray-700 mb-8 max-w-3xl mx-auto">
           Our AI-powered tool helps you track, analyze and understand your voter contact data without tedious searches, 
           scores of spreadsheets, and hours of time spent combing through your vote file. Built by a field operative 
@@ -20,6 +15,5 @@ export const Hero = () => {
           </Button>
         </Link>
       </div>
-    </section>
-  );
+    </section>;
 };
