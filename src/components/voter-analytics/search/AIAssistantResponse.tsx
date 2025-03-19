@@ -20,11 +20,18 @@ export const AIAssistantResponse: React.FC<AIAssistantResponseProps> = ({
   model = null,
   onUseAdvancedModel
 }) => {
-  // Check if the response contains the "I don't have access" error message
+  // Expanded list of error patterns to catch more variations of "no access" messages
   const isErrorResponse = response && (
-    response.includes("I don't have access") || 
-    response.includes("I'm sorry, but I don't have access") ||
-    response.includes("I don't have specific personal data")
+    response.toLowerCase().includes("don't have access") || 
+    response.toLowerCase().includes("i don't have information") ||
+    response.toLowerCase().includes("don't have specific personal data") ||
+    response.toLowerCase().includes("i don't have specific") ||
+    response.toLowerCase().includes("beyond my knowledge cutoff") ||
+    response.toLowerCase().includes("after my last update") ||
+    response.toLowerCase().includes("i don't have data") ||
+    response.toLowerCase().includes("i don't have access to data") ||
+    response.toLowerCase().includes("cannot provide information about") ||
+    response.toLowerCase().includes("can't access")
   );
 
   if (isLoading) {
