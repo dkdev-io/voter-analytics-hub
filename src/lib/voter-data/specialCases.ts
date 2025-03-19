@@ -1,14 +1,14 @@
 
 /**
- * Special case handler for Dan Kelly queries - currently disabled to allow for user dataset upload
+ * Special case handler - completely disabled
  */
 export function handleDanKellySpecialCase(query: string): boolean {
-  // Return false to disable special case handling
+  // Always return false to completely disable special case handling
   return false;
 }
 
 /**
- * Creates a special case data response for Dan Kelly - currently disabled
+ * Creates a special case data response - completely disabled
  */
 export function createDanKellyResponse(): string {
   // Return empty message as this feature is disabled
@@ -16,10 +16,10 @@ export function createDanKellyResponse(): string {
 }
 
 /**
- * Determine if the prompt is asking about Dan Kelly - currently disabled
+ * Determine if the prompt is asking about a special case - completely disabled
  * This version is specifically for use in the OpenAI edge function
  */
 export function isDanKellyQuery(prompt: string): boolean {
-  // Return false to disable special case handling
+  // Always return false to completely disable special case handling
   return false;
 }
