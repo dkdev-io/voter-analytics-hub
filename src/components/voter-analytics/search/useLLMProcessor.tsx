@@ -53,11 +53,9 @@ export const useLLMProcessor = ({ setQuery }: UseLLMProcessorOptions) => {
             
             Important: Be exact with person names and dates. Make sure to extract all parameters correctly.
           `
-        },
-        // Add timeout to prevent long-running requests from hanging
-        options: {
-          timeout: 30000 // 30 seconds timeout
         }
+        // Remove the options property as it's not supported in the type definition
+        // The timeout will be managed on the server side
       });
 
       if (error) {

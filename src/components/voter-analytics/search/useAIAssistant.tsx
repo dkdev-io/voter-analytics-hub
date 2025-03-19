@@ -46,10 +46,8 @@ export const useAIAssistant = () => {
           conciseResponse: true,
           useAdvancedModel // Pass the advanced model flag
         },
-        // Add timeout to prevent long-running requests from hanging
-        options: {
-          timeout: 60000 // 60 seconds timeout
-        }
+        // Remove the options property as it's not supported in the type
+        // The timeout will be handled on the server side
       });
 
       if (error) {
@@ -82,7 +80,7 @@ export const useAIAssistant = () => {
         description: data.truncated 
           ? "Analysis may be incomplete due to data size limitations." 
           : "Here's what the data shows.",
-        variant: "default" // Changed from "warning" to "default" to match the allowed toast variants
+        variant: "default" // Using "default" instead of "warning" to match the allowed toast variants
       });
     } catch (error) {
       console.error('Error calling OpenAI:', error);
