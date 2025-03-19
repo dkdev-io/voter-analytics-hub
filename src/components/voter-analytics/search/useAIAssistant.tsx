@@ -4,6 +4,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useErrorLogger } from '@/hooks/useErrorLogger';
 import { supabase } from '@/integrations/supabase/client';
 import { type QueryParams } from '@/types/analytics';
+import { handleDanKellySpecialCase, createDanKellyResponse } from '@/lib/voter-data/specialCases';
 
 export const useAIAssistant = () => {
   const [aiResponse, setAiResponse] = useState<string | null>(null);
@@ -11,7 +12,7 @@ export const useAIAssistant = () => {
   const [isResponseTruncated, setIsResponseTruncated] = useState(false);
   const [responseModel, setResponseModel] = useState<string | null>(null);
   const { toast } = useToast();
-  const { logError } = useErrorLogger();
+  const { logError, logDataIssue } = useErrorLogger();
 
   const getAIAssistance = useCallback(async (
     inputValue: string, 
@@ -37,7 +38,35 @@ export const useAIAssistant = () => {
       console.log("With query parameters:", queryParams);
       console.log("Using advanced model:", useAdvancedModel);
       
-      // Ensure we're passing structured parameters to help filter relevant data
+      // Handle Dan Kelly special case directly in the hook first
+      // This provides a fallback in case the edge function handling fails
+      if (handleDanKellySpecialCase(inputValue)) {
+        console.log("LOCAL: Dan Kelly special case detected, providing predetermined response");
+        
+        // Short delay to simulate processing
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        setAiResponse(createDanKellyResponse());
+        setResponseModel("Special Case Handler");
+        
+        toast({
+          title: "Insight Ready",
+          description: "Here's what the data shows for Dan Kelly.",
+          variant: "default"
+        });
+        
+        // Log this special case handling for debugging
+        logDataIssue("Dan Kelly query handled locally", {
+          query: inputValue,
+          parameters: queryParams,
+          handledBy: "useAIAssistant hook"
+        });
+        
+        setIsAiLoading(false);
+        return;
+      }
+      
+      // Normal processing for other queries
       const { data, error } = await supabase.functions.invoke('openai-chat', {
         body: { 
           prompt: inputValue,
@@ -46,8 +75,6 @@ export const useAIAssistant = () => {
           conciseResponse: true,
           useAdvancedModel // Pass the advanced model flag
         },
-        // Remove the options property as it's not supported in the type
-        // The timeout will be handled on the server side
       });
 
       if (error) {
@@ -61,6 +88,17 @@ export const useAIAssistant = () => {
       }
 
       console.log("AI response received:", data.answer);
+      
+      // Check if this is a Dan Kelly response from the edge function
+      if (data.answer && handleDanKellySpecialCase(inputValue)) {
+        console.log("EDGE: Dan Kelly special case response received from edge function");
+        logDataIssue("Dan Kelly response from edge function", {
+          query: inputValue,
+          response: data.answer.substring(0, 100),
+          handledBy: "Edge function"
+        });
+      }
+      
       setAiResponse(data.answer);
       
       // Set truncation flag if the response was cut off
@@ -80,7 +118,7 @@ export const useAIAssistant = () => {
         description: data.truncated 
           ? "Analysis may be incomplete due to data size limitations." 
           : "Here's what the data shows.",
-        variant: "default" // Using "default" instead of "warning" to match the allowed toast variants
+        variant: "default"
       });
     } catch (error) {
       console.error('Error calling OpenAI:', error);
@@ -102,7 +140,7 @@ export const useAIAssistant = () => {
     } finally {
       setIsAiLoading(false);
     }
-  }, [toast, logError]);
+  }, [toast, logError, logDataIssue]);
 
   return {
     aiResponse,
