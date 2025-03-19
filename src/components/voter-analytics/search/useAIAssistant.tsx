@@ -45,14 +45,20 @@ export const useAIAssistant = () => {
           queryParams: queryParams || {}, // Pass the extracted parameters to filter relevant data
           conciseResponse: true,
           useAdvancedModel // Pass the advanced model flag
+        },
+        // Add timeout to prevent long-running requests from hanging
+        options: {
+          timeout: 60000 // 60 seconds timeout
         }
       });
 
       if (error) {
-        throw new Error(error.message);
+        console.error("Edge function error:", error);
+        throw new Error(`Edge function error: ${error.message}`);
       }
 
       if (data.error) {
+        console.error("OpenAI API error:", data.error);
         throw new Error(data.error);
       }
 
@@ -68,6 +74,7 @@ export const useAIAssistant = () => {
       // Set the model used for the response
       if (data.model) {
         setResponseModel(data.model);
+        console.log("Response generated using model:", data.model);
       }
       
       toast({
@@ -81,9 +88,17 @@ export const useAIAssistant = () => {
       console.error('Error calling OpenAI:', error);
       logError(error as Error, 'SearchField.handleAiAssist');
       
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : "Failed to get response from AI assistant";
+        
+      const isEdgeFunctionError = errorMessage.includes("Failed to send a request to the Edge Function");
+      
       toast({
-        title: "AI Assistant Error",
-        description: error instanceof Error ? error.message : "Failed to get response from AI assistant",
+        title: isEdgeFunctionError ? "Server Connection Error" : "AI Assistant Error",
+        description: isEdgeFunctionError 
+          ? "Could not connect to the AI service. Please try again in a moment." 
+          : errorMessage,
         variant: "destructive",
       });
     } finally {

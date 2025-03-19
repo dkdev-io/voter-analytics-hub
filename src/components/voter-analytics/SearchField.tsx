@@ -93,8 +93,17 @@ export const SearchField: React.FC<SearchFieldProps> = ({
   };
   
   const handleAdvancedModelRetry = async () => {
-    setUseAdvancedModel(true);
-    await getAIAssistance(inputValue, currentQuery, true);
+    try {
+      setUseAdvancedModel(true);
+      await getAIAssistance(inputValue, currentQuery, true);
+    } catch (error) {
+      console.error("Error retrying with advanced model:", error);
+      toast({
+        title: "Advanced Model Error",
+        description: "Failed to get a response from the advanced AI model. Please try again later.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {

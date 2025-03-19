@@ -73,6 +73,11 @@ IMPORTANT: Use this data to answer the question comprehensively. Refer to specif
           // Initialize Supabase client
           const supabaseUrl = Deno.env.get('SUPABASE_URL') || ''
           const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
+          
+          if (!supabaseUrl || !supabaseKey) {
+            throw new Error('Supabase credentials not configured')
+          }
+          
           const supabase = createClient(supabaseUrl, supabaseKey)
           
           // Build query based on parameters
@@ -250,63 +255,100 @@ IMPORTANT: You MUST use the data above to provide a specific, data-driven answer
         max_tokens: requestPayload.max_tokens
       }));
       
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${openAIApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestPayload),
-      })
+      // Set a timeout for the fetch operation
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 55000); // 55 second timeout
+      
+      try {
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${openAIApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(requestPayload),
+          signal: controller.signal
+        });
+        
+        // Clear the timeout since the request has completed
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error('OpenAI API Error:', errorData);
+          return new Response(
+            JSON.stringify({ 
+              error: `OpenAI API error: ${errorData.error?.message || 'Unknown error'}`,
+              status: response.status
+            }),
+            { 
+              status: 500, 
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+            }
+          );
+        }
 
-      if (!response.ok) {
-        const error = await response.json()
-        console.error('OpenAI API Error:', error)
+        const data = await response.json();
+        
+        // Added: Log the full OpenAI response
+        console.log("Full OpenAI response:", JSON.stringify(data));
+        
+        const answer = data.choices[0].message.content;
+
+        // Log for debugging
+        console.log("OpenAI answer:", answer.substring(0, 100) + "...");
+        
+        // Check if the response appears to be truncated
+        const finishReason = data.choices[0].finish_reason;
+        if (finishReason === 'length') {
+          console.warn("WARNING: Response appears to be truncated due to max_tokens limit!");
+        }
+
         return new Response(
-          JSON.stringify({ error: `OpenAI API error: ${error.error?.message || 'Unknown error'}` }),
+          JSON.stringify({ 
+            answer,
+            truncated: finishReason === 'length',
+            model: modelToUse
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      } catch (fetchError) {
+        clearTimeout(timeoutId);
+        
+        // Check if this was a timeout error
+        if (fetchError.name === 'AbortError') {
+          console.error('Fetch operation timed out');
+          return new Response(
+            JSON.stringify({ error: "OpenAI request timed out. The server took too long to respond." }),
+            { 
+              status: 504, // Gateway Timeout
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+            }
+          );
+        }
+        
+        // Handle other fetch errors
+        console.error('Error fetching from OpenAI:', fetchError);
+        return new Response(
+          JSON.stringify({ error: `Error calling OpenAI API: ${fetchError.message}` }),
           { 
             status: 500, 
             headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
           }
-        )
+        );
       }
-
-      const data = await response.json()
-      
-      // Added: Log the full OpenAI response
-      console.log("Full OpenAI response:", JSON.stringify(data));
-      
-      const answer = data.choices[0].message.content
-
-      // Log for debugging
-      console.log("OpenAI answer:", answer.substring(0, 100) + "...")
-      
-      // Check if the response appears to be truncated
-      const finishReason = data.choices[0].finish_reason;
-      if (finishReason === 'length') {
-        console.warn("WARNING: Response appears to be truncated due to max_tokens limit!");
-      }
-
-      return new Response(
-        JSON.stringify({ 
-          answer,
-          truncated: finishReason === 'length',
-          model: modelToUse
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
     } catch (openAIError) {
-      console.error('Error calling OpenAI API:', openAIError)
+      console.error('Error calling OpenAI API:', openAIError);
       return new Response(
         JSON.stringify({ error: `Error calling OpenAI: ${openAIError.message}` }),
         { 
           status: 500, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
-      )
+      );
     }
   } catch (error) {
-    console.error('Error in openai-chat function:', error)
+    console.error('Error in openai-chat function:', error);
     
     return new Response(
       JSON.stringify({ error: error.message }),
@@ -314,6 +356,6 @@ IMPORTANT: You MUST use the data above to provide a specific, data-driven answer
         status: 500, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
-    )
+    );
   }
 })

@@ -53,11 +53,20 @@ export const useLLMProcessor = ({ setQuery }: UseLLMProcessorOptions) => {
             
             Important: Be exact with person names and dates. Make sure to extract all parameters correctly.
           `
+        },
+        // Add timeout to prevent long-running requests from hanging
+        options: {
+          timeout: 30000 // 30 seconds timeout
         }
       });
 
       if (error) {
         console.error("Error from Supabase function:", error);
+        
+        if (error.message.includes("Failed to send a request to the Edge Function")) {
+          throw new Error("Connection to AI service failed. Please try again later.");
+        }
+        
         throw new Error(error.message);
       }
 
