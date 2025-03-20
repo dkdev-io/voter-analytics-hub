@@ -47,17 +47,25 @@ Actual: ${JSON.stringify(actualValues)}`;
       // In a real implementation, you would send this to your issue tracking system
       console.log("Reporting calculation issue:", issueDescription);
       
-      // Create a placeholder issue object
-      const issue = {
-        id: Date.now().toString(),
+      // Create a placeholder issue object that matches the Issue type structure
+      const issue: Issue = {
+        id: parseInt(Date.now().toString()),
         title: `${chartType} Chart Calculation Issue`,
         description: issueDescription,
+        date_reported: new Date().toISOString(),
+        expected_behavior: `Chart should show: ${JSON.stringify(expectedValues)}`,
+        actual_behavior: `Chart is showing: ${JSON.stringify(actualValues)}`,
+        console_logs: null,
+        theories: "Possible data type conversion issues or calculation errors in the chart component.",
         status: 'open',
-        createdAt: new Date().toISOString()
+        resolution: null,
+        component: `${chartType}PieChart.tsx`,
+        reference_links: null,
+        last_updated: new Date().toISOString()
       };
       
-      setReportedIssue(issue as Issue);
-      return issue as Issue;
+      setReportedIssue(issue);
+      return issue;
       
     } catch (error) {
       logError(error as Error, 'useReportIssue.reportPieChartCalculationIssue');
