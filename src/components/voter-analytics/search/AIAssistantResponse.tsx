@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertCircle, AlertTriangle, Calendar, UserCheck } from 'lucide-react';
+import { AlertCircle, AlertTriangle, Calendar } from 'lucide-react';
 
 interface AIAssistantResponseProps {
   response: string | null;
@@ -45,14 +45,6 @@ export const AIAssistantResponse: React.FC<AIAssistantResponseProps> = ({
     (response.toLowerCase().includes("month") || response.toLowerCase().includes("day")))
   );
 
-  // Detect special case for Dan Kelly - show it as a success even if there are errors
-  const isDanKellyResponse = response && (
-    response.toLowerCase().includes("dan kelly made 42 phone attempts") ||
-    (response.toLowerCase().includes("dan kelly") && 
-     response.toLowerCase().includes("42") && 
-     response.toLowerCase().includes("phone attempts"))
-  );
-
   // Get the first sentence of the response for the bold summary
   const getFirstSentence = (text: string): string => {
     const match = text.match(/^(.*?[.!?])\s/);
@@ -77,26 +69,6 @@ export const AIAssistantResponse: React.FC<AIAssistantResponseProps> = ({
   }
   
   if (!response) return null;
-
-  // Special case - if it's a Dan Kelly response, show it as successful even if it contains error patterns
-  if (isDanKellyResponse) {
-    return (
-      <Card className="mt-4 border-green-200">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium flex items-center text-green-600">
-            <UserCheck className="h-4 w-4 mr-2" />
-            Contact Data Retrieved
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-sm">
-            <p className="font-bold mb-2">{getFirstSentence(response)}</p>
-            <p>I've gone ahead and updated the charts in your dashboard.</p>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
 
   // Handle error responses differently
   if (isErrorResponse) {

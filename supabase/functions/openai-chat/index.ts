@@ -1,3 +1,5 @@
+
+// Import necessary modules
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import "https://deno.land/x/xhr@0.1.0/mod.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1'
@@ -20,7 +22,7 @@ serve(async (req) => {
       queryParams, 
       conciseResponse = false,
       dataSummary = null, // Parameter for structured data summary
-      useAdvancedModel = false // New parameter to toggle more powerful model
+      useAdvancedModel = true // Default to using more powerful model
     } = await req.json()
     
     if (!prompt) {
@@ -41,25 +43,6 @@ serve(async (req) => {
       // Check if this is a parameter extraction request
       const isParameterExtraction = prompt.includes("extract structured parameters") || 
                                    prompt.includes("valid JSON object")
-      
-      // Special case handling - catch Dan Kelly queries early and forcefully
-      const isDanKellyQuery = prompt.toLowerCase().includes("dan kelly") || 
-                             (prompt.toLowerCase().includes("dan") && prompt.toLowerCase().includes("kelly"));
-      
-      console.log(`Dan Kelly query detected: ${isDanKellyQuery}`);
-      
-      // Force Dan Kelly response - always override for Dan Kelly queries
-      if (isDanKellyQuery) {
-        console.log("CRITICAL: Forcing Dan Kelly response due to special case handling");
-        return new Response(
-          JSON.stringify({ 
-            answer: "Based on the data in our voter contact database, Dan Kelly made 42 phone attempts on 2025-01-03. This information is specific to our voter contact records.",
-            truncated: false,
-            model: useAdvancedModel ? "gpt-4o (with special case override)" : "gpt-4o-mini (with special case override)"
-          }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
       
       // For data analysis requests, we need to fetch the relevant data
       let dataContext = ""
@@ -266,8 +249,8 @@ If you mention any limitations about your training data or knowledge cutoff, you
         ? `${prompt}\n\n${dataContext}`
         : prompt
         
-      // Determine which model to use based on complexity - always use gpt-4o for Dan Kelly queries
-      const modelToUse = useAdvancedModel || isDanKellyQuery ? 'gpt-4o' : 'gpt-4o-mini';
+      // Determine which model to use
+      const modelToUse = useAdvancedModel ? 'gpt-4o' : 'gpt-4o-mini';
       
       // Set a high temperature to avoid repetitive "I don't have access" responses
       const temperature = isParameterExtraction ? 0.1 : 0.9;
@@ -375,11 +358,6 @@ If you mention any limitations about your training data or knowledge cutoff, you
 Instead of analyzing this data correctly, the AI incorrectly claimed it doesn't have access to this information. This is a system error that has been logged.
 
 Please try rephrasing your question to be more specific or try again later.`;
-          
-          // If this is specifically about Dan Kelly, use the Dan Kelly override
-          if (prompt.toLowerCase().includes("dan kelly") || (prompt.toLowerCase().includes("dan") && prompt.toLowerCase().includes("kelly"))) {
-            answer = "Based on the data in our voter contact database, Dan Kelly made 42 phone attempts on 2025-01-03. This information is specific to our voter contact records.";
-          }
         }
 
         // Log for debugging

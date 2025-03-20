@@ -35,7 +35,8 @@ export const OpenAIChat = () => {
       const { data, error } = await supabase.functions.invoke('openai-chat', {
         body: { 
           prompt: prompt.trim(),
-          useAdvancedModel: true  // Always use advanced model for better results
+          useAdvancedModel: true,  // Always use advanced model for better results
+          includeData: true        // Include relevant data for analysis
         }
       });
 

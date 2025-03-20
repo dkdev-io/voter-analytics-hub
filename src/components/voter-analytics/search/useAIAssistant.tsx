@@ -4,7 +4,6 @@ import { useToast } from '@/hooks/use-toast';
 import { useErrorLogger } from '@/hooks/useErrorLogger';
 import { supabase } from '@/integrations/supabase/client';
 import { type QueryParams } from '@/types/analytics';
-import { handleDanKellySpecialCase, createDanKellyResponse } from '@/lib/voter-data/specialCases';
 
 export const useAIAssistant = () => {
   const [aiResponse, setAiResponse] = useState<string | null>(null);
@@ -17,7 +16,7 @@ export const useAIAssistant = () => {
   const getAIAssistance = useCallback(async (
     inputValue: string, 
     queryParams?: Partial<QueryParams>, 
-    useAdvancedModel: boolean = false
+    useAdvancedModel: boolean = true
   ) => {
     if (!inputValue.trim()) {
       toast({
@@ -38,42 +37,14 @@ export const useAIAssistant = () => {
       console.log("With query parameters:", queryParams);
       console.log("Using advanced model:", useAdvancedModel);
       
-      // Handle Dan Kelly special case directly in the hook first
-      // This provides a fallback in case the edge function handling fails
-      if (handleDanKellySpecialCase(inputValue)) {
-        console.log("LOCAL: Dan Kelly special case detected, providing predetermined response");
-        
-        // Short delay to simulate processing
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        setAiResponse(createDanKellyResponse());
-        setResponseModel("Special Case Handler");
-        
-        toast({
-          title: "Insight Ready",
-          description: "Here's what the data shows for Dan Kelly.",
-          variant: "default"
-        });
-        
-        // Log this special case handling for debugging
-        logDataIssue("Dan Kelly query handled locally", {
-          query: inputValue,
-          parameters: queryParams,
-          handledBy: "useAIAssistant hook"
-        });
-        
-        setIsAiLoading(false);
-        return;
-      }
-      
-      // Normal processing for other queries
+      // Remove special case handling completely, use standard processing for all queries
       const { data, error } = await supabase.functions.invoke('openai-chat', {
         body: { 
           prompt: inputValue,
           includeData: true, 
           queryParams: queryParams || {}, // Pass the extracted parameters to filter relevant data
           conciseResponse: true,
-          useAdvancedModel // Pass the advanced model flag
+          useAdvancedModel: true // Always use advanced model for better results
         },
       });
 
@@ -88,16 +59,6 @@ export const useAIAssistant = () => {
       }
 
       console.log("AI response received:", data.answer);
-      
-      // Check if this is a Dan Kelly response from the edge function
-      if (data.answer && handleDanKellySpecialCase(inputValue)) {
-        console.log("EDGE: Dan Kelly special case response received from edge function");
-        logDataIssue("Dan Kelly response from edge function", {
-          query: inputValue,
-          response: data.answer.substring(0, 100),
-          handledBy: "Edge function"
-        });
-      }
       
       setAiResponse(data.answer);
       

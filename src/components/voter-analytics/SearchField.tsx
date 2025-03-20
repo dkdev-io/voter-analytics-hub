@@ -67,7 +67,7 @@ export const SearchField: React.FC<SearchFieldProps> = ({
           console.log("Sending query with full parameters:", fullParams);
           
           // Always use advanced model for better results
-          await getAIAssistance(inputValue, fullParams, true);
+          await getAIAssistance(inputValue, fullParams);
           
           // Trigger the main search action if needed
           onSubmit();
@@ -81,8 +81,8 @@ export const SearchField: React.FC<SearchFieldProps> = ({
         });
       }
     } else {
-      // If no setQuery function is provided, just get AI assistance with advanced model
-      await getAIAssistance(inputValue, undefined, true);
+      // If no setQuery function is provided, just get AI assistance 
+      await getAIAssistance(inputValue);
     }
   };
 
@@ -97,7 +97,7 @@ export const SearchField: React.FC<SearchFieldProps> = ({
       <div className="relative w-full">
         <Search className="absolute left-3 top-3 text-gray-400 h-4 w-4" />
         <Textarea
-          placeholder="Ask a question about your data (e.g., 'How many SMS did Jane send yesterday?')"
+          placeholder="Ask a question about your data (e.g., 'How many SMS messages were sent yesterday?')"
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={handleKeyPress}
@@ -107,7 +107,7 @@ export const SearchField: React.FC<SearchFieldProps> = ({
         <div className="text-xs text-gray-500 mt-1 text-right">Press ⌘+Enter to submit</div>
       </div>
       
-      {/* Get Results button - the only button now */}
+      {/* Single Get Results button */}
       <div className="mt-8">
         <button 
           onClick={handleSubmit}
