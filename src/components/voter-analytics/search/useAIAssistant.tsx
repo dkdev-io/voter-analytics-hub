@@ -104,13 +104,7 @@ export const useAIAssistant = () => {
         console.log("Response generated using model:", data.model);
       }
       
-      toast({
-        title: "Insight Ready",
-        description: data.truncated 
-          ? "Analysis may be incomplete due to data size limitations." 
-          : "Here's what the data shows.",
-        variant: "default"
-      });
+      // We're removing the toast notification here as requested by the user
     } catch (error) {
       console.error('Error calling OpenAI:', error);
       logError(error as Error, 'SearchField.handleAiAssist');

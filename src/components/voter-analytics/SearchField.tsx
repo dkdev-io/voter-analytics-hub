@@ -31,6 +31,8 @@ export const SearchField: React.FC<SearchFieldProps> = ({
   const { 
     aiResponse, 
     isAiLoading,
+    isResponseTruncated,
+    responseModel,
     getAIAssistance 
   } = useAIAssistant();
 
@@ -131,6 +133,8 @@ export const SearchField: React.FC<SearchFieldProps> = ({
       <AIAssistantResponse 
         response={aiResponse}
         isLoading={isAiLoading}
+        isTruncated={isResponseTruncated}
+        model={responseModel}
       />
     </div>
   );

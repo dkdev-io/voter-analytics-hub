@@ -45,7 +45,11 @@ export const AIAssistantResponse: React.FC<AIAssistantResponseProps> = ({
     response.toLowerCase().includes("i would need access to") ||
     response.toLowerCase().includes("i'm not able to access") ||
     response.toLowerCase().includes("i cannot provide specific") ||
-    response.toLowerCase().includes("i can't provide specific")
+    response.toLowerCase().includes("i can't provide specific") ||
+    response.toLowerCase().includes("i need more context") || // Added this
+    response.toLowerCase().includes("could you please clarify") || // Added this
+    response.toLowerCase().includes("please provide more information") || // Added this
+    response.toLowerCase().includes("i need more information") // Added this
   );
   
   // Detect date validation errors
@@ -93,7 +97,7 @@ export const AIAssistantResponse: React.FC<AIAssistantResponseProps> = ({
         </CardHeader>
         <CardContent>
           <div className="text-sm">
-            <p>The AI has incorrectly stated it doesn't have access to data. This is a system error.</p>
+            <p>The AI has incorrectly stated it doesn't have access to data or needs more context. This is a system error.</p>
             <p className="text-xs text-gray-500 mt-2">Please try again with a different question or contact support if this persists.</p>
           </div>
         </CardContent>
@@ -114,7 +118,7 @@ export const AIAssistantResponse: React.FC<AIAssistantResponseProps> = ({
         <CardContent>
           <div className="text-sm">
             <p className="font-bold mb-2">{getFirstSentence(response)}</p>
-            <p>I've gone ahead and updated the charts in your dashboard.</p>
+            <p>I've analyzed the data in your dashboard.</p>
             <p className="text-xs text-gray-500 mt-2">Try using the format YYYY-MM-DD (e.g., 2025-01-31 for January 31, 2025)</p>
           </div>
         </CardContent>
@@ -140,7 +144,6 @@ export const AIAssistantResponse: React.FC<AIAssistantResponseProps> = ({
       <CardContent>
         <div className="text-sm">
           <p className="font-bold mb-2">{getFirstSentence(response)}</p>
-          <p>I've gone ahead and updated the charts in your dashboard.</p>
           <div className="text-xs text-gray-500 mt-4 whitespace-pre-wrap prose prose-sm max-w-none">
             {response}
           </div>
