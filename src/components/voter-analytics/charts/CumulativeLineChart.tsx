@@ -22,6 +22,10 @@ interface CumulativeLineChartProps {
   }>;
 }
 
+const formatNumber = (value: number) => {
+  return value.toLocaleString();
+};
+
 export const CumulativeLineChart: React.FC<CumulativeLineChartProps> = ({ data }) => {
   // Transform the data to create cumulative totals
   const cumulativeData = data.reduce((acc, current, index) => {
@@ -58,8 +62,8 @@ export const CumulativeLineChart: React.FC<CumulativeLineChartProps> = ({ data }
         >
           <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
           <XAxis dataKey="displayDate" />
-          <YAxis />
-          <Tooltip />
+          <YAxis tickFormatter={formatNumber} />
+          <Tooltip formatter={(value) => [formatNumber(value as number), '']} />
           <Legend />
           <Line
             type="monotone"
@@ -68,6 +72,7 @@ export const CumulativeLineChart: React.FC<CumulativeLineChartProps> = ({ data }
             activeDot={{ r: 8 }}
             strokeWidth={2}
             name="Cumulative Attempts"
+            dot={true}
           />
           <Line
             type="monotone"
@@ -76,6 +81,7 @@ export const CumulativeLineChart: React.FC<CumulativeLineChartProps> = ({ data }
             activeDot={{ r: 6 }}
             strokeWidth={2}
             name="Cumulative Contacts"
+            dot={true}
           />
           <Line
             type="monotone"
@@ -84,6 +90,7 @@ export const CumulativeLineChart: React.FC<CumulativeLineChartProps> = ({ data }
             activeDot={{ r: 6 }}
             strokeWidth={2}
             name="Cumulative Issues"
+            dot={true}
           />
         </LineChart>
       </ResponsiveContainer>

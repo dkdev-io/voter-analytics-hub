@@ -37,12 +37,12 @@ export const PrintStylesheet: React.FC<PrintStylesheetProps> = ({ onCleanup, use
           background-color: white !important;
         }
         
-        /* Force hide the left column and ResizablePanel - extra specific selectors */
-        .left-panel, 
+        /* Force hide the left column and ResizablePanel */
+        .ResizablePanelGroup,
         [data-panel="left"],
         [data-orientation="horizontal"] > div:first-child,
         div[style*="resize"],
-        .ResizablePanel-PANE {
+        .ResizablePanel:first-child {
           display: none !important;
           visibility: hidden !important;
           width: 0 !important;
@@ -126,8 +126,12 @@ export const PrintStylesheet: React.FC<PrintStylesheetProps> = ({ onCleanup, use
           color: #666 !important;
         }
         
-        /* Aggressively hide every possible unwanted element */
-        .welcome-section, 
+        /* Aggressively force hide everything except the report */
+        body > *:not(:has(#report-container)),
+        #root > *:not(:has(#report-container)),
+        [data-orientation="horizontal"] > div:first-child,
+        div:has(> [role="tablist"]),
+        div[style*="resize"],
         button, 
         nav, 
         header, 
@@ -137,27 +141,14 @@ export const PrintStylesheet: React.FC<PrintStylesheetProps> = ({ onCleanup, use
         input, 
         select, 
         form, 
-        .hidden-print,
-        h2:not(#report-title h2),
-        .flex:not(#report-container .flex),
-        .mb-4:not(#report-container .mb-4),
-        .ResizablePanelGroup,
-        .ResizablePanel,
-        div[style*="resize"] {
+        .hidden-print {
           display: none !important;
           visibility: hidden !important;
-        }
-        
-        /* Very strong selector to hide everything except the report */
-        body > *:not(:has(#report-container)),
-        #root > *:not(:has(#report-container)),
-        div:has(> .welcome-section),
-        div:has(> .tabs-container),
-        div:has(button),
-        div:has(> [role="tablist"]),
-        div[role="group"] {
-          display: none !important;
-          visibility: hidden !important;
+          width: 0 !important;
+          height: 0 !important;
+          position: absolute !important;
+          overflow: hidden !important;
+          z-index: -9999 !important;
         }
       }
     `;

@@ -73,9 +73,6 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
         />
       )}
       
-      {/* Print Report Button positioned above title */}
-      <PrintReport query={query} onPrint={handlePrint} />
-      
       {/* Title section with dataset info */}
       <div className="text-center mb-6">
         <h2 className="text-xl font-semibold mb-1">
@@ -124,6 +121,9 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
           datasetName={uploadedFileName || datasetName} 
         />
       </div>
+
+      {/* Print Report Button positioned at bottom */}
+      <PrintReport query={query} onPrint={handlePrint} />
     </div>
   );
 };
