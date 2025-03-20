@@ -19,7 +19,8 @@ export const NotReachedPieChart: React.FC<NotReachedPieChartProps> = ({ data, to
   // Add total to each data point for percentage calculation
   const dataWithTotal = data.map(item => ({
     ...item,
-    total
+    total,
+    percent: ((item.value / total) * 100).toFixed(1)
   }));
 
   const renderCustomizedLabel = (props: any) => {
@@ -40,6 +41,25 @@ export const NotReachedPieChart: React.FC<NotReachedPieChartProps> = ({ data, to
       >
         {`${(percent * 100).toFixed(1)}%`}
       </text>
+    );
+  };
+
+  // Custom legend that includes percentages
+  const renderLegend = (props: any) => {
+    const { payload } = props;
+    
+    return (
+      <ul className="text-xs flex flex-col items-start mt-2">
+        {payload.map((entry: any, index: number) => (
+          <li key={`legend-item-${index}`} className="flex items-center mb-1">
+            <span
+              className="inline-block w-3 h-3 mr-2"
+              style={{ backgroundColor: entry.color }}
+            />
+            <span>{entry.value} ({((entry.payload.value / total) * 100).toFixed(1)}%)</span>
+          </li>
+        ))}
+      </ul>
     );
   };
 
@@ -65,7 +85,12 @@ export const NotReachedPieChart: React.FC<NotReachedPieChartProps> = ({ data, to
               ))}
             </Pie>
             <Tooltip content={<CustomPieTooltip />} />
-            <Legend />
+            <Legend 
+              content={renderLegend}
+              layout="vertical"
+              align="left"
+              verticalAlign="middle"
+            />
           </PieChart>
         </ResponsiveContainer>
       </div>
