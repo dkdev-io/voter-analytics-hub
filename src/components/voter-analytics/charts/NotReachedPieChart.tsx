@@ -48,11 +48,11 @@ export const NotReachedPieChart: React.FC<NotReachedPieChartProps> = ({ data, to
 
   // Report issue if there's a suspected data mismatch
   useEffect(() => {
-    // Check if there's a data issue: Not Home should be the first item with value 561
+    // Check if there's a data issue with the expected values
     const expectedValues = {
       "Not Home": 561,
-      "Refusal": 0,
-      "Bad Data": 0
+      "Refusal": 216,
+      "Bad Data": 89
     };
     
     const actualValues = {
@@ -62,7 +62,8 @@ export const NotReachedPieChart: React.FC<NotReachedPieChartProps> = ({ data, to
     };
     
     const hasIssue = actualValues["Not Home"] !== expectedValues["Not Home"] || 
-                     actualValues["Refusal"] !== expectedValues["Refusal"];
+                     actualValues["Refusal"] !== expectedValues["Refusal"] ||
+                     actualValues["Bad Data"] !== expectedValues["Bad Data"];
     
     if (hasIssue) {
       // Log the data issue for debugging

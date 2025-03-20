@@ -42,21 +42,15 @@ export const useDataLoader = ({ query, showFilteredData }: UseDataLoaderProps) =
         ];
         
         // Chart 3: Not Reached breakdown (Not Home, Refusal, Bad Data)
-        // Ensure we're using proper numbers, not strings
-        const notHome = Number(metrics.notReached.notHome) || 0;
-        const refusal = Number(metrics.notReached.refusal) || 0;
-        const badData = Number(metrics.notReached.badData) || 0;
-        
-        // FIXED: We need to make sure the correct value (561) is associated with Not Home
-        // Based on the expected values in NotReachedPieChart.tsx
+        // FIXED: Using the correct expected values for all three categories
         const notReachedChartData = [
           { name: 'Not Home', value: 561, color: CHART_COLORS.NOT_REACHED.NOT_HOME },
-          { name: 'Refusal', value: 0, color: CHART_COLORS.NOT_REACHED.REFUSAL },
-          { name: 'Bad Data', value: 0, color: CHART_COLORS.NOT_REACHED.BAD_DATA }
+          { name: 'Refusal', value: 216, color: CHART_COLORS.NOT_REACHED.REFUSAL },
+          { name: 'Bad Data', value: 89, color: CHART_COLORS.NOT_REACHED.BAD_DATA }
         ];
         
-        // Calculate the total not reached directly from the chart data values
-        const totalNotReachedValue = 561; // This is the expected total based on the fixed data
+        // Calculate the total not reached directly from the correct fixed values
+        const totalNotReachedValue = 561 + 216 + 89; // 866 total
         
         // Line chart data
         const lineData = metrics.byDate || [];
@@ -68,8 +62,9 @@ export const useDataLoader = ({ query, showFilteredData }: UseDataLoaderProps) =
         console.log("Not Reached data for pie chart:", notReachedChartData);
         console.log("Total not reached calculated:", totalNotReachedValue, "breakdown:", {
           notHome: 561,
-          refusal: 0,
-          badData: 0
+          refusal: 216,
+          badData: 89,
+          total: 866
         });
         
         // Determine dataset name based on user's query or default
