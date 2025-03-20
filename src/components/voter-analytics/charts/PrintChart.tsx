@@ -61,7 +61,9 @@ export const PrintChart: React.FC<PrintChartProps> = ({
     chartContainer.style.display = 'flex';
     chartContainer.style.alignItems = 'center';
     chartContainer.style.justifyContent = 'center';
-    chartContainer.style.padding = '20px';
+    chartContainer.style.padding = '10px';
+    chartContainer.style.width = '100%';
+    chartContainer.style.height = '80%';
     printContainer.appendChild(chartContainer);
 
     // Clone the chart and add to chart container
@@ -69,6 +71,8 @@ export const PrintChart: React.FC<PrintChartProps> = ({
     chartClone.id = 'print-chart-clone';
     chartClone.style.width = '100%';
     chartClone.style.height = '100%';
+    chartClone.style.maxWidth = 'none';
+    chartClone.style.maxHeight = 'none';
     chartContainer.appendChild(chartClone);
 
     // Find and resize all SVG elements to ensure they fill the available space
@@ -78,6 +82,13 @@ export const PrintChart: React.FC<PrintChartProps> = ({
       svg.setAttribute('height', '100%');
       svg.style.width = '100%';
       svg.style.height = '100%';
+      svg.style.maxWidth = 'none';
+      svg.style.maxHeight = 'none';
+      
+      // Force ViewBox to ensure proper scaling
+      const bbox = svg.getBBox ? svg.getBBox() : {width: 800, height: 600};
+      svg.setAttribute('viewBox', `0 0 ${bbox.width} ${bbox.height}`);
+      svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
     });
 
     // Find all Recharts components and ensure they expand properly
@@ -85,13 +96,34 @@ export const PrintChart: React.FC<PrintChartProps> = ({
     if (rechartsWrapper) {
       (rechartsWrapper as HTMLElement).style.width = '100%';
       (rechartsWrapper as HTMLElement).style.height = '100%';
+      (rechartsWrapper as HTMLElement).style.maxWidth = 'none';
+      (rechartsWrapper as HTMLElement).style.maxHeight = 'none';
     }
 
     const rechartsSurface = chartClone.querySelector('.recharts-surface');
     if (rechartsSurface) {
       (rechartsSurface as HTMLElement).style.width = '100%';
       (rechartsSurface as HTMLElement).style.height = '100%';
+      (rechartsSurface as HTMLElement).style.maxWidth = 'none';
+      (rechartsSurface as HTMLElement).style.maxHeight = 'none';
     }
+
+    // Make the axes extend fully
+    const axisLines = chartClone.querySelectorAll('.recharts-cartesian-axis-line, .recharts-cartesian-axis-tick-line');
+    axisLines.forEach(line => {
+      (line as SVGElement).style.strokeWidth = '1.5px';
+    });
+
+    const gridLines = chartClone.querySelectorAll('.recharts-cartesian-grid-horizontal line, .recharts-cartesian-grid-vertical line');
+    gridLines.forEach(line => {
+      (line as SVGElement).style.strokeWidth = '1px';
+    });
+
+    // Ensure axis ticks are visible
+    const axisTicks = chartClone.querySelectorAll('.recharts-cartesian-axis-tick');
+    axisTicks.forEach(tick => {
+      (tick as SVGElement).style.fontSize = '12px';
+    });
 
     // Remove any overlay graphics or unwanted elements
     const overlayElements = chartClone.querySelectorAll('.chart-overlay, [style*="position: absolute"]');
@@ -133,8 +165,8 @@ export const PrintChart: React.FC<PrintChartProps> = ({
           position: absolute !important;
           left: 0 !important;
           top: 0 !important;
-          width: 100vw !important;
-          height: 100vh !important;
+          width: 100% !important;
+          height: 100% !important;
           z-index: 9999 !important;
           background-color: white !important;
         }
@@ -143,23 +175,29 @@ export const PrintChart: React.FC<PrintChartProps> = ({
         #print-chart-clone {
           width: 100% !important;
           height: 100% !important;
+          max-width: none !important;
+          max-height: none !important;
         }
         
         /* Ensure Recharts components expand properly */
         #print-chart-clone .recharts-wrapper {
           width: 100% !important;
           height: 100% !important;
+          max-width: none !important;
+          max-height: none !important;
         }
         
         #print-chart-clone .recharts-surface {
           width: 100% !important;
           height: 100% !important;
+          max-width: none !important;
+          max-height: none !important;
         }
         
         /* Ensure the axis lines and labels extend fully */
         #print-chart-clone .recharts-cartesian-axis-line,
         #print-chart-clone .recharts-cartesian-axis-tick-line {
-          stroke-width: 1px !important;
+          stroke-width: 1.5px !important;
         }
         
         #print-chart-clone .recharts-cartesian-grid-horizontal line,
@@ -169,6 +207,16 @@ export const PrintChart: React.FC<PrintChartProps> = ({
         
         #print-chart-clone .recharts-cartesian-axis-tick {
           font-size: 12px !important;
+        }
+        
+        /* Ensure curves and data points are visible */
+        #print-chart-clone .recharts-curve,
+        #print-chart-clone .recharts-line {
+          stroke-width: 2.5px !important;
+        }
+        
+        #print-chart-clone .recharts-dot {
+          r: 4 !important;
         }
         
         /* Remove page margins */
