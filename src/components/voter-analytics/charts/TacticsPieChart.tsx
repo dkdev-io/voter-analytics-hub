@@ -45,7 +45,8 @@ export const TacticsPieChart: React.FC<TacticsPieChartProps> = ({ data, total })
   return (
     <div className="h-72 bg-white rounded-lg border border-gray-200 flex flex-col">
       <h3 className="text-sm font-bold p-2 text-center">Attempts</h3>
-      <div className="text-center text-sm font-medium pb-3">
+      {/* Add more vertical spacing between total and chart */}
+      <div className="text-center text-sm font-medium pb-4">
         Total: {total.toLocaleString()}
       </div>
       <div className="flex-1">

@@ -104,6 +104,7 @@ export const NotReachedPieChart: React.FC<NotReachedPieChartProps> = ({ data, to
               />
               <span className="whitespace-nowrap">
                 {entry.value}: {value.toLocaleString()} 
+                {/* Add space between number and percentage */}
                 ({percentage}%)
               </span>
             </li>
@@ -116,9 +117,11 @@ export const NotReachedPieChart: React.FC<NotReachedPieChartProps> = ({ data, to
   return (
     <div className="h-72 bg-white rounded-lg border border-gray-200 flex flex-col">
       <div className="flex justify-between items-center p-2">
-        <h3 className="text-sm font-bold">Not Reached</h3>
+        {/* Center the chart title */}
+        <h3 className="text-sm font-bold w-full text-center">Not Reached</h3>
       </div>
-      <div className="text-center text-sm font-medium pb-3">
+      {/* Add more vertical spacing between total and chart */}
+      <div className="text-center text-sm font-medium pb-4">
         Total: {actualTotal.toLocaleString()}
       </div>
       <div className="flex-1">

@@ -145,7 +145,8 @@ export const SearchField: React.FC<SearchFieldProps> = ({
         </div>
       </div>
       
-      <div className="mt-4">
+      {/* Added margin-top to move the button 20% lower */}
+      <div className="mt-8">
         <Button 
           onClick={handleSubmit}
           disabled={isLoading || isAiLoading || isProcessingQuery}
