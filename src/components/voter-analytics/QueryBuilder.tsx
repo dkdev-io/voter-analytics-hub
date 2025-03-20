@@ -191,18 +191,6 @@ export const QueryBuilder = ({
               label="End Date"
               placeholder="Select End Date"
             />
-            
-            {/* Search button */}
-            <Button 
-              onClick={() => renderSubmitButton ? null : null}
-              disabled={isLoading}
-              variant="default"
-              className="w-full mt-2"
-              size="sm"
-            >
-              <Search className="mr-2 h-4 w-4" />
-              Search
-            </Button>
           </div>
         </div>
         
