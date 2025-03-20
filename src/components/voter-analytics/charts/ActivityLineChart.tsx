@@ -22,22 +22,31 @@ interface ActivityLineChartProps {
 }
 
 export const ActivityLineChart: React.FC<ActivityLineChartProps> = ({ data }) => {
-  // Filter out any data points with invalid dates or zeros across all metrics
+  // Filter out any data points with invalid dates
   const validData = data.filter(item => {
     // Check if the date is valid
     const isValidDate = item.date && isValid(parseISO(item.date));
-    
-    // Check if there's actual data (at least one metric has a value)
-    const hasData = item.attempts > 0 || item.contacts > 0 || item.issues > 0;
-    
-    return isValidDate && hasData;
+    return isValidDate;
   });
+  
+  // Sort dates chronologically
+  validData.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   
   // Format dates to MM/DD format for display
   const formattedData = validData.map(item => ({
     ...item,
-    displayDate: format(new Date(item.date), 'MM/dd')
+    displayDate: format(new Date(item.date), 'MM/dd'),
+    // Ensure all values are at least 0 (not undefined/null)
+    attempts: item.attempts || 0,
+    contacts: item.contacts || 0,
+    issues: item.issues || 0
   }));
+
+  // Calculate the maximum value for Y-axis scaling
+  const maxValue = formattedData.reduce((max, item) => {
+    const itemMax = Math.max(item.attempts, item.contacts, item.issues);
+    return itemMax > max ? itemMax : max;
+  }, 0);
 
   return (
     <div className="mt-8 h-80 bg-white rounded-lg border border-gray-200">
@@ -48,8 +57,16 @@ export const ActivityLineChart: React.FC<ActivityLineChartProps> = ({ data }) =>
           margin={{ top: 20, right: 30, left: 20, bottom: 10 }}
         >
           <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-          <XAxis dataKey="displayDate" />
-          <YAxis />
+          <XAxis 
+            dataKey="displayDate" 
+            interval={0}
+            angle={-45}
+            textAnchor="end"
+            height={50}
+          />
+          <YAxis 
+            domain={[0, Math.ceil(maxValue * 1.1)]} // Add 10% padding to the top
+          />
           <Tooltip />
           <Legend />
           <Line
@@ -59,6 +76,7 @@ export const ActivityLineChart: React.FC<ActivityLineChartProps> = ({ data }) =>
             activeDot={{ r: 8 }}
             strokeWidth={2}
             name="Attempts"
+            connectNulls={false}
           />
           <Line
             type="monotone"
@@ -67,6 +85,7 @@ export const ActivityLineChart: React.FC<ActivityLineChartProps> = ({ data }) =>
             activeDot={{ r: 6 }}
             strokeWidth={2}
             name="Contacts"
+            connectNulls={false}
           />
           <Line
             type="monotone"
@@ -75,6 +94,7 @@ export const ActivityLineChart: React.FC<ActivityLineChartProps> = ({ data }) =>
             activeDot={{ r: 6 }}
             strokeWidth={2}
             name="Issues"
+            connectNulls={false}
           />
         </LineChart>
       </ResponsiveContainer>

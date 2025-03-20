@@ -55,16 +55,17 @@ export const useDataLoader = ({ query, showFilteredData }: UseDataLoaderProps) =
           (metrics.notReached.refusal || 0) + 
           (metrics.notReached.badData || 0);
         
-        // Filter out any data points with empty/invalid dates or missing data
+        // Filter out any data points with invalid dates
         const validatedLineData = (metrics.byDate || []).filter(item => {
           // Check if date is valid
-          const isValidDate = item.date && isValid(parseISO(item.date));
-          
-          // Ensure we have at least some data for this date (non-zero)
-          const hasData = item.attempts > 0 || item.contacts > 0 || item.issues > 0;
-          
-          return isValidDate && hasData;
-        });
+          return item.date && isValid(parseISO(item.date));
+        }).map(item => ({
+          ...item,
+          // Ensure all numeric values are at least 0
+          attempts: item.attempts || 0,
+          contacts: item.contacts || 0,
+          issues: item.issues || 0
+        }));
         
         console.log("Line chart data before filtering:", metrics.byDate?.length || 0, "entries");
         console.log("Line chart data after filtering:", validatedLineData.length, "entries");
