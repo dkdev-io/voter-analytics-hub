@@ -37,7 +37,7 @@ export const useAIAssistant = () => {
       console.log("With query parameters:", queryParams);
       console.log("Using advanced model:", useAdvancedModel);
       
-      // Remove special case handling completely, use standard processing for all queries
+      // Prepare request with explicit instructions to use the provided data
       const { data, error } = await supabase.functions.invoke('openai-chat', {
         body: { 
           prompt: inputValue,
@@ -59,6 +59,36 @@ export const useAIAssistant = () => {
       }
 
       console.log("AI response received:", data.answer);
+      
+      // Check if the response contains any indication that the AI is claiming lack of access
+      const accessDenialPhrases = [
+        "i don't have access", 
+        "i don't have information",
+        "i don't have data",
+        "my knowledge",
+        "my training",
+        "knowledge cutoff",
+        "i apologize",
+        "i cannot provide"
+      ];
+      
+      const containsAccessDenial = accessDenialPhrases.some(phrase => 
+        data.answer.toLowerCase().includes(phrase)
+      );
+      
+      if (containsAccessDenial) {
+        console.warn("AI response contains access denial language despite our instructions");
+        
+        // Log this issue for future debugging
+        logDataIssue("ai-access-denial", {
+          query: inputValue,
+          parameters: queryParams,
+          response: data.answer,
+          model: data.model
+        });
+        
+        // Still set the response and let the UI component handle the error display
+      }
       
       setAiResponse(data.answer);
       

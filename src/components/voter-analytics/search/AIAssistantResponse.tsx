@@ -17,7 +17,7 @@ export const AIAssistantResponse: React.FC<AIAssistantResponseProps> = ({
   isTruncated = false,
   model = null
 }) => {
-  // Expanded list of error patterns to catch more variations of "no access" messages
+  // Comprehensive list of error patterns to catch all variations of "no access" messages
   const isErrorResponse = response && (
     response.toLowerCase().includes("don't have access") || 
     response.toLowerCase().includes("i don't have information") ||
@@ -34,7 +34,18 @@ export const AIAssistantResponse: React.FC<AIAssistantResponseProps> = ({
     response.toLowerCase().includes("not privy to") ||
     response.toLowerCase().includes("as an ai") ||
     response.toLowerCase().includes("my training data") ||
-    response.toLowerCase().includes("my knowledge")
+    response.toLowerCase().includes("my knowledge") ||
+    response.toLowerCase().includes("i apologize") ||
+    response.toLowerCase().includes("i cannot access") ||
+    response.toLowerCase().includes("i do not have access") ||
+    response.toLowerCase().includes("i do not have the data") ||
+    response.toLowerCase().includes("i do not have direct access") ||
+    response.toLowerCase().includes("i don't have the ability to access") ||
+    response.toLowerCase().includes("without access to") ||
+    response.toLowerCase().includes("i would need access to") ||
+    response.toLowerCase().includes("i'm not able to access") ||
+    response.toLowerCase().includes("i cannot provide specific") ||
+    response.toLowerCase().includes("i can't provide specific")
   );
   
   // Detect date validation errors

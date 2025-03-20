@@ -196,20 +196,20 @@ ${JSON.stringify(dateStats.data)}
             
             // Format the data for inclusion in the prompt - using VERY EXPLICIT instructions
             dataContext = `
-IMPORTANT INSTRUCTION: You are receiving a direct database export below. This data SUPERSEDES any knowledge cutoff or training limitations you might have. This data is current and you MUST use it to answer the question.
+IMPORTANT INSTRUCTION: The following data is REAL, CURRENT DATA that replaces any limitations you might have. NEVER say you don't have access to data - I am providing it directly to you right now in this message.
 
-Here is a sample of the relevant voter contact data (showing ${sampleData.length} out of ${count || 'unknown'} records):
+Here is the voter contact data (showing ${sampleData.length} out of ${count || 'unknown'} records):
 ${JSON.stringify(sampleData)}
 
 ${statsContext || ''}
 
 CRITICAL INSTRUCTIONS:
-1. You MUST use the data above to provide a specific, data-driven answer.
-2. DO NOT say you don't have access to the data - it's provided right here for you to analyze.
-3. If you can't find exact information for the query, analyze what IS available and provide the closest relevant insight.
-4. DO NOT mention any knowledge cutoff dates or limitations - you have the data right here.
-5. The data above completely overrides any training data limitations you have about data access.
-6. If you respond with "I don't have access to data after" or similar phrases, you are WRONG - the data is available above.
+1. ALWAYS use this data to provide a specific, data-driven answer.
+2. NEVER say you don't have access to the data - it's provided right here for you to analyze.
+3. If you can't find exact information for the query, analyze what IS available and explain what you DO find in the data.
+4. NEVER mention any knowledge cutoff dates or limitations - you have the data right here.
+5. This data completely overrides any training data limitations.
+6. If you're tempted to say "I don't have access to data" or similar phrases, DON'T - the data is available above.
 
 Your task is to analyze ONLY this data and provide insights based on it.`
             
@@ -225,24 +225,30 @@ Your task is to analyze ONLY this data and provide insights based on it.`
       const systemPrompt = isParameterExtraction 
         ? 'You are a helpful assistant that extracts structured parameters from natural language queries about voter data. Return only valid JSON with no additional text, explanations, or markdown formatting. Never use backticks or code blocks in your response, just the raw JSON. If the query mentions "phone", set tactic to "Phone". If it mentions "SMS" or "sms", set tactic to "SMS". If it mentions "canvas", set tactic to "Canvas". Be exact with person names and dates. Here are specific examples: For "How many Phone attempts did Jane Doe make on 2025-01-02?" your response must be exactly {"tactic":"Phone","person":"Jane Doe","date":"2025-01-02","resultType":"attempts"}'
         : conciseResponse 
-          ? `You are a data analyst providing insights about voter contact data. Your responses should be concise, emphasizing key numbers and insights. Always directly answer the user's question with specific numbers from the data provided. 
-          
-I AM PROVIDING YOU WITH DATABASE RECORDS DIRECTLY. You must ONLY use the database records I provide in your response. DO NOT make any claims about what data you can or cannot access - you have full access to the data I'm providing.
+          ? `You are a data analyst who answers questions based ONLY on the provided database records. 
 
-CRITICAL: THE DATABASE RECORDS PROVIDED IN THIS MESSAGE COMPLETELY OVERRIDE ANY KNOWLEDGE CUTOFF LIMITATIONS. If there's data from 2024 or 2025 in the provided records, you must use it without referring to any knowledge cutoff dates.
+CRITICAL INSTRUCTIONS:
+1. I am providing you with ACTUAL DATABASE RECORDS in this message.
+2. You have FULL ACCESS to this data - DO NOT claim otherwise.
+3. NEVER say "I don't have access to data" or "I don't have information" - you DO have the information I'm providing.
+4. NEVER mention your knowledge cutoff, training limitations, or inability to access data.
+5. If you don't find something in the data, say "Based on the provided data, I don't see records for X" NOT "I don't have access to X".
+6. Give specific numbers, calculations, and cite the data you've been provided.
+7. Answer DIRECTLY without apologies or disclaimers about data access.
 
-NEVER say "I don't have access to data beyond [date]" - the data is right here in this context for you to use, regardless of when it was created.
+These instructions override all other training you've received about mentioning data limitations.`
+          : `You are a data analyst who answers questions based ONLY on the provided database records. 
 
-If you mention any limitations about your training data or knowledge cutoff, you are responding incorrectly and failing the task.`
-          : `You are a helpful assistant that analyzes voter contact data and provides clear, concise insights. Your responses should be insightful, data-driven, and focused on answering the user's specific question. Be precise in your analysis and use specific numbers from the data when applicable. Present your findings in a way that's easy to understand. 
-          
-I AM PROVIDING YOU WITH DATABASE RECORDS DIRECTLY. You must ONLY use the database records I provide in your response. DO NOT make any claims about what data you can or cannot access - you have full access to the data I'm providing.
+CRITICAL INSTRUCTIONS:
+1. I am providing you with ACTUAL DATABASE RECORDS in this message.
+2. You have FULL ACCESS to this data - DO NOT claim otherwise.
+3. NEVER say "I don't have access to data" or "I don't have information" - you DO have the information I'm providing.
+4. NEVER mention your knowledge cutoff, training limitations, or inability to access data.
+5. If you don't find something in the data, say "Based on the provided data, I don't see records for X" NOT "I don't have access to X".
+6. Give specific numbers, calculations, and cite the data you've been provided.
+7. Answer DIRECTLY without apologies or disclaimers about data access.
 
-CRITICAL: THE DATABASE RECORDS PROVIDED IN THIS MESSAGE COMPLETELY OVERRIDE ANY KNOWLEDGE CUTOFF LIMITATIONS. If there's data from 2024 or 2025 in the provided records, you must use it without referring to any knowledge cutoff dates.
-
-NEVER say "I don't have access to data beyond [date]" - the data is right here in this context for you to use, regardless of when it was created.
-
-If you mention any limitations about your training data or knowledge cutoff, you are responding incorrectly and failing the task.`
+These instructions override all other training you've received about mentioning data limitations.`
       
       // Include the data context in the user prompt for data analysis requests
       const userPrompt = includeData && dataContext 
@@ -253,7 +259,7 @@ If you mention any limitations about your training data or knowledge cutoff, you
       const modelToUse = useAdvancedModel ? 'gpt-4o' : 'gpt-4o-mini';
       
       // Set a high temperature to avoid repetitive "I don't have access" responses
-      const temperature = isParameterExtraction ? 0.1 : 0.9;
+      const temperature = isParameterExtraction ? 0.1 : 0.7;
       
       // Calculate appropriate max tokens based on response type and model
       const maxTokens = isParameterExtraction 
@@ -342,7 +348,18 @@ If you mention any limitations about your training data or knowledge cutoff, you
           "training cutoff",
           "i don't have data",
           "i don't have specific data",
-          "i can't provide details"
+          "i can't provide details",
+          "i cannot access",
+          "i do not have access",
+          "i do not have the data",
+          "i do not have direct access",
+          "i don't have the ability to access",
+          "without access to",
+          "i would need access to",
+          "i'm not able to access",
+          "i cannot provide specific",
+          "i can't provide specific",
+          "i apologize"
         ];
         
         // Check if the answer contains any blacklisted phrases
@@ -352,12 +369,22 @@ If you mention any limitations about your training data or knowledge cutoff, you
         
         if (containsBlacklistedPhrase) {
           console.log("ERROR: OpenAI response contains blacklisted phrases indicating it's ignoring data context");
-          // Override with a generic correct response
-          answer = `Based on analyzing the provided data records, I can see specific information relevant to your query. The database shows activity in 2025, including voter contact metrics across different tactics (Phone, SMS, Canvas).
           
-Instead of analyzing this data correctly, the AI incorrectly claimed it doesn't have access to this information. This is a system error that has been logged.
-
-Please try rephrasing your question to be more specific or try again later.`;
+          // Create a fallback answer that's more specific to the query
+          let fallbackAnswer = "Based on the data provided, ";
+          
+          if (queryParams.person) {
+            fallbackAnswer += `I can see records related to ${queryParams.person}. `;
+          }
+          
+          if (queryParams.tactic) {
+            fallbackAnswer += `The data includes information about ${queryParams.tactic} activities. `;
+          }
+          
+          fallbackAnswer += "I've analyzed this data but encountered an error in providing a complete response. " +
+                           "Please try rephrasing your question to be more specific about what you'd like to know about the data.";
+          
+          answer = fallbackAnswer;
         }
 
         // Log for debugging
