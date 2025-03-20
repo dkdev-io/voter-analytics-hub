@@ -1,7 +1,7 @@
 
 export const DataAccess = () => {
   return (
-    <section className="py-20 px-4 md:px-6 bg-white">
+    <section className="py-20 px-4 md:px-6 bg-background">
       <div className="container mx-auto max-w-4xl">
         <div className="prose prose-lg mx-auto">
           <p className="text-lg mb-6">
@@ -13,7 +13,7 @@ export const DataAccess = () => {
             of helping them understand and refine their voter contact programs.
           </p>
           <p className="text-xl font-semibold">
-            VoterContact.io makes that data accessible to everyone at <a href="https://votercontact.lovable.app" className="text-blue-500 hover:underline">votercontact.lovable.app</a>.
+            VoterContact.io makes that data accessible to everyone.
           </p>
         </div>
       </div>
