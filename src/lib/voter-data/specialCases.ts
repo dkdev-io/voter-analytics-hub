@@ -1,8 +1,9 @@
 
 /**
- * Special case handler - completely disabled
+ * Special case handling is completely disabled
+ * These functions are kept for backward compatibility but return false/empty values
  */
-export function handleDanKellySpecialCase(query: string): boolean {
+export function handleSpecialCase(query: string): boolean {
   // Always return false to completely disable special case handling
   return false;
 }
@@ -10,7 +11,7 @@ export function handleDanKellySpecialCase(query: string): boolean {
 /**
  * Creates a special case data response - completely disabled
  */
-export function createDanKellyResponse(): string {
+export function createSpecialResponse(): string {
   // Return empty message as this feature is disabled
   return "";
 }
@@ -19,7 +20,7 @@ export function createDanKellyResponse(): string {
  * Determine if the prompt is asking about a special case - completely disabled
  * This version is specifically for use in the OpenAI edge function
  */
-export function isDanKellyQuery(prompt: string): boolean {
+export function isSpecialQuery(prompt: string): boolean {
   // Always return false to completely disable special case handling
   return false;
 }

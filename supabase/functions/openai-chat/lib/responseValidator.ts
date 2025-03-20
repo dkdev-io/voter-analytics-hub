@@ -101,23 +101,6 @@ async function createDirectAnswer(sampleData: any[], queryParams: any, prompt: s
   const resultType = queryParams?.resultType?.toLowerCase();
   const team = queryParams?.team;
   
-  // Log diagnostics for Dan Kelly specific queries
-  if (person && person.toLowerCase().includes('dan kelly')) {
-    console.log("Dan Kelly query detected - special handling activated");
-    console.log("Total data records:", sampleData.length);
-    
-    // Count records that match Dan Kelly
-    const danKellyRecords = sampleData.filter(record => {
-      const fullName = `${record.first_name || ''} ${record.last_name || ''}`.toLowerCase();
-      return fullName.includes('dan kelly');
-    });
-    
-    console.log("Dan Kelly matching records:", danKellyRecords.length);
-    if (danKellyRecords.length > 0) {
-      console.log("Sample Dan Kelly record:", danKellyRecords[0]);
-    }
-  }
-  
   // Filter data based on query parameters - generic approach without special cases
   let filteredData = [...sampleData];
   let filters = [];

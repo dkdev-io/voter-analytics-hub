@@ -36,19 +36,25 @@ export const OpenAIChat = () => {
     try {
       console.log("Sending prompt to OpenAI:", prompt.trim());
       
+      // Build generic query parameters from the prompt text
+      const queryParams = {
+        tactic: prompt.toLowerCase().includes('phone') ? 'Phone' : 
+               prompt.toLowerCase().includes('sms') ? 'SMS' : 
+               prompt.toLowerCase().includes('canvas') ? 'Canvas' : null,
+        // Extract a person's name if mentioned - could be enhanced with better extraction
+        person: null,
+        date: null,
+        resultType: 'attempts'
+      };
+      
       // Use the updated API endpoint
       const { data, error } = await supabase.functions.invoke('openai-chat', {
         body: { 
           prompt: prompt.trim(),
           useAdvancedModel: true,  // Always use advanced model for better results
           includeData: true,       // Include relevant data for analysis
-          queryParams: {           // Add empty query params to ensure validation works properly
-            tactic: prompt.toLowerCase().includes('phone') ? 'Phone' : null,
-            person: prompt.toLowerCase().includes('dan kelly') ? 'Dan Kelly' : null,
-            date: null,
-            resultType: 'attempts'
-          },
-          debug: true  // Request debug information
+          queryParams,             // Add query params to help with context filtering
+          debug: true              // Request debug information
         }
       });
 

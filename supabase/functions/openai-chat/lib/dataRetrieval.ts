@@ -63,16 +63,9 @@ IMPORTANT: Use this data to answer the question comprehensively. Refer to specif
     if (queryParams) {
       console.log("Applying query parameters to database query:", queryParams);
       
-      // Special handling for Dan Kelly queries
-      const isDanKellyQuery = queryParams.person && 
-        queryParams.person.toLowerCase().includes('dan kelly');
-      
-      if (isDanKellyQuery) {
-        console.log("Using special query approach for Dan Kelly");
-        // Use an OR filter on first_name and last_name for better matching
-        query = query.or(`first_name.ilike.%Dan%,last_name.ilike.%Kelly%,first_name.ilike.%Daniel%,last_name.ilike.%Kelly%`);
-      } else if (queryParams.person) {
-        // For other person queries, use standard approach
+      // For any person queries, use standard approach
+      if (queryParams.person) {
+        // Use OR filter on first_name and last_name for better matching
         query = query.or(`first_name.ilike.%${queryParams.person}%,last_name.ilike.%${queryParams.person}%`);
       }
       
@@ -98,11 +91,8 @@ IMPORTANT: Use this data to answer the question comprehensively. Refer to specif
       console.log(`Total matching records: ${count || 0}`);
     }
     
-    // For Dan Kelly queries, get more data to ensure we have comprehensive context
-    const MAX_RECORDS_FOR_CONTEXT = 
-      (queryParams?.person && queryParams.person.toLowerCase().includes('dan kelly')) 
-      ? 100  // More records for Dan Kelly queries
-      : 50;  // Default limit for other queries
+    // Set a reasonable limit for all queries
+    const MAX_RECORDS_FOR_CONTEXT = 75; // Standard limit for all queries
     
     // For very large datasets, we'll limit the records to avoid token limits
     // but still provide enough data for meaningful analysis
@@ -149,7 +139,7 @@ IMPORTANT: Use this data to answer the question comprehensively. Refer to specif
             statsContext = `
 IMPORTANT STATISTICS FOR THE ENTIRE DATASET (${count} total records):
 
-Tactic statistics (LOOK HERE FOR "PHONE" INFORMATION):
+Tactic statistics:
 ${JSON.stringify(tacticStats.data)}
 
 Team statistics:
@@ -165,11 +155,6 @@ ${JSON.stringify(dateStats.data)}
         }
       }
       
-      // Special handling for Dan Kelly queries since this seems to be a common question
-      if (queryParams && queryParams.person && queryParams.person.toLowerCase().includes("dan kelly")) {
-        statsContext = await handleDanKellyQuery(data, statsContext);
-      }
-      
       // Format the data for inclusion in the prompt - using VERY EXPLICIT instructions
       dataContext = `
 YOU HAVE ACCESS TO THE FOLLOWING DATABASE RECORDS:
@@ -183,7 +168,7 @@ EXTREMELY IMPORTANT INSTRUCTIONS:
 1. The above data shows voter contact records. ANSWER ANY QUESTIONS USING ONLY THIS DATA.
 2. YOU MUST NEVER refuse to answer or claim you don't have access to data. This data is RIGHT HERE.
 3. NEVER say phrases like "I don't have access", "I'd need access", "my knowledge is limited", or similar.
-4. If the user asks about a person (like "Dan Kelly"), search through the data for that name.
+4. If the user asks about a person, search through the data for that name.
 5. If asked to count something (like "How many phone attempts"), COUNT IT using the data above.
 6. If the data doesn't contain what was asked for, simply say "Based on the data I have, I couldn't find [X]."
 7. ALWAYS begin your response with "Based on the data provided..."
@@ -202,71 +187,4 @@ YOU ARE ANALYZING REAL VOTER CONTACT DATA FROM THE DATABASE SHOWN ABOVE.`;
   }
   
   return { dataContext, sampleData };
-}
-
-// Handle special case queries for Dan Kelly
-async function handleDanKellyQuery(data: any[], statsContext: string) {
-  // Check if we have Dan Kelly data in the sample
-  const danKellyRecords = data.filter(record => {
-    const firstName = (record.first_name || '').toLowerCase();
-    const lastName = (record.last_name || '').toLowerCase();
-    return (firstName.includes('dan') && lastName.includes('kelly')) || 
-           (firstName.includes('daniel') && lastName.includes('kelly'));
-  });
-  
-  console.log(`Looking for Dan Kelly records with criteria:`, {
-    recordCount: data.length,
-    danKellyRecordCount: danKellyRecords.length
-  });
-  
-  if (danKellyRecords.length > 0) {
-    console.log(`Found ${danKellyRecords.length} Dan Kelly records in the sample`);
-    
-    let danKellyStats = "";
-    
-    // Calculate Dan Kelly-specific stats
-    const totalDanKellyAttempts = danKellyRecords.reduce((sum, record) => sum + (record.attempts || 0), 0);
-    
-    // Break down by tactic
-    const danKellyTacticBreakdown = {};
-    danKellyRecords.forEach(record => {
-      if (record.tactic) {
-        danKellyTacticBreakdown[record.tactic] = (danKellyTacticBreakdown[record.tactic] || 0) + (record.attempts || 0);
-      }
-    });
-    
-    // Count phone calls specifically
-    const danKellyPhoneCalls = danKellyRecords.filter(record => 
-      record.tactic && record.tactic.toLowerCase() === 'phone'
-    ).reduce((sum, record) => sum + (record.attempts || 0), 0);
-    
-    danKellyStats = `
-IMPORTANT: SPECIFIC DATA ABOUT DAN KELLY:
-Number of Dan Kelly records: ${danKellyRecords.length}
-Total attempts by Dan Kelly: ${totalDanKellyAttempts}
-Phone calls by Dan Kelly: ${danKellyPhoneCalls}
-Breakdown by tactic: ${JSON.stringify(danKellyTacticBreakdown)}
-
-Some example Dan Kelly records:
-${JSON.stringify(danKellyRecords.slice(0, 3))}
-`;
-    
-    console.log("Dan Kelly stats:", {
-      recordCount: danKellyRecords.length,
-      totalAttempts: totalDanKellyAttempts,
-      phoneCalls: danKellyPhoneCalls, 
-      tacticBreakdown: danKellyTacticBreakdown
-    });
-    
-    // Add Dan Kelly stats to the context - putting it first for emphasis
-    return danKellyStats + statsContext;
-  } else {
-    console.log("No Dan Kelly records found in the sample data");
-    statsContext = `
-IMPORTANT: THERE ARE NO RECORDS FOR "DAN KELLY" IN THE DATABASE.
-If you are looking for data about Dan Kelly, I can confirm that the database does not contain any records with that name.
-` + statsContext;
-  }
-  
-  return statsContext;
 }

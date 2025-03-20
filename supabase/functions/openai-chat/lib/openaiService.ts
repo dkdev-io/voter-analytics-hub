@@ -35,8 +35,8 @@ THIS IS EXTREMELY IMPORTANT - FOLLOWS THESE RULES EXACTLY:
 5. NEVER say "I don't have specific information about..." - look at the provided data instead.
 6. NEVER use phrases like "As an AI" or refer to your training data.
 7. IMMEDIATELY SEARCH through the provided data for relevant information.
-8. If asked about a person (like "Dan Kelly"), SEARCH through the provided data JSON for records with that name.
-9. If asked to count something, COUNT IT USING THE PROVIDED DATA. For example, if asked "How many phone calls did Dan Kelly make?", directly count those records.
+8. If asked about a person, SEARCH through the provided data JSON for records with that name.
+9. If asked to count something, COUNT IT USING THE PROVIDED DATA. For example, if asked "How many phone calls did someone make?", directly count those records.
 10. ALWAYS begin your response with "Based on the data provided, ..."
 11. Be factual and specific, providing exact numbers when the data shows them.
 12. UNDER NO CIRCUMSTANCES ask for more context or claim you can't answer without more information.
@@ -47,9 +47,7 @@ These database records are arranged as JSON objects with properties like:
 - attempts: Number of contact attempts
 - date: Date of the record
 
-CRITICAL: The JSON data that follows this prompt IS YOUR DATA SOURCE. You have DIRECT ACCESS to it. ALWAYS use this data to answer questions and NEVER claim you lack access to it.
-
-FOR "DAN KELLY" QUERIES: If someone asks about "Dan Kelly", SPECIFICALLY LOOK for records where first_name+last_name contains "Dan Kelly" - these records ARE in the data if they exist.`;
+CRITICAL: The JSON data that follows this prompt IS YOUR DATA SOURCE. You have DIRECT ACCESS to it. ALWAYS use this data to answer questions and NEVER claim you lack access to it.`;
   
   // Include the data context in the user prompt for data analysis requests
   const userPrompt = dataContext ? `${prompt}\n\n${dataContext}` : prompt;
@@ -57,7 +55,7 @@ FOR "DAN KELLY" QUERIES: If someone asks about "Dan Kelly", SPECIFICALLY LOOK fo
   // Determine which model to use
   const modelToUse = useAdvancedModel ? 'gpt-4o' : 'gpt-4o-mini';
   
-  // Set a moderate temperature to avoid repetitive responses but still be accurate
+  // Set a moderate temperature for consistent responses
   const temperature = isParameterExtraction ? 0.1 : 0.3;
   
   // Calculate appropriate max tokens based on response type and model
@@ -66,13 +64,6 @@ FOR "DAN KELLY" QUERIES: If someone asks about "Dan Kelly", SPECIFICALLY LOOK fo
     : useAdvancedModel
       ? (conciseResponse ? 2000 : 8000)  // More tokens for gpt-4o
       : (conciseResponse ? 1000 : 4000); // Increased tokens for gpt-4o-mini
-  
-  // For Dan Kelly queries, add special debugging information
-  if (queryParams && queryParams.person && queryParams.person.toLowerCase().includes("dan kelly")) {
-    console.log("Dan Kelly query detected - using enhanced prompt");
-    // Lower temperature for more consistent answers 
-    temperature = 0.1;
-  }
   
   // Prepare the request payload
   const requestPayload = {
