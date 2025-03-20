@@ -69,7 +69,7 @@ export const SearchField: React.FC<SearchFieldProps> = ({
           console.log("Sending query with full parameters:", fullParams);
           
           // Always use advanced model for better results
-          await getAIAssistance(inputValue, fullParams);
+          await getAIAssistance(inputValue, fullParams, true);
           
           // Trigger the main search action if needed
           onSubmit();
@@ -109,7 +109,7 @@ export const SearchField: React.FC<SearchFieldProps> = ({
         <div className="text-xs text-gray-500 mt-1 text-right">Press ⌘+Enter to submit</div>
       </div>
       
-      {/* Single Get Results button */}
+      {/* Get Results button */}
       <div className="mt-8">
         <button 
           onClick={handleSubmit}

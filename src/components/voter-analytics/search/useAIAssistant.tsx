@@ -69,7 +69,11 @@ export const useAIAssistant = () => {
         "my training",
         "knowledge cutoff",
         "i apologize",
-        "i cannot provide"
+        "i cannot provide",
+        "i need more context",
+        "could you please clarify",
+        "please provide more information",
+        "i need more information"
       ];
       
       const containsAccessDenial = accessDenialPhrases.some(phrase => 

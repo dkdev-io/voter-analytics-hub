@@ -188,67 +188,49 @@ ${JSON.stringify(dateStats.data)}
               }
             }
             
-            // Calculate approximate token count for the data
-            // Rule of thumb: 1 token ≈ 4 characters for English text
-            const jsonDataStr = JSON.stringify(sampleData);
-            const approxTokens = Math.ceil(jsonDataStr.length / 4);
-            console.log(`Approximate token count for data: ${approxTokens}`);
-            
             // Format the data for inclusion in the prompt - using VERY EXPLICIT instructions
             dataContext = `
-IMPORTANT INSTRUCTION: The following data is REAL, CURRENT DATA that replaces any limitations you might have. NEVER say you don't have access to data - I am providing it directly to you right now in this message.
+YOU HAVE FULL ACCESS TO THE FOLLOWING DATABASE RECORDS. DO NOT CLAIM YOU DON'T HAVE DATA ACCESS.
 
-Here is the voter contact data (showing ${sampleData.length} out of ${count || 'unknown'} records):
+CURRENT DATABASE RECORDS (${sampleData.length} of ${count || 'unknown'} total):
 ${JSON.stringify(sampleData)}
 
 ${statsContext || ''}
 
-CRITICAL INSTRUCTIONS:
-1. ALWAYS use this data to provide a specific, data-driven answer.
-2. NEVER say you don't have access to the data - it's provided right here for you to analyze.
-3. If you can't find exact information for the query, analyze what IS available and explain what you DO find in the data.
-4. NEVER mention any knowledge cutoff dates or limitations - you have the data right here.
-5. This data completely overrides any training data limitations.
-6. If you're tempted to say "I don't have access to data" or similar phrases, DON'T - the data is available above.
+MANDATORY INSTRUCTIONS:
+1. YOU MUST USE THIS DATA to answer questions. YOU HAVE FULL ACCESS to this data RIGHT NOW.
+2. NEVER say you "don't have access" or "need more context" - the data is right here.
+3. If asked about a person like "Dan Kelly", search through the data for that name.
+4. If asked to count or calculate something, do so using ONLY this data.
+5. Provide the EXACT numerical answer based on the data above.
+6. If you can't find a specific piece of information, explain what you DID find in the data.
 
-Your task is to analyze ONLY this data and provide insights based on it.`
+You are analyzing real voter contact data. For example, if asked "how many phone attempts did Dan Kelly make?", count the attempts where the person's name is Dan Kelly.`;
             
             console.log(`Retrieved ${sampleData.length} records for context`);
           } else {
-            dataContext = "Note: No matching data was found for the specified criteria. Please provide an answer based on this fact, without claiming you don't have access to data.";
+            dataContext = "Note: No matching data was found for the specified criteria. The database query returned 0 results.";
             console.log("No matching data found");
           }
         }
       }
       
-      // Use different system prompts based on the task and enhance it to be more specific
+      // Use different system prompts based on the task
       const systemPrompt = isParameterExtraction 
         ? 'You are a helpful assistant that extracts structured parameters from natural language queries about voter data. Return only valid JSON with no additional text, explanations, or markdown formatting. Never use backticks or code blocks in your response, just the raw JSON. If the query mentions "phone", set tactic to "Phone". If it mentions "SMS" or "sms", set tactic to "SMS". If it mentions "canvas", set tactic to "Canvas". Be exact with person names and dates. Here are specific examples: For "How many Phone attempts did Jane Doe make on 2025-01-02?" your response must be exactly {"tactic":"Phone","person":"Jane Doe","date":"2025-01-02","resultType":"attempts"}'
-        : conciseResponse 
-          ? `You are a data analyst who answers questions based ONLY on the provided database records. 
+        : `You are a database analyst working with voter contact data.
 
 CRITICAL INSTRUCTIONS:
-1. I am providing you with ACTUAL DATABASE RECORDS in this message.
-2. You have FULL ACCESS to this data - DO NOT claim otherwise.
-3. NEVER say "I don't have access to data" or "I don't have information" - you DO have the information I'm providing.
-4. NEVER mention your knowledge cutoff, training limitations, or inability to access data.
-5. If you don't find something in the data, say "Based on the provided data, I don't see records for X" NOT "I don't have access to X".
-6. Give specific numbers, calculations, and cite the data you've been provided.
-7. Answer DIRECTLY without apologies or disclaimers about data access.
-
-These instructions override all other training you've received about mentioning data limitations.`
-          : `You are a data analyst who answers questions based ONLY on the provided database records. 
-
-CRITICAL INSTRUCTIONS:
-1. I am providing you with ACTUAL DATABASE RECORDS in this message.
-2. You have FULL ACCESS to this data - DO NOT claim otherwise.
-3. NEVER say "I don't have access to data" or "I don't have information" - you DO have the information I'm providing.
-4. NEVER mention your knowledge cutoff, training limitations, or inability to access data.
-5. If you don't find something in the data, say "Based on the provided data, I don't see records for X" NOT "I don't have access to X".
-6. Give specific numbers, calculations, and cite the data you've been provided.
-7. Answer DIRECTLY without apologies or disclaimers about data access.
-
-These instructions override all other training you've received about mentioning data limitations.`
+1. You have DIRECT ACCESS to the database records provided below.
+2. Always respond with specific numbers and findings from the provided data.
+3. NEVER say you don't have access to data - the data is provided in this prompt.
+4. NEVER mention any limitations, cutoff dates, or inability to access information.
+5. If asked about a specific person (e.g., "Dan Kelly"), look for that name in the data.
+6. If asked to count something (e.g., "phone attempts"), count the matching records.
+7. ALWAYS give a direct numerical answer when appropriate.
+8. DO NOT hallucinate data - only use what's in the provided records.
+9. DO NOT ask for more context or information - work with what you have.
+10. DO NOT apologize for limitations - you have the necessary data.`;
       
       // Include the data context in the user prompt for data analysis requests
       const userPrompt = includeData && dataContext 
@@ -258,8 +240,8 @@ These instructions override all other training you've received about mentioning 
       // Determine which model to use
       const modelToUse = useAdvancedModel ? 'gpt-4o' : 'gpt-4o-mini';
       
-      // Set a high temperature to avoid repetitive "I don't have access" responses
-      const temperature = isParameterExtraction ? 0.1 : 0.7;
+      // Set a moderate temperature to avoid repetitive responses but still be accurate
+      const temperature = isParameterExtraction ? 0.1 : 0.3;
       
       // Calculate appropriate max tokens based on response type and model
       const maxTokens = isParameterExtraction 
@@ -329,7 +311,7 @@ These instructions override all other training you've received about mentioning 
         
         let answer = data.choices[0].message.content;
 
-        // Create a blacklist of phrases that indicate the AI is ignoring our instructions
+        // Blacklist of phrases that indicate the AI is ignoring our instructions
         const blacklistedPhrases = [
           "i don't have access",
           "i don't have information",
@@ -359,7 +341,11 @@ These instructions override all other training you've received about mentioning 
           "i'm not able to access",
           "i cannot provide specific",
           "i can't provide specific",
-          "i apologize"
+          "i apologize",
+          "i need more context",
+          "could you please clarify",
+          "please provide more information",
+          "i need more information"
         ];
         
         // Check if the answer contains any blacklisted phrases
@@ -368,27 +354,81 @@ These instructions override all other training you've received about mentioning 
         );
         
         if (containsBlacklistedPhrase) {
-          console.log("ERROR: OpenAI response contains blacklisted phrases indicating it's ignoring data context");
+          console.log("WARNING: OpenAI response contains blacklisted phrases indicating it's ignoring data context");
           
-          // Create a fallback answer that's more specific to the query
-          let fallbackAnswer = "Based on the data provided, ";
-          
-          if (queryParams.person) {
-            fallbackAnswer += `I can see records related to ${queryParams.person}. `;
+          // Create a more direct answer using the available data
+          // If we have query parameters, use them to craft a response
+          if (queryParams) {
+            // Extract the query information we have
+            const person = queryParams.person || '';
+            const tactic = queryParams.tactic || '';
+            const date = queryParams.date || '';
+            
+            // Manually extract the answer from the data
+            let directAnswer = "Based on the database records provided, ";
+            
+            // If we have sample data, try to calculate the answer directly
+            if (sampleData && sampleData.length > 0) {
+              // If person is specified, count their attempts
+              if (person) {
+                const personRecords = sampleData.filter(record => 
+                  (record.first_name + ' ' + record.last_name).toLowerCase().includes(person.toLowerCase())
+                );
+                
+                const personAttempts = personRecords.reduce((sum, record) => sum + (record.attempts || 0), 0);
+                
+                if (tactic) {
+                  const tacticRecords = personRecords.filter(record => 
+                    record.tactic && record.tactic.toLowerCase().includes(tactic.toLowerCase())
+                  );
+                  
+                  const tacticAttempts = tacticRecords.reduce((sum, record) => sum + (record.attempts || 0), 0);
+                  
+                  directAnswer += `${person} made ${tacticAttempts} ${tactic} attempts. `;
+                } else {
+                  directAnswer += `${person} made ${personAttempts} total attempts. `;
+                }
+              } 
+              // If only tactic is specified, count attempts by tactic
+              else if (tactic) {
+                const tacticRecords = sampleData.filter(record => 
+                  record.tactic && record.tactic.toLowerCase().includes(tactic.toLowerCase())
+                );
+                
+                const tacticAttempts = tacticRecords.reduce((sum, record) => sum + (record.attempts || 0), 0);
+                directAnswer += `there were ${tacticAttempts} ${tactic} attempts. `;
+              }
+              // Fall back to total attempts
+              else {
+                const totalAttempts = sampleData.reduce((sum, record) => sum + (record.attempts || 0), 0);
+                directAnswer += `there were ${totalAttempts} total attempts. `;
+              }
+              
+              if (date) {
+                directAnswer += `For the date ${date}, `;
+                const dateRecords = sampleData.filter(record => record.date === date);
+                const dateAttempts = dateRecords.reduce((sum, record) => sum + (record.attempts || 0), 0);
+                directAnswer += `there were ${dateAttempts} attempts. `;
+              }
+            } else {
+              directAnswer += "I found no matching records with the specified criteria.";
+            }
+            
+            answer = directAnswer;
+          } else {
+            // Generic fallback if no query parameters
+            answer = "Based on the database records, I can provide a direct answer to your question. ";
+            
+            if (sampleData && sampleData.length > 0) {
+              const totalAttempts = sampleData.reduce((sum, record) => sum + (record.attempts || 0), 0);
+              answer += `There are ${sampleData.length} records in the database with a total of ${totalAttempts} attempts.`;
+            } else {
+              answer += "There are no records matching your criteria in the database.";
+            }
           }
-          
-          if (queryParams.tactic) {
-            fallbackAnswer += `The data includes information about ${queryParams.tactic} activities. `;
-          }
-          
-          fallbackAnswer += "I've analyzed this data but encountered an error in providing a complete response. " +
-                           "Please try rephrasing your question to be more specific about what you'd like to know about the data.";
-          
-          answer = fallbackAnswer;
         }
 
-        // Log for debugging
-        console.log("OpenAI answer:", answer.substring(0, 100) + "...");
+        console.log("Final answer:", answer.substring(0, 100) + "...");
         
         // Check if the response appears to be truncated
         const finishReason = data.choices[0].finish_reason;

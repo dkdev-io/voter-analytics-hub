@@ -46,10 +46,10 @@ export const AIAssistantResponse: React.FC<AIAssistantResponseProps> = ({
     response.toLowerCase().includes("i'm not able to access") ||
     response.toLowerCase().includes("i cannot provide specific") ||
     response.toLowerCase().includes("i can't provide specific") ||
-    response.toLowerCase().includes("i need more context") || // Added this
-    response.toLowerCase().includes("could you please clarify") || // Added this
-    response.toLowerCase().includes("please provide more information") || // Added this
-    response.toLowerCase().includes("i need more information") // Added this
+    response.toLowerCase().includes("i need more context") || 
+    response.toLowerCase().includes("could you please clarify") || 
+    response.toLowerCase().includes("please provide more information") || 
+    response.toLowerCase().includes("i need more information")
   );
   
   // Detect date validation errors
