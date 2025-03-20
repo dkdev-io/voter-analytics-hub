@@ -47,7 +47,7 @@ export const Pricing = () => {
         
         <div className="grid md:grid-cols-3 gap-8 mt-12">
           {plans.map((plan, index) => (
-            <Card key={index} className="border shadow-lg">
+            <Card key={index} className="border shadow-lg hover:shadow-xl transition-shadow">
               <CardHeader className="pb-0">
                 <CardTitle className="text-2xl font-bold">{plan.name}</CardTitle>
                 <div className="mt-4">
@@ -67,7 +67,7 @@ export const Pricing = () => {
                   ))}
                 </ul>
                 <Link to="/auth">
-                  <Button className="w-full bg-blue-500 hover:bg-blue-600 text-white">Get Started</Button>
+                  <Button className="w-full bg-blue-500 hover:bg-white hover:text-blue-500 border border-blue-500 text-white transition-colors">Get Started</Button>
                 </Link>
               </CardContent>
             </Card>

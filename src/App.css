@@ -68,3 +68,19 @@ h4 {
 body {
   font-family: 'Open Sans', sans-serif;
 }
+
+/* Add hyperlink hover effect - global */
+a {
+  transition: all 0.2s ease-in-out;
+}
+
+a:not(.no-invert):hover {
+  color: var(--background) !important;
+  background-color: var(--foreground);
+  text-decoration: none;
+}
+
+/* Button wrapper hover effect for links that contain buttons */
+a:has(button):hover {
+  background-color: transparent;
+}
