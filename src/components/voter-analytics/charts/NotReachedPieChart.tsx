@@ -46,37 +46,24 @@ export const NotReachedPieChart: React.FC<NotReachedPieChartProps> = ({ data, to
     percent: actualTotal > 0 ? ((Number(item.value) / actualTotal) * 100).toFixed(1) : '0.0'
   }));
 
-  // Report issue if there's a suspected data mismatch
+  // Report issue if there's a data consistency problem
   useEffect(() => {
-    // Check if there's a data issue with the expected values
-    const expectedValues = {
-      "Not Home": 561,
-      "Refusal": 216,
-      "Bad Data": 89
-    };
-    
-    const actualValues = {
-      "Not Home": data.find(item => item.name === "Not Home")?.value || 0,
-      "Refusal": data.find(item => item.name === "Refusal")?.value || 0, 
-      "Bad Data": data.find(item => item.name === "Bad Data")?.value || 0
-    };
-    
-    const hasIssue = actualValues["Not Home"] !== expectedValues["Not Home"] || 
-                     actualValues["Refusal"] !== expectedValues["Refusal"] ||
-                     actualValues["Bad Data"] !== expectedValues["Bad Data"];
-    
-    if (hasIssue) {
+    // Check for any data issues
+    if (data.some(item => item.value === 0) && calculatedTotal < 100) {
       // Log the data issue for debugging
-      logDataIssue("NotReachedPieChart data mismatch", {
-        expectedValues,
-        actualValues,
-        rawData: data
+      logDataIssue("NotReachedPieChart data issue", {
+        receivedData: data,
+        calculatedTotal: calculatedTotal,
+        passedTotal: total
       });
       
       // Report the issue to the issue log
-      reportPieChartCalculationIssue("Not Reached", expectedValues, actualValues);
+      reportPieChartCalculationIssue("Not Reached", 
+        {}, // expected values - we don't know them
+        data.reduce((acc, item) => ({ ...acc, [item.name]: item.value }), {}) // actual values
+      );
     }
-  }, [data, logDataIssue, reportPieChartCalculationIssue]);
+  }, [data, logDataIssue, reportPieChartCalculationIssue, calculatedTotal, total]);
 
   // Custom legend that includes percentages
   const renderLegend = (props: any) => {

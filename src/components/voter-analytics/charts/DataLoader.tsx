@@ -42,15 +42,17 @@ export const useDataLoader = ({ query, showFilteredData }: UseDataLoaderProps) =
         ];
         
         // Chart 3: Not Reached breakdown (Not Home, Refusal, Bad Data)
-        // FIXED: Using the correct expected values for all three categories
         const notReachedChartData = [
-          { name: 'Not Home', value: 561, color: CHART_COLORS.NOT_REACHED.NOT_HOME },
-          { name: 'Refusal', value: 216, color: CHART_COLORS.NOT_REACHED.REFUSAL },
-          { name: 'Bad Data', value: 89, color: CHART_COLORS.NOT_REACHED.BAD_DATA }
+          { name: 'Not Home', value: metrics.notReached.notHome || 0, color: CHART_COLORS.NOT_REACHED.NOT_HOME },
+          { name: 'Refusal', value: metrics.notReached.refusal || 0, color: CHART_COLORS.NOT_REACHED.REFUSAL },
+          { name: 'Bad Data', value: metrics.notReached.badData || 0, color: CHART_COLORS.NOT_REACHED.BAD_DATA }
         ];
         
-        // Calculate the total not reached directly from the correct fixed values
-        const totalNotReachedValue = 561 + 216 + 89; // 866 total
+        // Calculate the total not reached from the metrics
+        const totalNotReachedValue = 
+          (metrics.notReached.notHome || 0) + 
+          (metrics.notReached.refusal || 0) + 
+          (metrics.notReached.badData || 0);
         
         // Line chart data
         const lineData = metrics.byDate || [];
@@ -61,10 +63,10 @@ export const useDataLoader = ({ query, showFilteredData }: UseDataLoaderProps) =
         
         console.log("Not Reached data for pie chart:", notReachedChartData);
         console.log("Total not reached calculated:", totalNotReachedValue, "breakdown:", {
-          notHome: 561,
-          refusal: 216,
-          badData: 89,
-          total: 866
+          notHome: metrics.notReached.notHome,
+          refusal: metrics.notReached.refusal,
+          badData: metrics.notReached.badData,
+          total: totalNotReachedValue
         });
         
         // Determine dataset name based on user's query or default
