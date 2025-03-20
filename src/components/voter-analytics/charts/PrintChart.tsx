@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { ReportTitle } from './ReportTitle';
 import { ReportFooter } from './ReportFooter';
@@ -61,9 +60,9 @@ export const PrintChart: React.FC<PrintChartProps> = ({
     chartContainer.style.display = 'flex';
     chartContainer.style.alignItems = 'center';
     chartContainer.style.justifyContent = 'center';
-    chartContainer.style.padding = '5px'; // Reduced padding to maximize space
+    chartContainer.style.padding = '5px'; 
     chartContainer.style.width = '100%';
-    chartContainer.style.height = '85%'; // Increased to give more space to the chart
+    chartContainer.style.height = '90%'; // Increased to give even more space to the chart
     printContainer.appendChild(chartContainer);
 
     // Clone the chart and add to chart container
@@ -73,7 +72,7 @@ export const PrintChart: React.FC<PrintChartProps> = ({
     chartClone.style.height = '100%';
     chartClone.style.maxWidth = 'none';
     chartClone.style.maxHeight = 'none';
-    chartClone.style.transform = 'scale(1.05)'; // Slightly scale up to fill more space
+    chartClone.style.transform = 'scale(1.1)'; // Slightly increased scale
     chartClone.style.transformOrigin = 'center center';
     chartContainer.appendChild(chartClone);
 
@@ -110,10 +109,28 @@ export const PrintChart: React.FC<PrintChartProps> = ({
       (rechartsSurface as HTMLElement).style.maxHeight = 'none';
     }
 
+    // Find and adjust Y axis specifically to ensure it spans the full height
+    const yAxisElements = chartClone.querySelectorAll('.recharts-yAxis');
+    yAxisElements.forEach(yAxis => {
+      const yAxisLine = yAxis.querySelector('.recharts-cartesian-axis-line');
+      if (yAxisLine) {
+        (yAxisLine as SVGElement).style.strokeWidth = '2.5px';
+        (yAxisLine as SVGElement).style.stroke = '#333';
+      }
+      
+      // Adjust domain line height to stretch fully
+      const yAxisDomain = yAxis.querySelector('.recharts-cartesian-axis-domain');
+      if (yAxisDomain) {
+        (yAxisDomain as SVGElement).style.strokeWidth = '2.5px';
+        (yAxisDomain as SVGElement).style.stroke = '#333';
+      }
+    });
+
     // Make the axes extend fully with thicker lines for better visibility
-    const axisLines = chartClone.querySelectorAll('.recharts-cartesian-axis-line, .recharts-cartesian-axis-tick-line');
+    const axisLines = chartClone.querySelectorAll('.recharts-cartesian-axis-line, .recharts-cartesian-axis-tick-line, .recharts-cartesian-axis-domain');
     axisLines.forEach(line => {
-      (line as SVGElement).style.strokeWidth = '2px';
+      (line as SVGElement).style.strokeWidth = '2.5px';
+      (line as SVGElement).style.stroke = '#333';
     });
 
     // Make grid lines more visible
@@ -130,9 +147,16 @@ export const PrintChart: React.FC<PrintChartProps> = ({
       const text = tick.querySelector('text');
       if (text) {
         (text as SVGElement).style.fill = '#333';
-        (text as SVGElement).style.fontWeight = '500';
+        (text as SVGElement).style.fontWeight = '600';
       }
     });
+
+    // Find the y-axis and ensure it extends fully
+    const yAxis = chartClone.querySelector('.recharts-yAxis');
+    if (yAxis) {
+      // Force y-axis to take full height
+      (yAxis as SVGElement).style.height = '100%';
+    }
 
     // Ensure the chart container fills maximum available space
     const chartArea = chartClone.querySelector('.recharts-cartesian-grid');
@@ -141,8 +165,19 @@ export const PrintChart: React.FC<PrintChartProps> = ({
       (chartArea as SVGElement).style.height = '100%';
     }
 
+    // Ensure y-axis text is properly spaced
+    const yAxisTicks = chartClone.querySelectorAll('.recharts-yAxis .recharts-cartesian-axis-tick');
+    const yAxisTickCount = yAxisTicks.length;
+    if (yAxisTickCount > 0) {
+      // Make sure y-axis labels are evenly distributed
+      yAxisTicks.forEach((tick, index) => {
+        const yPos = 100 - (index * (100 / (yAxisTickCount - 1)));
+        (tick as SVGElement).style.transform = `translateY(${yPos}%)`;
+      });
+    }
+
     // Make the chart plots and lines more prominent
-    const plotItems = chartClone.querySelectorAll('.recharts-curve');
+    const plotItems = chartClone.querySelectorAll('.recharts-curve, .recharts-line');
     plotItems.forEach(item => {
       (item as SVGElement).style.strokeWidth = '3px';
     });
@@ -209,7 +244,7 @@ export const PrintChart: React.FC<PrintChartProps> = ({
           height: 100% !important;
           max-width: none !important;
           max-height: none !important;
-          transform: scale(1.05) !important;
+          transform: scale(1.1) !important;
           transform-origin: center center !important;
         }
         
@@ -234,10 +269,24 @@ export const PrintChart: React.FC<PrintChartProps> = ({
           height: 100% !important;
         }
         
+        /* Specific styling for Y axis to make it stretch fully */
+        #print-chart-clone .recharts-yAxis {
+          height: 100% !important;
+        }
+        
+        #print-chart-clone .recharts-yAxis .recharts-cartesian-axis-line,
+        #print-chart-clone .recharts-yAxis .recharts-cartesian-axis-domain {
+          stroke-width: 2.5px !important;
+          stroke: #333 !important;
+          height: 100% !important;
+        }
+        
         /* Ensure the axis lines and labels extend fully and are more visible */
         #print-chart-clone .recharts-cartesian-axis-line,
-        #print-chart-clone .recharts-cartesian-axis-tick-line {
-          stroke-width: 2px !important;
+        #print-chart-clone .recharts-cartesian-axis-tick-line,
+        #print-chart-clone .recharts-cartesian-axis-domain {
+          stroke-width: 2.5px !important;
+          stroke: #333 !important;
         }
         
         #print-chart-clone .recharts-cartesian-grid-horizontal line,
@@ -252,7 +301,7 @@ export const PrintChart: React.FC<PrintChartProps> = ({
         
         #print-chart-clone .recharts-cartesian-axis-tick text {
           fill: #333 !important;
-          font-weight: 500 !important;
+          font-weight: 600 !important;
         }
         
         /* Ensure curves and data points are very visible */
@@ -342,4 +391,3 @@ const formatSubtitle = (query: Partial<QueryParams>) => {
   
   return subtitle;
 };
-
