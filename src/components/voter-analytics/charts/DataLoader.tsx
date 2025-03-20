@@ -54,7 +54,18 @@ export const useDataLoader = ({ query, showFilteredData }: UseDataLoaderProps) =
         // Calculate totals
         const totalTactics = tacticsChartData.reduce((sum, item) => sum + item.value, 0);
         const totalContactsValue = contactsChartData.reduce((sum, item) => sum + item.value, 0);
-        const totalNotReachedValue = notReachedChartData.reduce((sum, item) => sum + item.value, 0);
+        
+        // Calculate the total not reached directly from the metrics
+        const totalNotReachedValue = 
+          metrics.notReached.notHome + 
+          metrics.notReached.refusal + 
+          metrics.notReached.badData;
+        
+        console.log("Total not reached calculated:", totalNotReachedValue, "breakdown:", {
+          notHome: metrics.notReached.notHome,
+          refusal: metrics.notReached.refusal,
+          badData: metrics.notReached.badData
+        });
         
         // Determine dataset name based on user's query or default
         // In a real implementation, this might come from metadata associated with the dataset

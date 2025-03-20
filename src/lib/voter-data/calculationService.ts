@@ -67,11 +67,11 @@ export const aggregateVoterMetrics = (filteredData: any[]): VoterMetrics => {
   // Create byDate data structure
   const dateData = uniqueDates.map(date => {
     const dateItems = filteredData.filter(item => item.date === date);
-    const attempts = dateItems.reduce((sum, item) => sum + (item.attempts || 0), 0);
-    const contacts = dateItems.reduce((sum, item) => sum + (item.contacts || 0), 0);
+    const attempts = dateItems.reduce((sum, item) => sum + (Number(item.attempts) || 0), 0);
+    const contacts = dateItems.reduce((sum, item) => sum + (Number(item.contacts) || 0), 0);
     // "issues" are the sum of not_home, refusal, and bad_data
     const issues = dateItems.reduce((sum, item) => 
-      sum + (item.not_home || 0) + (item.refusal || 0) + (item.bad_data || 0), 0);
+      sum + (Number(item.not_home) || 0) + (Number(item.refusal) || 0) + (Number(item.bad_data) || 0), 0);
     
     return {
       date,
@@ -83,26 +83,34 @@ export const aggregateVoterMetrics = (filteredData: any[]): VoterMetrics => {
   
   metrics.byDate = dateData;
   
-  // Aggregate data
+  // Aggregate data - ensure we're parsing string values to numbers
   filteredData.forEach(item => {
     // Aggregate by tactic
     if (item.tactic.toLowerCase() === 'sms') {
-      metrics.tactics.sms += item.attempts || 0;
+      metrics.tactics.sms += Number(item.attempts) || 0;
     } else if (item.tactic.toLowerCase() === 'phone') {
-      metrics.tactics.phone += item.attempts || 0;
+      metrics.tactics.phone += Number(item.attempts) || 0;
     } else if (item.tactic.toLowerCase() === 'canvas') {
-      metrics.tactics.canvas += item.attempts || 0;
+      metrics.tactics.canvas += Number(item.attempts) || 0;
     }
     
     // Aggregate contacts by result
-    metrics.contacts.support += item.support || 0;
-    metrics.contacts.oppose += item.oppose || 0;
-    metrics.contacts.undecided += item.undecided || 0;
+    metrics.contacts.support += Number(item.support) || 0;
+    metrics.contacts.oppose += Number(item.oppose) || 0;
+    metrics.contacts.undecided += Number(item.undecided) || 0;
     
-    // Aggregate not reached
-    metrics.notReached.notHome += item.not_home || 0;
-    metrics.notReached.refusal += item.refusal || 0;
-    metrics.notReached.badData += item.bad_data || 0;
+    // Aggregate not reached - ensure proper number conversion
+    metrics.notReached.notHome += Number(item.not_home) || 0;
+    metrics.notReached.refusal += Number(item.refusal) || 0;
+    metrics.notReached.badData += Number(item.bad_data) || 0;
+  });
+  
+  // Log the not reached metrics for debugging
+  console.log("Not Reached aggregation:", {
+    notHome: metrics.notReached.notHome,
+    refusal: metrics.notReached.refusal,
+    badData: metrics.notReached.badData,
+    total: metrics.notReached.notHome + metrics.notReached.refusal + metrics.notReached.badData
   });
   
   return metrics;
