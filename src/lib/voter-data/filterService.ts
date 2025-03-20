@@ -1,3 +1,4 @@
+
 import type { QueryParams } from '@/types/analytics';
 
 /**
@@ -78,28 +79,17 @@ export const extractQueryParameters = (searchQuery: string): Partial<QueryParams
     }
   }
   
-  // Extract person information
-  const peopleNames = [
-    { first: 'jane', last: 'doe' },
-    { first: 'john', last: 'smith' },
-    { first: 'dan', last: 'kelly' },
-    { first: 'sarah', last: 'johnson' },
-    { first: 'alex', last: 'johnson' },
-    { first: 'chris', last: 'brown' },
-    { first: 'maria', last: 'martinez' }
-  ];
+  // Extract person information - removed hard-coded names list, we'll use regex to find names
+  const nameRegex = /\b([A-Za-z]+)\s+([A-Za-z]+)\b/g;
+  const matches = [...query.matchAll(nameRegex)];
   
-  for (const person of peopleNames) {
-    // Check if both first and last name are in the query
-    if (query.includes(person.first) && query.includes(person.last)) {
-      const fullName = person.first.charAt(0).toUpperCase() + 
-                      person.first.slice(1) + ' ' + 
-                      person.last.charAt(0).toUpperCase() + 
-                      person.last.slice(1);
-      extractedParams.person = fullName;
-      console.log("Extracted person:", extractedParams.person);
-      break;
-    }
+  // Prioritize matches that look like names (first letter capitalized)
+  if (matches.length > 0) {
+    // Take the first full name match
+    const [fullMatch, firstName, lastName] = matches[0];
+    const formattedName = `${firstName.charAt(0).toUpperCase() + firstName.slice(1)} ${lastName.charAt(0).toUpperCase() + lastName.slice(1)}`;
+    extractedParams.person = formattedName;
+    console.log("Extracted person using regex:", extractedParams.person);
   }
   
   // Extract team information
@@ -169,6 +159,8 @@ function isValidDate(dateString: string): boolean {
  * Filters voter data based on query parameters
  */
 export const filterVoterData = (data: any[], query: Partial<QueryParams>) => {
+  console.log("Filter voter data called with query:", query);
+  
   // Regular filtering for all queries
   const filteredData = data.filter(item => {
     // For extensive debugging
@@ -211,19 +203,33 @@ export const filterVoterData = (data: any[], query: Partial<QueryParams>) => {
       includeRecord = false;
     }
     
-    // Apply person filter with exact name matching
+    // Apply person filter with improved name matching
     if (includeRecord && query.person && query.person !== 'All') {
-      const names = query.person.split(' ');
-      const firstName = names[0];
-      const lastName = names.length > 1 ? names[1] : '';
+      // Split the query person into first and last name
+      const queryNames = query.person.split(' ');
       
-      // Normalize capitalization for case-insensitive comparison
-      const normalizedFirstName = firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase();
-      const normalizedLastName = lastName.charAt(0).toUpperCase() + lastName.slice(1).toLowerCase();
-      
-      if (item.first_name !== normalizedFirstName || item.last_name !== normalizedLastName) {
-        filterLog += `Failed person filter: query=${query.person}, item=${item.first_name} ${item.last_name}`;
-        includeRecord = false;
+      if (queryNames.length >= 2) {
+        const queryFirstName = queryNames[0].toLowerCase();
+        const queryLastName = queryNames.slice(1).join(' ').toLowerCase();
+        
+        const itemFirstName = (item.first_name || '').toLowerCase();
+        const itemLastName = (item.last_name || '').toLowerCase();
+        
+        // More detailed logging for person matching
+        console.log(`Comparing names: Query "${queryFirstName} ${queryLastName}" vs Item "${itemFirstName} ${itemLastName}"`);
+        
+        // Check for exact match by default
+        if (itemFirstName !== queryFirstName || itemLastName !== queryLastName) {
+          filterLog += `Failed person filter: query=${query.person}, item=${item.first_name} ${item.last_name}`;
+          includeRecord = false;
+        }
+      } else {
+        // Single name matching (less precise)
+        const fullName = `${item.first_name || ''} ${item.last_name || ''}`.toLowerCase();
+        if (!fullName.includes(query.person.toLowerCase())) {
+          filterLog += `Failed person filter (single name): query=${query.person}, item=${fullName}`;
+          includeRecord = false;
+        }
       }
     }
     
@@ -231,8 +237,8 @@ export const filterVoterData = (data: any[], query: Partial<QueryParams>) => {
     if (includeRecord && query.searchQuery && !query.person && !query.tactic && !query.date) {
       const searchLower = query.searchQuery.toLowerCase();
       const fullName = `${item.first_name} ${item.last_name}`.toLowerCase();
-      const teamLower = item.team.toLowerCase();
-      const tacticLower = item.tactic.toLowerCase();
+      const teamLower = item.team ? item.team.toLowerCase() : '';
+      const tacticLower = item.tactic ? item.tactic.toLowerCase() : '';
       
       if (!fullName.includes(searchLower) && 
           !teamLower.includes(searchLower) && 
@@ -242,18 +248,46 @@ export const filterVoterData = (data: any[], query: Partial<QueryParams>) => {
       }
     }
     
-    // Debug output for specific records
-    if (query.person && item.first_name === query.person.split(' ')[0] && 
-        item.last_name === query.person.split(' ')[1]) {
-      if (includeRecord) {
-        console.log(`INCLUDED ${filterLog}`);
-      } else {
-        console.log(`EXCLUDED ${filterLog}`);
-      }
+    // Enhanced debug logging for all records
+    if (query.person) {
+      console.log(includeRecord ? 
+        `INCLUDED: ${item.first_name} ${item.last_name}, ${item.date}, ${item.tactic}, attempts=${item.attempts}` : 
+        `EXCLUDED: ${item.first_name} ${item.last_name}, ${item.date}, ${item.tactic}, reason: ${filterLog}`);
     }
     
     return includeRecord;
   });
+  
+  console.log(`Filtered data count: ${filteredData.length} (from ${data.length})`);
+  
+  if (filteredData.length === 0 && query.person) {
+    console.warn(`No records found for person: ${query.person}. Trying case-insensitive search...`);
+    
+    // Fallback to case-insensitive search if exact match fails
+    return data.filter(item => {
+      if (!query.person) return false;
+      
+      const queryNames = query.person.split(' ');
+      if (queryNames.length < 2) return false;
+      
+      const queryFirstName = queryNames[0].toLowerCase();
+      const queryLastName = queryNames.slice(1).join(' ').toLowerCase();
+      
+      const itemFirstName = (item.first_name || '').toLowerCase();
+      const itemLastName = (item.last_name || '').toLowerCase();
+      
+      const matchesFirstName = itemFirstName.includes(queryFirstName) || queryFirstName.includes(itemFirstName);
+      const matchesLastName = itemLastName.includes(queryLastName) || queryLastName.includes(itemLastName);
+      
+      const matches = matchesFirstName && matchesLastName;
+      
+      if (matches) {
+        console.log(`Case-insensitive match found: ${item.first_name} ${item.last_name}`);
+      }
+      
+      return matches;
+    });
+  }
   
   return filteredData;
 };
@@ -269,8 +303,8 @@ export const searchFilterVoterData = (data: any[], searchQuery: string) => {
   return data.filter(item => {
     const searchLower = searchQuery.toLowerCase();
     const fullName = `${item.first_name} ${item.last_name}`.toLowerCase();
-    const teamLower = item.team.toLowerCase();
-    const tacticLower = item.tactic.toLowerCase();
+    const teamLower = item.team ? item.team.toLowerCase() : '';
+    const tacticLower = item.tactic ? item.tactic.toLowerCase() : '';
     
     return fullName.includes(searchLower) || 
            teamLower.includes(searchLower) || 

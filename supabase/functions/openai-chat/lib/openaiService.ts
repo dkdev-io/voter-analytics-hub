@@ -27,30 +27,29 @@ export async function callOpenAI({
     ? 'You are a helpful assistant that extracts structured parameters from natural language queries about voter data. Return only valid JSON with no additional text, explanations, or markdown formatting. Never use backticks or code blocks in your response, just the raw JSON. If the query mentions "phone", set tactic to "Phone". If it mentions "SMS" or "sms", set tactic to "SMS". If it mentions "canvas", set tactic to "Canvas". Be exact with person names and dates. Here are specific examples: For "How many Phone attempts did Jane Doe make on 2025-01-02?" your response must be exactly {"tactic":"Phone","person":"Jane Doe","date":"2025-01-02","resultType":"attempts"}'
     : `You are a data analysis assistant with DIRECT ACCESS to voter contact database records that I will provide.
 
-THIS IS EXTREMELY IMPORTANT - FOLLOWS THESE RULES EXACTLY:
-1. I am giving you ACTUAL DATABASE RECORDS in JSON format below.
+CRITICAL INSTRUCTIONS - FOLLOW THESE EXACTLY:
+1. I am giving you REAL DATABASE RECORDS as JSON data below.
 2. YOU HAVE FULL ACCESS to these records RIGHT NOW.
-3. NEVER state that you "don't have access to data" - the data is provided to you.
-4. NEVER mention limitations, knowledge cutoffs, or ask for more information.
-5. NEVER say "I don't have specific information about..." - look at the provided data instead.
-6. NEVER use phrases like "As an AI" or refer to your training data.
-7. IMMEDIATELY SEARCH through the provided data for relevant information.
-8. If asked about a person, SEARCH through the provided data JSON for records with that name.
-9. If asked to count something, COUNT IT USING THE PROVIDED DATA. For example, if asked "How many phone calls did someone make?", directly count those records.
-10. ALWAYS begin your response with "Based on the data provided, ..."
-11. Be factual and specific, providing exact numbers when the data shows them.
-12. UNDER NO CIRCUMSTANCES ask for more context or claim you can't answer without more information.
-13. If you can't find a specific person in the data, say "Based on the data provided, I couldn't find records for [name]" and NEVER say you don't have access.
-14. Perform case-insensitive searches when looking for names.
-15. NEVER say you apologize for not having information.
+3. NEVER say "I don't have access to data" or that you "don't have specific information" - the data is provided to you!
+4. NEVER apologize or mention limitations - you have all the necessary data.
+5. NEVER mention knowledge cutoffs or training data - focus ONLY on the provided data.
+6. NEVER say you "need more context" - analyze what you have!
+7. ALWAYS directly search through and analyze the provided data JSON.
+8. ALWAYS search for people by name in the data, checking both first_name and last_name fields.
+9. If asked to count attempts or contacts, COUNT THE ACTUAL RECORDS in the provided data.
+10. ALWAYS begin your response with "Based on the data provided, ..." and then give specific results.
+11. If asked about a person who isn't in the data, say "Based on the data provided, I couldn't find records for [name]" - NOT that you lack access.
+12. Be precise and use exact counts from the data.
+13. ALWAYS perform case-insensitive name searches.
 
-These database records are arranged as JSON objects with properties like:
-- first_name & last_name: The person's name
-- tactic: "Phone", "SMS", or "Canvas"
+You MUST analyze the data I'll provide below - it contains complete records with these fields:
+- first_name & last_name: Person's name (search BOTH fields when looking for someone)
+- tactic: "Phone", "SMS", or "Canvas" 
 - attempts: Number of contact attempts
 - date: Date of the record
+- contacts, support, oppose, etc.: Various metrics
 
-CRITICAL: The JSON data that follows this prompt IS YOUR DATA SOURCE. You have DIRECT ACCESS to it. ALWAYS use this data to answer questions and NEVER claim you lack access to it.`;
+THE DATA BELOW IS YOUR PRIMARY SOURCE - you MUST use it to answer questions:`;
   
   // Include the data context in the user prompt for data analysis requests
   const userPrompt = dataContext ? `${prompt}\n\n${dataContext}` : prompt;

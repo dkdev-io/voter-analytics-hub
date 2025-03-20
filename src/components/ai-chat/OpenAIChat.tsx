@@ -36,16 +36,9 @@ export const OpenAIChat = () => {
     try {
       console.log("Sending prompt to OpenAI:", prompt.trim());
       
-      // Build generic query parameters from the prompt text
-      const queryParams = {
-        tactic: prompt.toLowerCase().includes('phone') ? 'Phone' : 
-               prompt.toLowerCase().includes('sms') ? 'SMS' : 
-               prompt.toLowerCase().includes('canvas') ? 'Canvas' : null,
-        // Extract a person's name if mentioned - could be enhanced with better extraction
-        person: null,
-        date: null,
-        resultType: 'attempts'
-      };
+      // Extract possible structured query parameters for better context
+      const queryParams = extractBasicQueryParams(prompt.trim());
+      console.log("Auto-extracted query parameters:", queryParams);
       
       // Use the updated API endpoint
       const { data, error } = await supabase.functions.invoke('openai-chat', {
@@ -92,6 +85,40 @@ export const OpenAIChat = () => {
 
   const toggleRawResponse = () => {
     setShowRawResponse(!showRawResponse);
+  };
+  
+  // Function to extract basic query parameters from a text prompt
+  const extractBasicQueryParams = (text: string) => {
+    const query = text.toLowerCase();
+    const params: any = {};
+    
+    // Simple extraction logic for basic parameters
+    if (query.includes('phone')) {
+      params.tactic = 'Phone';
+    } else if (query.includes('sms')) {
+      params.tactic = 'SMS';
+    } else if (query.includes('canvas')) {
+      params.tactic = 'Canvas';
+    }
+    
+    // Try to extract person names using regex
+    const nameRegex = /\b([A-Za-z]+)\s+([A-Za-z]+)\b/g;
+    const matches = [...query.matchAll(nameRegex)];
+    
+    if (matches.length > 0) {
+      // Take the first full name match
+      const [fullMatch, firstName, lastName] = matches[0];
+      const formattedName = `${firstName.charAt(0).toUpperCase() + firstName.slice(1)} ${lastName.charAt(0).toUpperCase() + lastName.slice(1)}`;
+      params.person = formattedName;
+    }
+    
+    // Basic date extraction for YYYY-MM-DD format
+    const dateMatch = query.match(/\d{4}-\d{2}-\d{2}/);
+    if (dateMatch) {
+      params.date = dateMatch[0];
+    }
+    
+    return params;
   };
 
   return (

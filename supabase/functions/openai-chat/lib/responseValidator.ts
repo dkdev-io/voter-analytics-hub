@@ -8,7 +8,7 @@ export async function validateResponse(
 ) {
   const { answer, finishReason } = aiResponse;
 
-  // Blacklist of phrases that indicate the AI is ignoring our instructions
+  // Expanded blacklist of phrases that indicate the AI is ignoring our instructions
   const blacklistedPhrases = [
     "i don't have access",
     "i don't have information",
@@ -56,10 +56,29 @@ export async function validateResponse(
     "i'm not able to find",
     "i can't find",
     "cannot find",
-    "i couldn't find"
+    "i couldn't find",
+    "i apologize, but i don't have",
+    "i don't have access to personal",
+    "i don't have access to the database",
+    "i don't have direct access to the data",
+    "i would need to access",
+    "i would need access to the",
+    "i cannot search through",
+    "i don't have the ability to search",
+    "i am not able to access",
+    "i am unable to access",
+    "i do not have the capability",
+    "without access to the specific",
+    "i am not able to provide",
+    "i'm not able to access that information",
+    "i don't have the capability to search",
+    "i would need to know more",
+    "i will need more details",
+    "i'll need more information",
+    "i don't have visibility into"
   ];
   
-  // Check if the answer contains any blacklisted phrases or is too short (indicating a non-answer)
+  // Check if the answer contains any blacklisted phrases
   const containsBlacklistedPhrase = blacklistedPhrases.some(phrase => 
     answer.toLowerCase().includes(phrase)
   );
@@ -70,6 +89,21 @@ export async function validateResponse(
     answer.length < 100 &&
     !answer.includes("records") &&
     !answer.includes("attempts");
+  
+  // Additional check for answers that claim they can't find someone in data
+  const isClaimingPersonNotFound = 
+    queryParams && 
+    queryParams.person && 
+    answer.toLowerCase().includes(`couldn't find`) && 
+    answer.toLowerCase().includes(queryParams.person.toLowerCase());
+    
+  console.log("Response validation checks:", {
+    containsBlacklistedPhrase,
+    isGenericAnswer,
+    isClaimingPersonNotFound,
+    sampleDataLength: sampleData.length,
+    hasPerson: !!queryParams?.person
+  });
   
   // If the model is claiming it doesn't have access to data, or providing a generic answer
   // when we have data, generate a direct answer from the data
@@ -84,8 +118,26 @@ export async function validateResponse(
       answer: await createDirectAnswer(sampleData, queryParams, prompt),
       finishReason
     };
-  } else if (containsBlacklistedPhrase && sampleData.length === 0) {
-    // Special case: If we got a denial but have no data, explain this clearly
+  } 
+  // Special case: If the model claims it can't find a person but there might be data
+  else if (isClaimingPersonNotFound) {
+    console.log("WARNING: OpenAI claims it can't find a person - checking with case-insensitive search");
+    
+    // Try a case-insensitive search for the person
+    const personMatches = findPersonInData(sampleData, queryParams.person);
+    
+    if (personMatches.length > 0) {
+      console.log(`Found ${personMatches.length} records for ${queryParams.person} using case-insensitive search`);
+      
+      // Use the filtered data to generate a more accurate answer
+      return {
+        answer: await createDirectAnswer(personMatches, queryParams, prompt),
+        finishReason
+      };
+    }
+  }
+  // Special case: If we got a denial but have no data, explain this clearly  
+  else if (containsBlacklistedPhrase && sampleData.length === 0) {
     console.log("WARNING: OpenAI returned denial response and we have no matching data");
     return {
       answer: `Based on the data provided, I don't see any records that match your query ${queryParams.person ? `for ${queryParams.person}` : ''} ${queryParams.tactic ? `using ${queryParams.tactic}` : ''}.`,
@@ -94,6 +146,50 @@ export async function validateResponse(
   }
   
   return { answer, finishReason };
+}
+
+// Find a person in the data using case-insensitive and partial matching
+function findPersonInData(data: any[], personName: string): any[] {
+  if (!personName || !data || data.length === 0) {
+    return [];
+  }
+  
+  // Split the query name
+  const names = personName.toLowerCase().split(' ');
+  if (names.length < 2) {
+    // Single name search
+    return data.filter(record => {
+      const firstName = (record.first_name || '').toLowerCase();
+      const lastName = (record.last_name || '').toLowerCase();
+      return firstName.includes(names[0]) || lastName.includes(names[0]);
+    });
+  }
+  
+  const firstName = names[0];
+  const lastName = names.slice(1).join(' ');
+  
+  console.log(`Searching for name: firstName="${firstName}", lastName="${lastName}"`);
+  
+  return data.filter(record => {
+    const recordFirstName = (record.first_name || '').toLowerCase();
+    const recordLastName = (record.last_name || '').toLowerCase();
+    
+    // Look for exact matches first
+    if (recordFirstName === firstName && recordLastName === lastName) {
+      return true;
+    }
+    
+    // Then look for partial matches (significant improvement for names like Dan/Daniel, etc.)
+    const firstNameMatch = recordFirstName.includes(firstName) || firstName.includes(recordFirstName);
+    const lastNameMatch = recordLastName.includes(lastName) || lastName.includes(recordLastName);
+    
+    const isMatch = firstNameMatch && lastNameMatch;
+    if (isMatch) {
+      console.log(`Matched: DB record "${recordFirstName} ${recordLastName}" matches query "${firstName} ${lastName}"`);
+    }
+    
+    return isMatch;
+  });
 }
 
 // Generate a direct answer when LLM fails
@@ -118,10 +214,31 @@ async function createDirectAnswer(sampleData: any[], queryParams: any, prompt: s
   
   // Apply person filter if present - use more flexible case-insensitive matching
   if (person) {
-    filteredData = filteredData.filter(record => {
-      const fullName = `${record.first_name || ''} ${record.last_name || ''}`.toLowerCase();
-      return fullName.includes(person.toLowerCase());
-    });
+    // We've already filtered by person in findPersonInData if that function was called
+    if (sampleData === filteredData) {
+      // Split into first and last name for better matching
+      const names = person.split(' ');
+      if (names.length > 1) {
+        const firstName = names[0];
+        const lastName = names.slice(1).join(' ');
+        
+        filteredData = filteredData.filter(record => {
+          const recordFirstName = (record.first_name || '').toLowerCase();
+          const recordLastName = (record.last_name || '').toLowerCase();
+          
+          const firstNameMatch = recordFirstName.includes(firstName) || firstName.includes(recordFirstName);
+          const lastNameMatch = recordLastName.includes(lastName) || lastName.includes(recordLastName);
+          
+          return firstNameMatch && lastNameMatch;
+        });
+      } else {
+        // Single name matching
+        filteredData = filteredData.filter(record => {
+          const fullName = `${record.first_name || ''} ${record.last_name || ''}`.toLowerCase();
+          return fullName.includes(person);
+        });
+      }
+    }
     
     filters.push(`person: ${queryParams.person}`);
     

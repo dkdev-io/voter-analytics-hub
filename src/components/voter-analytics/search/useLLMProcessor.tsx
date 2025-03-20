@@ -40,6 +40,11 @@ export const useLLMProcessor = ({ setQuery }: UseLLMProcessorOptions) => {
             - If a date like "2025-31-01" is mentioned, it's likely in the wrong format and should be "2025-01-31"
             - Never return an invalid date like February 30
             
+            IMPORTANT PERSON NAME INSTRUCTIONS:
+            - Preserve the capitalization of names as they appear
+            - If you see a name like "dan kelly", capitalize it as "Dan Kelly"
+            - Extract the full name (both first and last name)
+            
             Only include fields that are explicitly mentioned or strongly implied in the query.
             Return ONLY the JSON with no additional text.
             
@@ -58,6 +63,10 @@ export const useLLMProcessor = ({ setQuery }: UseLLMProcessorOptions) => {
             Example 4:
             Query: "Show SMS on 2025-31-01"
             Response: {"tactic":"SMS","date":"2025-01-31"}
+            
+            Example 5:
+            Query: "How many calls did dan kelly make?"
+            Response: {"tactic":"Phone","person":"Dan Kelly","resultType":"attempts"}
             
             Important: Be exact with person names and dates. Make sure to extract all parameters correctly and validate dates.
           `
@@ -101,6 +110,21 @@ export const useLLMProcessor = ({ setQuery }: UseLLMProcessorOptions) => {
           throw new Error("Could not extract search parameters from your query");
         }
         
+        // Extra validation and normalization
+        if (extractedParams.person) {
+          // Log the original extracted name
+          console.log("Original extracted person name:", extractedParams.person);
+          
+          // Ensure names are properly capitalized
+          const names = extractedParams.person.split(' ');
+          if (names.length >= 2) {
+            const formattedFirstName = names[0].charAt(0).toUpperCase() + names[0].slice(1).toLowerCase();
+            const formattedLastName = names[1].charAt(0).toUpperCase() + names[1].slice(1).toLowerCase();
+            extractedParams.person = `${formattedFirstName} ${formattedLastName}`;
+            console.log("Normalized person name:", extractedParams.person);
+          }
+        }
+        
         // Extra validation for date field
         if (extractedParams.date) {
           // Check if the date is valid
@@ -126,6 +150,9 @@ export const useLLMProcessor = ({ setQuery }: UseLLMProcessorOptions) => {
             }
           }
         }
+        
+        // Log final parameters for debugging
+        console.log("Final parameters after validation:", extractedParams);
         
         // Update the query state with the extracted parameters
         setQuery(extractedParams);
