@@ -71,18 +71,18 @@ export const VoterAnalytics = () => {
               <ResizablePanel defaultSize={25} minSize={20} maxSize={40} className="p-4 border-r border-gray-200">
                 <div className="h-full flex flex-col">
                   {/* Toggle button at the top of the search panel */}
-                  <div className="flex justify-between mb-4 hidden-print">
-                    <div className="text-lg font-semibold">Search Options</div>
+                  <div className="mb-4 hidden-print">
                     <Button 
                       variant="ghost" 
                       size="sm" 
                       onClick={toggleSearchPanel}
-                      className="p-1 h-8 hidden-print"
-                      aria-label="Hide search options"
+                      className="flex items-center h-8 hidden-print mb-2"
+                      aria-label="Show dashboard"
                     >
                       <span className="text-xs mr-1">Dashboard</span>
-                      <ChevronLeft className="h-5 w-5" />
+                      <ChevronRight className="h-5 w-5" />
                     </Button>
+                    <div className="text-lg font-semibold">Search Options</div>
                   </div>
                   
                   <div className="mb-4">
@@ -162,10 +162,10 @@ export const VoterAnalytics = () => {
                   variant="ghost" 
                   size="sm" 
                   onClick={toggleSearchPanel}
-                  className="p-1 h-8 hidden-print"
+                  className="flex items-center h-8 hidden-print"
                   aria-label="Show search options"
                 >
-                  <ChevronRight className="h-5 w-5" />
+                  <ChevronLeft className="h-5 w-5" />
                   <span className="text-xs ml-1">Search</span>
                 </Button>
               </div>
