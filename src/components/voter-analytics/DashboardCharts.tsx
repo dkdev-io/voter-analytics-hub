@@ -64,7 +64,7 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
   }
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md">
+    <div className="bg-white p-6 rounded-lg shadow-md dashboard-container">
       {/* Apply print styles only when printing */}
       {isPrinting && (
         <PrintStylesheet 
@@ -75,7 +75,7 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
       )}
       
       {/* Title section with dataset info - hidden when printing */}
-      <div className="text-center mb-6 print:hidden">
+      <div className="text-center mb-6 print-hidden">
         <h2 className="text-xl font-semibold mb-1">
           <span className="font-bold">Your Voter Contact</span>
         </h2>
@@ -89,8 +89,8 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
         </div>
       </div>
       
-      {/* Printable report container - only this will be visible when printing */}
-      <div id="report-container" className="print:block">
+      {/* Printable report container - this is the only section that will be visible when printing */}
+      <div className="print-container">
         {/* Report title component - visible in print */}
         <ReportTitle query={query} />
         
@@ -124,7 +124,9 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
       </div>
 
       {/* Print Report Button positioned at bottom */}
-      <PrintReport query={query} onPrint={handlePrint} />
+      <div className="print-hidden">
+        <PrintReport query={query} onPrint={handlePrint} />
+      </div>
     </div>
   );
 };
