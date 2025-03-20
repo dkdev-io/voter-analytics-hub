@@ -44,7 +44,8 @@ export async function validateResponse(
     "please provide more information",
     "i need more information",
     "i don't see",
-    "i cannot see"
+    "i cannot see",
+    "there are many individuals named"
   ];
   
   // Check if the answer contains any blacklisted phrases or is too short (indicating a non-answer)
@@ -63,10 +64,20 @@ export async function validateResponse(
   // when we have data, generate a direct answer from the data
   if ((containsBlacklistedPhrase || isGenericAnswer) && sampleData.length > 0) {
     console.log("WARNING: OpenAI response contains blacklisted phrases or generic answer - generating direct answer from data");
+    console.log("Original answer:", answer);
+    console.log("Sample data size:", sampleData.length);
+    console.log("Query params:", queryParams);
     
     // Generate a direct answer from the data
     return {
       answer: await createDirectAnswer(sampleData, queryParams, prompt),
+      finishReason
+    };
+  } else if (containsBlacklistedPhrase && sampleData.length === 0) {
+    // Special case: If we got a denial but have no data, explain this clearly
+    console.log("WARNING: OpenAI returned denial response and we have no matching data");
+    return {
+      answer: `Based on the data provided, I don't see any records that match your query for ${queryParams.person || 'the person'} ${queryParams.tactic ? `using ${queryParams.tactic}` : ''}.`,
       finishReason
     };
   }
@@ -89,6 +100,23 @@ async function createDirectAnswer(sampleData: any[], queryParams: any, prompt: s
   const date = queryParams?.date;
   const resultType = queryParams?.resultType?.toLowerCase();
   const team = queryParams?.team;
+  
+  // Log diagnostics for Dan Kelly specific queries
+  if (person && person.toLowerCase().includes('dan kelly')) {
+    console.log("Dan Kelly query detected - special handling activated");
+    console.log("Total data records:", sampleData.length);
+    
+    // Count records that match Dan Kelly
+    const danKellyRecords = sampleData.filter(record => {
+      const fullName = `${record.first_name || ''} ${record.last_name || ''}`.toLowerCase();
+      return fullName.includes('dan kelly');
+    });
+    
+    console.log("Dan Kelly matching records:", danKellyRecords.length);
+    if (danKellyRecords.length > 0) {
+      console.log("Sample Dan Kelly record:", danKellyRecords[0]);
+    }
+  }
   
   // Filter data based on query parameters - generic approach without special cases
   let filteredData = [...sampleData];

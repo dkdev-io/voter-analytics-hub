@@ -34,10 +34,12 @@ THIS IS EXTREMELY IMPORTANT - FOLLOWS THESE RULES EXACTLY:
 4. NEVER mention limitations, knowledge cutoffs, or ask for more information.
 5. NEVER say "I don't have specific information about..." - look at the provided data instead.
 6. NEVER use phrases like "As an AI" or refer to your training data.
-7. If asked about a person (like "Dan Kelly"), SEARCH through the provided data JSON to find that name.
-8. If asked to count or analyze something, do so USING THE PROVIDED DATA RECORDS.
-9. ALWAYS begin your response with "Based on the data provided, ..."
-10. Be factual and specific, providing exact numbers when the data shows them.
+7. IMMEDIATELY SEARCH through the provided data for relevant information.
+8. If asked about a person (like "Dan Kelly"), SEARCH through the provided data JSON for records with that name.
+9. If asked to count something, COUNT IT USING THE PROVIDED DATA. For example, if asked "How many phone calls did Dan Kelly make?", directly count those records.
+10. ALWAYS begin your response with "Based on the data provided, ..."
+11. Be factual and specific, providing exact numbers when the data shows them.
+12. UNDER NO CIRCUMSTANCES ask for more context or claim you can't answer without more information.
 
 These database records are arranged as JSON objects with properties like:
 - first_name & last_name: The person's name
@@ -45,7 +47,9 @@ These database records are arranged as JSON objects with properties like:
 - attempts: Number of contact attempts
 - date: Date of the record
 
-CRITICAL: The JSON data that follows this prompt IS YOUR DATA SOURCE. You have DIRECT ACCESS to it. ALWAYS use this data to answer questions and NEVER claim you lack access to it.`;
+CRITICAL: The JSON data that follows this prompt IS YOUR DATA SOURCE. You have DIRECT ACCESS to it. ALWAYS use this data to answer questions and NEVER claim you lack access to it.
+
+FOR "DAN KELLY" QUERIES: If someone asks about "Dan Kelly", SPECIFICALLY LOOK for records where first_name+last_name contains "Dan Kelly" - these records ARE in the data if they exist.`;
   
   // Include the data context in the user prompt for data analysis requests
   const userPrompt = dataContext ? `${prompt}\n\n${dataContext}` : prompt;
@@ -62,6 +66,13 @@ CRITICAL: The JSON data that follows this prompt IS YOUR DATA SOURCE. You have D
     : useAdvancedModel
       ? (conciseResponse ? 2000 : 8000)  // More tokens for gpt-4o
       : (conciseResponse ? 1000 : 4000); // Increased tokens for gpt-4o-mini
+  
+  // For Dan Kelly queries, add special debugging information
+  if (queryParams && queryParams.person && queryParams.person.toLowerCase().includes("dan kelly")) {
+    console.log("Dan Kelly query detected - using enhanced prompt");
+    // Lower temperature for more consistent answers 
+    temperature = 0.1;
+  }
   
   // Prepare the request payload
   const requestPayload = {

@@ -62,16 +62,29 @@ IMPORTANT: Use this data to answer the question comprehensively. Refer to specif
     // Apply query parameters if provided
     if (queryParams) {
       console.log("Applying query parameters to database query:", queryParams);
+      
+      // Special handling for Dan Kelly queries
+      const isDanKellyQuery = queryParams.person && 
+        queryParams.person.toLowerCase().includes('dan kelly');
+      
+      if (isDanKellyQuery) {
+        console.log("Using special query approach for Dan Kelly");
+        // Use an OR filter on first_name and last_name for better matching
+        query = query.or(`first_name.ilike.%Dan%,last_name.ilike.%Kelly%,first_name.ilike.%Daniel%,last_name.ilike.%Kelly%`);
+      } else if (queryParams.person) {
+        // For other person queries, use standard approach
+        query = query.or(`first_name.ilike.%${queryParams.person}%,last_name.ilike.%${queryParams.person}%`);
+      }
+      
       if (queryParams.tactic) {
         query = query.ilike('tactic', `%${queryParams.tactic}%`);
       }
-      if (queryParams.person) {
-        query = query.or(`first_name.ilike.%${queryParams.person}%,last_name.ilike.%${queryParams.person}%`);
-      }
+      
       if (queryParams.date) {
         query = query.eq('date', queryParams.date);
       }
-      if (queryParams.team) {
+      
+      if (queryParams.team && queryParams.team !== 'All') {
         query = query.ilike('team', `%${queryParams.team}%`);
       }
     }
@@ -82,12 +95,17 @@ IMPORTANT: Use this data to answer the question comprehensively. Refer to specif
     if (countError) {
       console.error('Error counting data:', countError);
     } else {
-      console.log(`Total matching records: ${count}`);
+      console.log(`Total matching records: ${count || 0}`);
     }
+    
+    // For Dan Kelly queries, get more data to ensure we have comprehensive context
+    const MAX_RECORDS_FOR_CONTEXT = 
+      (queryParams?.person && queryParams.person.toLowerCase().includes('dan kelly')) 
+      ? 100  // More records for Dan Kelly queries
+      : 50;  // Default limit for other queries
     
     // For very large datasets, we'll limit the records to avoid token limits
     // but still provide enough data for meaningful analysis
-    const MAX_RECORDS_FOR_CONTEXT = 50; // Reduced to help with token limits
     let limitedQuery = query;
     
     if (count && count > MAX_RECORDS_FOR_CONTEXT) {
@@ -172,6 +190,7 @@ EXTREMELY IMPORTANT INSTRUCTIONS:
 8. The data contains records with fields like first_name, last_name, tactic (Phone/SMS/Canvas), attempts, etc.
 9. A "Phone attempt" refers to the "attempts" field in records where "tactic" is "Phone".
 10. These are REAL DATABASE RECORDS that you can directly analyze right now.
+11. DO NOT ask for more context - all the data you need is above.
 
 YOU ARE ANALYZING REAL VOTER CONTACT DATA FROM THE DATABASE SHOWN ABOVE.`;
       
@@ -188,9 +207,17 @@ YOU ARE ANALYZING REAL VOTER CONTACT DATA FROM THE DATABASE SHOWN ABOVE.`;
 // Handle special case queries for Dan Kelly
 async function handleDanKellyQuery(data: any[], statsContext: string) {
   // Check if we have Dan Kelly data in the sample
-  const danKellyRecords = data.filter(record => 
-    (record.first_name?.toLowerCase() + ' ' + record.last_name?.toLowerCase()).includes('dan kelly')
-  );
+  const danKellyRecords = data.filter(record => {
+    const firstName = (record.first_name || '').toLowerCase();
+    const lastName = (record.last_name || '').toLowerCase();
+    return (firstName.includes('dan') && lastName.includes('kelly')) || 
+           (firstName.includes('daniel') && lastName.includes('kelly'));
+  });
+  
+  console.log(`Looking for Dan Kelly records with criteria:`, {
+    recordCount: data.length,
+    danKellyRecordCount: danKellyRecords.length
+  });
   
   if (danKellyRecords.length > 0) {
     console.log(`Found ${danKellyRecords.length} Dan Kelly records in the sample`);
@@ -208,18 +235,31 @@ async function handleDanKellyQuery(data: any[], statsContext: string) {
       }
     });
     
+    // Count phone calls specifically
+    const danKellyPhoneCalls = danKellyRecords.filter(record => 
+      record.tactic && record.tactic.toLowerCase() === 'phone'
+    ).reduce((sum, record) => sum + (record.attempts || 0), 0);
+    
     danKellyStats = `
 IMPORTANT: SPECIFIC DATA ABOUT DAN KELLY:
 Number of Dan Kelly records: ${danKellyRecords.length}
 Total attempts by Dan Kelly: ${totalDanKellyAttempts}
+Phone calls by Dan Kelly: ${danKellyPhoneCalls}
 Breakdown by tactic: ${JSON.stringify(danKellyTacticBreakdown)}
 
 Some example Dan Kelly records:
 ${JSON.stringify(danKellyRecords.slice(0, 3))}
 `;
     
-    // Add Dan Kelly stats to the context
-    statsContext = danKellyStats + statsContext;
+    console.log("Dan Kelly stats:", {
+      recordCount: danKellyRecords.length,
+      totalAttempts: totalDanKellyAttempts,
+      phoneCalls: danKellyPhoneCalls, 
+      tacticBreakdown: danKellyTacticBreakdown
+    });
+    
+    // Add Dan Kelly stats to the context - putting it first for emphasis
+    return danKellyStats + statsContext;
   } else {
     console.log("No Dan Kelly records found in the sample data");
     statsContext = `
