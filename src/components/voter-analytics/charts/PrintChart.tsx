@@ -72,10 +72,10 @@ export const PrintChart: React.FC<PrintChartProps> = ({
     chartContainer.style.display = 'flex';
     chartContainer.style.alignItems = 'center';
     chartContainer.style.justifyContent = 'center';
-    chartContainer.style.padding = '0 15px'; 
+    chartContainer.style.padding = '0'; // Remove padding to maximize space
     chartContainer.style.width = '100%';
-    chartContainer.style.height = '85%'; // Adjusted to give more room for the chart
-    chartContainer.style.overflow = 'hidden'; // Prevent scrolling
+    chartContainer.style.height = '85%'; // Adjust height to give more space to the chart
+    chartContainer.style.overflow = 'hidden';
     printContainer.appendChild(chartContainer);
 
     // Clone the chart and add to chart container
@@ -85,7 +85,7 @@ export const PrintChart: React.FC<PrintChartProps> = ({
     chartClone.style.height = '100%';
     chartClone.style.maxWidth = 'none';
     chartClone.style.maxHeight = 'none';
-    chartClone.style.transform = 'scale(1.0)'; // Start with no scaling
+    chartClone.style.transform = 'scale(1.0)';
     chartClone.style.transformOrigin = 'center center';
     chartContainer.appendChild(chartClone);
 
@@ -99,35 +99,47 @@ export const PrintChart: React.FC<PrintChartProps> = ({
       svg.style.maxWidth = 'none';
       svg.style.maxHeight = 'none';
       
-      // Force ViewBox to ensure proper scaling
-      // Get the computed size of the container for accurate scaling
+      // Force ViewBox to ensure proper scaling - use actual dimensions
       const containerWidth = chartContainer.clientWidth;
       const containerHeight = chartContainer.clientHeight;
       
-      // Set viewBox to use the full container dimensions
-      svg.setAttribute('viewBox', `0 0 ${containerWidth} ${containerHeight}`);
-      svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+      // Remove any existing viewBox to prevent scaling restrictions
+      if (svg.hasAttribute('viewBox')) {
+        svg.removeAttribute('viewBox');
+      }
+      
+      // Set preserveAspectRatio to "none" to allow stretching
+      svg.setAttribute('preserveAspectRatio', 'none');
     });
 
-    // Find all Recharts components and ensure they expand properly
+    // Enhance all Recharts components to fill the space completely
     const rechartsWrapper = chartClone.querySelector('.recharts-wrapper');
     if (rechartsWrapper) {
       (rechartsWrapper as HTMLElement).style.width = '100%';
       (rechartsWrapper as HTMLElement).style.height = '100%';
       (rechartsWrapper as HTMLElement).style.maxWidth = 'none';
       (rechartsWrapper as HTMLElement).style.maxHeight = 'none';
+      (rechartsWrapper as HTMLElement).style.transform = 'none'; // Remove any transform that might be limiting
     }
 
     const rechartsSurface = chartClone.querySelector('.recharts-surface');
     if (rechartsSurface) {
-      (rechartsSurface as HTMLElement).style.width = '100%';
-      (rechartsSurface as HTMLElement).style.height = '100%';
+      (rechartsSurface as SVGElement).style.width = '100%';
+      (rechartsSurface as SVGElement).style.height = '100%';
+      (rechartsSurface as SVGElement).removeAttribute('viewBox'); // Remove viewBox constraint
     }
 
-    // Find and adjust axes to fill the available space
-    const axes = chartClone.querySelectorAll('.recharts-cartesian-axis');
-    axes.forEach(axis => {
-      (axis as SVGElement).style.transform = 'none'; // Remove any transforms that might be limiting scaling
+    // Force the cartesian grid to fill the entire chart area
+    const cartesianGrid = chartClone.querySelector('.recharts-cartesian-grid');
+    if (cartesianGrid) {
+      (cartesianGrid as SVGElement).style.width = '100%';
+      (cartesianGrid as SVGElement).style.height = '100%';
+    }
+
+    // Ensure X and Y axis are properly scaled
+    const cartesianAxes = chartClone.querySelectorAll('.recharts-cartesian-axis');
+    cartesianAxes.forEach(axis => {
+      (axis as SVGElement).style.transform = 'none'; // Remove transforms limiting scale
     });
 
     // Make the Y-axis stretch to fill the full container height
@@ -135,6 +147,12 @@ export const PrintChart: React.FC<PrintChartProps> = ({
     yAxisElements.forEach(yAxis => {
       // Force y-axis to take full height
       (yAxis as SVGElement).style.height = '100%';
+      
+      // Ensure all child elements of y-axis are also properly scaled
+      const yAxisChildren = yAxis.querySelectorAll('*');
+      yAxisChildren.forEach(child => {
+        (child as SVGElement).style.transform = 'none';
+      });
       
       // Stretch the y-axis line to full height
       const yAxisLine = yAxis.querySelector('.recharts-cartesian-axis-line');
@@ -144,7 +162,7 @@ export const PrintChart: React.FC<PrintChartProps> = ({
         (yAxisLine as SVGElement).style.height = '100%';
       }
       
-      // Also stretch domain line (if it exists)
+      // Also stretch domain line
       const yAxisDomain = yAxis.querySelector('.recharts-cartesian-axis-domain');
       if (yAxisDomain) {
         (yAxisDomain as SVGElement).style.strokeWidth = '2px';
@@ -160,7 +178,7 @@ export const PrintChart: React.FC<PrintChartProps> = ({
       (line as SVGElement).style.stroke = '#333';
     });
 
-    // Enhance grid lines
+    // Enhance grid lines for better visibility
     const gridLines = chartClone.querySelectorAll('.recharts-cartesian-grid-horizontal line, .recharts-cartesian-grid-vertical line');
     gridLines.forEach(line => {
       (line as SVGElement).style.strokeWidth = '1px';
@@ -181,14 +199,7 @@ export const PrintChart: React.FC<PrintChartProps> = ({
       dot.setAttribute('r', newR.toString());
     });
 
-    // Ensure the chart container fills maximum available space
-    const chartArea = chartClone.querySelector('.recharts-cartesian-grid');
-    if (chartArea) {
-      (chartArea as SVGElement).style.width = '100%';
-      (chartArea as SVGElement).style.height = '100%';
-    }
-
-    // Create footer container using ReportFooter component to match Print All Charts format
+    // Create footer container
     const footerContainer = document.createElement('div');
     footerContainer.style.padding = '10px 20px';
     footerContainer.style.borderTop = '1px solid #eee';
@@ -212,7 +223,7 @@ export const PrintChart: React.FC<PrintChartProps> = ({
         /* Set landscape orientation and adjust margins */
         @page {
           size: landscape;
-          margin: 0.5cm;
+          margin: 0.2cm;
         }
         
         /* Ensure the print container is visible and takes up the full page */
@@ -229,20 +240,22 @@ export const PrintChart: React.FC<PrintChartProps> = ({
           margin: 0 !important;
         }
         
-        /* Make sure chart is maximized */
+        /* Force chart to be as large as possible */
         #print-chart-clone {
           width: 100% !important;
           height: 100% !important;
           max-width: none !important;
           max-height: none !important;
+          transform: scale(1) !important;
         }
         
-        /* Ensure Recharts components expand properly */
+        /* Force Recharts components to expand fully */
         #print-chart-clone .recharts-wrapper {
           width: 100% !important;
           height: 100% !important;
           max-width: none !important;
           max-height: none !important;
+          transform: none !important;
         }
         
         #print-chart-clone .recharts-surface {
@@ -250,11 +263,25 @@ export const PrintChart: React.FC<PrintChartProps> = ({
           height: 100% !important;
         }
 
-        /* Ensure Y axis extends fully */
+        /* Force stretch Y axis */
         #print-chart-clone .recharts-yAxis {
           height: 100% !important;
         }
         
+        /* Make sure all SVG elements fill available space */
+        #print-chart-clone svg {
+          width: 100% !important;
+          height: 100% !important;
+          preserveAspectRatio: none !important;
+        }
+        
+        /* Ensure the cartesian grid fills the entire space */
+        #print-chart-clone .recharts-cartesian-grid {
+          width: 100% !important;
+          height: 100% !important;
+        }
+
+        /* Enhance visibility of elements when printed */
         #print-chart-clone .recharts-cartesian-axis-line,
         #print-chart-clone .recharts-cartesian-axis-tick-line,
         #print-chart-clone .recharts-cartesian-axis-domain {
@@ -291,7 +318,7 @@ export const PrintChart: React.FC<PrintChartProps> = ({
     import('react-dom/client').then(({ createRoot }) => {
       // Render the ReportTitle component
       const titleRoot = createRoot(titleContainer);
-      titleRoot.render(<ReportTitle query={query} />);
+      titleRoot.render(<ReportTitle query={query} singleChartTitle={chartTitle} />);
       
       // Render the ReportFooter component
       const footerRoot = createRoot(footerContentContainer);
@@ -304,28 +331,21 @@ export const PrintChart: React.FC<PrintChartProps> = ({
       
       // Apply final transforms after React components are rendered
       setTimeout(() => {
-        // Find the optimal scale factor based on container dimensions
-        const chartBox = chartClone.getBoundingClientRect();
-        const containerBox = chartContainer.getBoundingClientRect();
+        // Print the chart
+        window.print();
         
-        // Calculate scale factors
-        const scaleX = containerBox.width / chartBox.width;
-        const scaleY = containerBox.height / chartBox.height;
-        
-        // Use the smaller scale factor to ensure the chart fits completely
-        const scale = Math.min(scaleX, scaleY) * 0.95; // 95% to add a small margin
-        
-        // Apply the scaling
-        chartClone.style.transform = `scale(${scale})`;
-        
-        // Trigger print dialog after everything is rendered
-        setTimeout(() => {
-          window.print();
-          
-          // Cleanup after printing
-          setTimeout(() => {
-            document.head.removeChild(style);
-            document.body.removeChild(printContainer);
+        // Cleanup after printing
+        const cleanupFunction = () => {
+          try {
+            // Make sure all elements exist before trying to remove them
+            if (document.head.contains(style)) {
+              document.head.removeChild(style);
+            }
+            
+            if (document.body.contains(printContainer)) {
+              document.body.removeChild(printContainer);
+            }
+            
             document.title = originalTitle;
             
             // Unmount React components
@@ -333,20 +353,33 @@ export const PrintChart: React.FC<PrintChartProps> = ({
             footerRoot.unmount();
             
             if (onCleanup) onCleanup();
-          }, 1000);
-        }, 500);
-      }, 100);
+          } catch (error) {
+            console.error('Error during PrintChart cleanup:', error);
+          }
+        };
+        
+        // Short delay before cleanup to ensure printing is complete
+        setTimeout(cleanupFunction, 1000);
+      }, 500);
     });
     
     // Cleanup if component unmounts before printing completes
     return () => {
-      if (document.head.contains(style)) {
-        document.head.removeChild(style);
+      try {
+        if (document.head.contains(style)) {
+          document.head.removeChild(style);
+        }
+        
+        if (document.body.contains(printContainer)) {
+          document.body.removeChild(printContainer);
+        }
+        
+        document.title = originalTitle;
+        
+        if (onCleanup) onCleanup();
+      } catch (error) {
+        console.error('Error during PrintChart unmount cleanup:', error);
       }
-      if (document.body.contains(printContainer)) {
-        document.body.removeChild(printContainer);
-      }
-      document.title = originalTitle;
     };
   }, [chartId, chartTitle, query, userEmail, datasetName, onCleanup]);
   
