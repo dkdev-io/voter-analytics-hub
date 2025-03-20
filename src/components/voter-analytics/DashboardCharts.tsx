@@ -53,24 +53,23 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
   // Handle print functionality for all charts
   const handlePrint = () => {
     setIsPrinting(true);
-    setPrintingChart(null);
-    window.print();
-    
-    // Reset printing state after a short delay (for cleanup)
     setTimeout(() => {
-      setIsPrinting(false);
-    }, 1000);
+      window.print();
+      // Reset printing state after a short delay (for cleanup)
+      setTimeout(() => {
+        setIsPrinting(false);
+      }, 1000);
+    }, 100);
   };
   
   // Handle print functionality for individual charts
   const handlePrintChart = (chartId: string) => {
     setPrintingChart(chartId);
-    window.print();
-    
-    // Reset printing state after a short delay (for cleanup)
+    // Wait a moment for state to update before printing
     setTimeout(() => {
+      // PrintChart component will trigger print dialog in useEffect
       setPrintingChart(null);
-    }, 1000);
+    }, 1500);  // Allow enough time for print dialog to appear
   };
   
   if (loading || isLoading) {

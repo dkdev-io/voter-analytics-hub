@@ -97,6 +97,9 @@ export const PrintChart: React.FC<PrintChartProps> = ({
     const originalTitle = document.title;
     document.title = `${chartTitle} - VoterContact.io Report`;
     
+    // Trigger the print dialog immediately
+    window.print();
+    
     return () => {
       document.head.removeChild(style);
       document.title = originalTitle;
