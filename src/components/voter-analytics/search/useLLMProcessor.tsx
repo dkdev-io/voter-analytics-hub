@@ -8,7 +8,7 @@ interface UseLLMProcessorOptions {
   setQuery?: (query: Partial<QueryParams>) => void;
 }
 
-export const useLLMProcessor = ({ setQuery }: UseLLProcessorOptions) => {
+export const useLLMProcessor = ({ setQuery }: UseLLMProcessorOptions) => {
   const [isProcessingQuery, setIsProcessingQuery] = useState(false);
   const { logError } = useErrorLogger();
 
