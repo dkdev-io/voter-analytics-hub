@@ -103,13 +103,6 @@ export const aggregateVoterMetrics = (filteredData: any[]): VoterMetrics => {
     metrics.notReached.notHome += item.not_home || 0;
     metrics.notReached.refusal += item.refusal || 0;
     metrics.notReached.badData += item.bad_data || 0;
-    
-    // Aggregate attempts by team
-    const teamName = item.team;
-    if (!metrics.teamAttempts![teamName]) {
-      metrics.teamAttempts![teamName] = 0;
-    }
-    metrics.teamAttempts![teamName] += item.attempts || 0;
   });
   
   return metrics;
