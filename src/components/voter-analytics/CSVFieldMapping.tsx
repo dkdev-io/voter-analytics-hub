@@ -24,9 +24,9 @@ const requiredFields = [
   { key: 'date', label: 'Date', required: true },
   { key: 'attempts', label: 'Attempts', required: true },
   { key: 'contacts', label: 'Contacts', required: true },
-  { key: 'not_home', label: 'Not Home', required: true },
-  { key: 'bad_data', label: 'Bad Data', required: true },
-  { key: 'refusal', label: 'Refusal', required: true },
+  { key: 'not_home', label: 'Not Home', required: true, description: 'Number of voters who were not home when contacted' },
+  { key: 'bad_data', label: 'Bad Data', required: true, description: 'Number of incorrect or invalid contacts' },
+  { key: 'refusal', label: 'Refusal', required: true, description: 'Number of voters who refused to engage' },
   { key: 'first_name', label: 'First Name', required: true },
   { key: 'last_name', label: 'Last Name', required: true },
   { key: 'team', label: 'Team', required: true },
@@ -51,7 +51,11 @@ export function CSVFieldMapping({ headers, sampleData, onMappingComplete, onCanc
         if (
           normalizedHeader === field.key.toLowerCase() || 
           normalizedHeader === field.label.toLowerCase() ||
-          normalizedHeader.includes(field.key.toLowerCase())
+          normalizedHeader.includes(field.key.toLowerCase()) ||
+          // Special cases for common abbreviations
+          (field.key === 'not_home' && (normalizedHeader === 'nh' || normalizedHeader.includes('not home'))) ||
+          (field.key === 'refusal' && (normalizedHeader === 'ref' || normalizedHeader.includes('refused'))) ||
+          (field.key === 'bad_data' && (normalizedHeader === 'bd' || normalizedHeader.includes('bad data')))
         ) {
           initialMapping[field.key] = header;
         }
@@ -79,6 +83,8 @@ export function CSVFieldMapping({ headers, sampleData, onMappingComplete, onCanc
 
   const handleComplete = () => {
     if (missingRequiredFields.length === 0) {
+      // Log mapping for debugging
+      console.log("Final field mapping:", fieldMapping);
       onMappingComplete(fieldMapping);
     }
   };
@@ -110,6 +116,9 @@ export function CSVFieldMapping({ headers, sampleData, onMappingComplete, onCanc
               <TableRow key={field.key}>
                 <TableCell className="font-medium">
                   {field.label} {field.required && <span className="text-red-500">*</span>}
+                  {field.description && (
+                    <p className="text-xs text-gray-500 mt-1">{field.description}</p>
+                  )}
                 </TableCell>
                 <TableCell>
                   <Select

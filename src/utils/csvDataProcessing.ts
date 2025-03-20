@@ -20,9 +20,9 @@ export const mapHeaders = (headers: string[]): HeaderMappingResult => {
     'tactic': ['tactic', 'type', 'contact_type', 'method', 'channel', 'medium'],
     'attempts': ['attempts', 'attempt', 'tried', 'tries', 'total_attempts', 'total attempts'],
     'contacts': ['contacts', 'contact', 'reached', 'connected', 'success', 'successful'],
-    'not_home': ['not_home', 'nothome', 'nh', 'not_at_home', 'away', 'absent', 'not available'],
-    'refusal': ['refusal', 'refused', 'decline', 'rejected', 'no', 'not interested', 'negative'],
-    'bad_data': ['bad_data', 'baddata', 'bad', 'invalid', 'error', 'incorrect', 'wrong number'],
+    'not_home': ['not_home', 'nothome', 'nh', 'not_at_home', 'away', 'absent', 'not available', 'nh'],
+    'refusal': ['refusal', 'refused', 'decline', 'rejected', 'no', 'not interested', 'negative', 'ref'],
+    'bad_data': ['bad_data', 'baddata', 'bad', 'invalid', 'error', 'incorrect', 'wrong number', 'bd'],
     'support': ['support', 'supports', 'for', 'positive', 'yes', 'favorable', 'agree'],
     'oppose': ['oppose', 'opposed', 'against', 'negative', 'disagree', 'unfavorable'],
     'undecided': ['undecided', 'unsure', 'maybe', 'neutral', 'thinking', 'considering']
@@ -124,7 +124,7 @@ export const validateAndEnhanceData = (transformedData: Record<string, any>[]): 
   transformedData.forEach((row, index) => {
     const enhancedRow = { ...row };
     
-    // Set default values for numeric fields
+    // Set default values for numeric fields if they don't exist
     if (!('attempts' in enhancedRow)) enhancedRow.attempts = 0;
     if (!('contacts' in enhancedRow)) enhancedRow.contacts = 0;
     if (!('not_home' in enhancedRow)) enhancedRow.not_home = 0;
@@ -133,6 +133,16 @@ export const validateAndEnhanceData = (transformedData: Record<string, any>[]): 
     if (!('support' in enhancedRow)) enhancedRow.support = 0;
     if (!('oppose' in enhancedRow)) enhancedRow.oppose = 0;
     if (!('undecided' in enhancedRow)) enhancedRow.undecided = 0;
+    
+    // Ensure all numeric fields are actually numbers
+    enhancedRow.attempts = parseInt(enhancedRow.attempts) || 0;
+    enhancedRow.contacts = parseInt(enhancedRow.contacts) || 0;
+    enhancedRow.not_home = parseInt(enhancedRow.not_home) || 0;
+    enhancedRow.bad_data = parseInt(enhancedRow.bad_data) || 0;
+    enhancedRow.refusal = parseInt(enhancedRow.refusal) || 0;
+    enhancedRow.support = parseInt(enhancedRow.support) || 0;
+    enhancedRow.oppose = parseInt(enhancedRow.oppose) || 0;
+    enhancedRow.undecided = parseInt(enhancedRow.undecided) || 0;
     
     // Set default team if missing
     if (!enhancedRow.team) {
