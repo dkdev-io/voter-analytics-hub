@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { type QueryParams } from '@/types/analytics';
 
@@ -8,7 +9,7 @@ interface ReportTitleProps {
 export const ReportTitle: React.FC<ReportTitleProps> = ({ query }) => {
   return (
     <div id="report-title" className="hidden print:block print:mb-8">
-      <h1 className="text-2xl font-bold text-center mb-1">VoterContact.io Analytics Report</h1>
+      <h1 className="text-2xl font-bold text-center mb-1">VoterContact.io Report</h1>
       <div className="text-xl font-bold whitespace-pre-line text-center">
         {formatTitle(query)}
       </div>
@@ -18,11 +19,11 @@ export const ReportTitle: React.FC<ReportTitleProps> = ({ query }) => {
 
 // Format the title based on query parameters
 export const formatTitle = (query: Partial<QueryParams>) => {
-  const { tactic, resultType, person, team, date, endDate } = query;
+  const { tactic, resultType, person, team } = query;
   
   let title = '';
   
-  // First line: "Tactic ResultType"
+  // First line: "Tactic Metric"
   if (tactic && tactic !== 'All') {
     title += tactic;
   } else {
@@ -35,32 +36,20 @@ export const formatTitle = (query: Partial<QueryParams>) => {
     title += " Results";
   }
   
-  // Second line: "Person by Team"
-  title += "\n";
-  if (person && person !== 'All') {
-    title += `${person}`;
-  } else {
-    title += "All Canvassers";
-  }
-  
-  title += " by ";
+  // Second line: "completed by Team Member"
+  title += "\ncompleted by ";
   
   if (team && team !== 'All') {
-    title += `${team}`;
+    title += `${team} `;
+  }
+  
+  if (person && person !== 'All') {
+    title += `${person}`;
+  } else if (team && team !== 'All') {
+    // If team is specified but no specific person, add a placeholder
+    title += "All Members";
   } else {
     title += "All Teams";
-  }
-  
-  // Third line: "Date to EndDate"
-  title += "\n";
-  if (date && date !== 'All') {
-    title += `${date}`;
-  } else {
-    title += "All Dates";
-  }
-  
-  if (endDate && endDate !== 'All') {
-    title += ` to ${endDate}`;
   }
   
   return title;

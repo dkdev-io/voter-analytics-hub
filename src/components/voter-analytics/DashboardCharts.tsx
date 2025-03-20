@@ -6,8 +6,10 @@ import { PrintReport } from './PrintReport';
 import { LoadingState } from './charts/LoadingState';
 import { PieChartsRow } from './charts/PieChartsRow';
 import { ReportTitle } from './charts/ReportTitle';
+import { ReportFooter } from './charts/ReportFooter';
 import { PrintStylesheet } from './charts/PrintStylesheet';
 import { useDataLoader } from './charts/DataLoader';
+import { useAuth } from '@/hooks/useAuth';
 
 interface DashboardChartsProps {
   isLoading: boolean;
@@ -21,6 +23,7 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
   showFilteredData 
 }) => {
   const [isPrinting, setIsPrinting] = useState(false);
+  const { user } = useAuth();
   
   // Use the data loader hook to fetch and process chart data
   const {
@@ -51,11 +54,17 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
-      {isPrinting && <PrintStylesheet onCleanup={() => setIsPrinting(false)} />}
+      {isPrinting && (
+        <PrintStylesheet 
+          onCleanup={() => setIsPrinting(false)} 
+          userEmail={user?.email} 
+          datasetName="Voter Analytics Dataset" 
+        />
+      )}
       
       {/* This div is specifically marked to be hidden during printing */}
       <div className="flex justify-between items-center mb-4 hidden-print">
-        <h2 className="text-xl font-semibold">Analytics {showFilteredData ? '(Filtered Results)' : '(Overall)'}</h2>
+        <h2 className="text-xl font-semibold hidden-print">Analytics {showFilteredData ? '(Filtered Results)' : '(Overall)'}</h2>
         <PrintReport query={query} onPrint={handlePrint} />
       </div>
       
@@ -80,6 +89,12 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
         <div id="line-chart-container" className="mt-6 print:mt-8">
           <ActivityLineChart data={lineChartData} />
         </div>
+        
+        {/* Report footer - only visible when printing */}
+        <ReportFooter 
+          userEmail={user?.email} 
+          datasetName="Voter Analytics Dataset" 
+        />
       </div>
     </div>
   );

@@ -3,9 +3,11 @@ import React from 'react';
 
 interface PrintStylesheetProps {
   onCleanup?: () => void;
+  userEmail?: string;
+  datasetName?: string;
 }
 
-export const PrintStylesheet: React.FC<PrintStylesheetProps> = ({ onCleanup }) => {
+export const PrintStylesheet: React.FC<PrintStylesheetProps> = ({ onCleanup, userEmail, datasetName }) => {
   React.useEffect(() => {
     // Add a print-specific stylesheet
     const style = document.createElement('style');
@@ -33,6 +35,20 @@ export const PrintStylesheet: React.FC<PrintStylesheetProps> = ({ onCleanup }) =
           margin: 0 !important;
           box-sizing: border-box !important;
           background-color: white !important;
+        }
+        
+        /* Hide the left column */
+        .left-panel, 
+        [data-panel="left"] {
+          display: none !important;
+          visibility: hidden !important;
+        }
+        
+        /* Hide the print button and "Analytics Overall" text */
+        .hidden-print,
+        h2:contains("Analytics") {
+          display: none !important;
+          visibility: hidden !important;
         }
         
         /* Ensure the report title is visible and properly positioned */
@@ -74,6 +90,18 @@ export const PrintStylesheet: React.FC<PrintStylesheetProps> = ({ onCleanup }) =
         .recharts-wrapper {
           width: 100% !important;
           height: auto !important;
+        }
+        
+        /* Footer styling */
+        #report-footer {
+          display: block !important;
+          visibility: visible !important;
+          margin-top: 30px !important;
+          border-top: 1px solid #eee !important;
+          padding-top: 10px !important;
+          text-align: center !important;
+          font-size: 11px !important;
+          color: #666 !important;
         }
         
         /* Aggressively hide every possible unwanted element */
