@@ -48,7 +48,7 @@ export const NotReachedPieChart: React.FC<NotReachedPieChartProps> = ({ data, to
               style={{ backgroundColor: entry.color }}
             />
             <span className="whitespace-nowrap">
-              {entry.value} - {Number(entry.payload.value).toLocaleString()} 
+              {entry.value}: {Number(entry.payload.value).toLocaleString()} 
               ({actualTotal > 0 ? ((entry.payload.value / actualTotal) * 100).toFixed(1) : '0.0'}%)
             </span>
           </li>
