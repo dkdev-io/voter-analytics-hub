@@ -17,6 +17,7 @@ export const useDataLoader = ({ query, showFilteredData }: UseDataLoaderProps) =
   const [totalContacts, setTotalContacts] = useState(0);
   const [totalNotReached, setTotalNotReached] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [datasetName, setDatasetName] = useState<string>("");
 
   useEffect(() => {
     const loadChartData = async () => {
@@ -55,6 +56,14 @@ export const useDataLoader = ({ query, showFilteredData }: UseDataLoaderProps) =
         const totalContactsValue = contactsChartData.reduce((sum, item) => sum + item.value, 0);
         const totalNotReachedValue = notReachedChartData.reduce((sum, item) => sum + item.value, 0);
         
+        // Determine dataset name based on user's query or default
+        // In a real implementation, this might come from metadata associated with the dataset
+        const datasetNameValue = query.team 
+          ? `${query.team} Team Dataset`
+          : query.person
+            ? `${query.person}'s Dataset`
+            : "Voter Contacts Dataset";
+        
         setTacticsData(tacticsChartData);
         setContactsData(contactsChartData);
         setNotReachedData(notReachedChartData);
@@ -62,6 +71,7 @@ export const useDataLoader = ({ query, showFilteredData }: UseDataLoaderProps) =
         setTotalAttempts(totalTactics);
         setTotalContacts(totalContactsValue);
         setTotalNotReached(totalNotReachedValue);
+        setDatasetName(datasetNameValue);
       } catch (error) {
         console.error('Error loading chart data:', error);
       } finally {
@@ -80,6 +90,7 @@ export const useDataLoader = ({ query, showFilteredData }: UseDataLoaderProps) =
     totalAttempts,
     totalContacts,
     totalNotReached,
-    loading
+    loading,
+    datasetName
   };
 };

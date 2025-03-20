@@ -9,7 +9,7 @@ interface ReportFooterProps {
 
 export const ReportFooter: React.FC<ReportFooterProps> = ({ 
   userEmail = "user@example.com",
-  datasetName = "Uploaded Dataset"
+  datasetName = "Voter Contacts Dataset"
 }) => {
   const currentDate = format(new Date(), "MMM d, yyyy 'at' h:mm a");
   
