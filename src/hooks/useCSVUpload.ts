@@ -11,6 +11,7 @@ import {
   ensureVoterContactsTableExists
 } from '@/utils/csvDataProcessing';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 
 export function useCSVUpload(onSuccess: () => void) {
   const [file, setFile] = useState<File | null>(null);
@@ -50,6 +51,28 @@ export function useCSVUpload(onSuccess: () => void) {
       }
 
       setFile(selectedFile);
+    }
+  };
+
+  const updateUserMetadata = async (fileName: string) => {
+    if (!user?.id) return;
+    
+    try {
+      const uploadDate = new Date().toISOString();
+      const { error } = await supabase.auth.updateUser({
+        data: { 
+          last_dataset_name: fileName,
+          last_dataset_upload_date: uploadDate
+        }
+      });
+      
+      if (error) {
+        console.error('Error updating user metadata:', error);
+      } else {
+        console.log('User metadata updated with dataset info');
+      }
+    } catch (error) {
+      console.error('Failed to update user metadata:', error);
     }
   };
 
@@ -123,6 +146,9 @@ export function useCSVUpload(onSuccess: () => void) {
       const userEmail = user?.email || 'unknown';
       
       await uploadDataBatches(validData, setProgress, userEmail);
+      
+      // Store the dataset name and upload date in user metadata
+      await updateUserMetadata(file.name);
       
       // Provide detailed information about the import
       const importMessage = validData.length === transformedData.length

@@ -14,11 +14,12 @@ export const PrintReport: React.FC<PrintReportProps> = ({ query, onPrint }) => {
     <Button 
       onClick={onPrint}
       variant="outline"
-      className="flex items-center gap-2 hidden-print"
+      size="sm"
+      className="flex items-center gap-1 hidden-print mb-2 ml-auto"
       aria-label="Print Report"
     >
-      <Printer className="h-4 w-4" />
-      <span className="hidden-print">Print Report</span>
+      <Printer className="h-3 w-3" />
+      <span className="text-xs">Print Report</span>
     </Button>
   );
 };

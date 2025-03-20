@@ -23,27 +23,6 @@ export const TacticsPieChart: React.FC<TacticsPieChartProps> = ({ data, total })
     percent: ((item.value / total) * 100).toFixed(1)
   }));
 
-  const renderCustomizedLabel = (props: any) => {
-    const { cx, cy, midAngle, innerRadius, outerRadius, percent, index, name } = props;
-    const radius = innerRadius + (outerRadius - innerRadius) * 1.1;
-    const x = cx + radius * Math.cos(-midAngle * Math.PI / 180);
-    const y = cy + radius * Math.sin(-midAngle * Math.PI / 180);
-    
-    return (
-      <text 
-        x={x} 
-        y={y} 
-        fill={data[index].color}
-        textAnchor={x > cx ? 'start' : 'end'} 
-        dominantBaseline="central"
-        fontSize="12"
-        fontWeight="bold"
-      >
-        {`${(percent * 100).toFixed(1)}%`}
-      </text>
-    );
-  };
-
   // Custom legend that includes percentages
   const renderLegend = (props: any) => {
     const { payload } = props;
@@ -56,7 +35,7 @@ export const TacticsPieChart: React.FC<TacticsPieChartProps> = ({ data, total })
               className="inline-block w-3 h-3 mr-2"
               style={{ backgroundColor: entry.color }}
             />
-            <span>{entry.value} ({((entry.payload.value / total) * 100).toFixed(1)}%)</span>
+            <span>{entry.value} - {entry.payload.value} ({((entry.payload.value / total) * 100).toFixed(1)}%)</span>
           </li>
         ))}
       </ul>
@@ -65,7 +44,10 @@ export const TacticsPieChart: React.FC<TacticsPieChartProps> = ({ data, total })
 
   return (
     <div className="h-72 bg-white rounded-lg border border-gray-200 flex flex-col">
-      <h3 className="text-sm font-bold p-2 text-center">Tactic Distribution</h3>
+      <h3 className="text-sm font-bold p-2 text-center">Attempts</h3>
+      <div className="text-center text-sm font-medium pb-1">
+        Total: {total}
+      </div>
       <div className="flex-1">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
@@ -77,8 +59,6 @@ export const TacticsPieChart: React.FC<TacticsPieChartProps> = ({ data, total })
               outerRadius={70}
               paddingAngle={5}
               dataKey="value"
-              labelLine={false}
-              label={renderCustomizedLabel}
             >
               {data.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.color} />
@@ -93,9 +73,6 @@ export const TacticsPieChart: React.FC<TacticsPieChartProps> = ({ data, total })
             />
           </PieChart>
         </ResponsiveContainer>
-      </div>
-      <div className="text-center pb-2 font-semibold">
-        Total: {total}
       </div>
     </div>
   );

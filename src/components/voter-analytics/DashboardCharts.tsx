@@ -11,6 +11,7 @@ import { ReportFooter } from './charts/ReportFooter';
 import { PrintStylesheet } from './charts/PrintStylesheet';
 import { useDataLoader } from './charts/DataLoader';
 import { useAuth } from '@/hooks/useAuth';
+import { format } from 'date-fns';
 
 interface DashboardChartsProps {
   isLoading: boolean;
@@ -24,7 +25,7 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
   showFilteredData 
 }) => {
   const [isPrinting, setIsPrinting] = useState(false);
-  const { user } = useAuth();
+  const { user, userMetadata } = useAuth();
   
   // Use the data loader hook to fetch and process chart data
   const {
@@ -38,6 +39,14 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
     loading,
     datasetName
   } = useDataLoader({ query, showFilteredData });
+  
+  // Format upload date if available
+  const uploadDate = userMetadata?.last_dataset_upload_date 
+    ? format(new Date(userMetadata.last_dataset_upload_date), "MMMM d, yyyy")
+    : null;
+  
+  // Get the filename from user metadata
+  const uploadedFileName = userMetadata?.last_dataset_name || null;
   
   // Handle print functionality
   const handlePrint = () => {
@@ -60,16 +69,26 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
         <PrintStylesheet 
           onCleanup={() => setIsPrinting(false)} 
           userEmail={user?.email} 
-          datasetName={datasetName} 
+          datasetName={uploadedFileName || datasetName} 
         />
       )}
       
-      {/* This div is specifically marked to be hidden during printing */}
-      <div className="flex justify-between items-center mb-4 hidden-print">
-        <h2 className="text-xl font-semibold hidden-print">
-          <span className="font-bold">Your Voter Contact</span> {datasetName ? `- ${datasetName}` : ''}
+      {/* Print Report Button positioned above title */}
+      <PrintReport query={query} onPrint={handlePrint} />
+      
+      {/* Title section with dataset info */}
+      <div className="text-center mb-6">
+        <h2 className="text-xl font-semibold mb-1">
+          <span className="font-bold">Your Voter Contact</span>
         </h2>
-        <PrintReport query={query} onPrint={handlePrint} />
+        <div className="text-gray-700">
+          {uploadedFileName ? (
+            <span className="block">{uploadedFileName}</span>
+          ) : (
+            <span className="block">{datasetName}</span>
+          )}
+          {uploadDate && <span className="block text-sm text-gray-500">Updated {uploadDate}</span>}
+        </div>
       </div>
       
       {/* Report container - only this will be visible when printing */}
@@ -102,7 +121,7 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
         {/* Report footer - only visible when printing */}
         <ReportFooter 
           userEmail={user?.email} 
-          datasetName={datasetName} 
+          datasetName={uploadedFileName || datasetName} 
         />
       </div>
     </div>
