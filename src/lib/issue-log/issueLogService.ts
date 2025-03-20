@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export interface Issue {
@@ -164,5 +163,36 @@ export const updateIssueStatus = async (issueId: number, status: string, resolut
   } catch (error) {
     console.error('Error in updateIssueStatus:', error);
     return false;
+  }
+};
+
+// Function to log the report printing issue
+export const logPrintingIssue = async (): Promise<Issue | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('issue_log')
+      .insert({
+        title: "Voter Analytics Report Print Functionality Issues",
+        description: "The print functionality in the voter analytics dashboard has several issues that need to be fixed.",
+        expected_behavior: "When printing a report: 1) Only the report content should be visible (no sidebar/search options), 2) Numbers should have thousand separators, 3) Cumulative progress chart should show proper growth curves, not straight lines, 4) Print button should be properly positioned at the bottom of the page.",
+        actual_behavior: "1) Search Options panel still appears in printed output, 2) Some numbers lack thousand separators, 3) Cumulative chart shows incorrect data plotting, 4) Print button positioning may be incorrect.",
+        console_logs: null,
+        theories: "The PrintStylesheet component may not be correctly targeting and hiding elements. The CumulativeLineChart component may have calculation issues. Number formatting may be inconsistent across components.",
+        component: "PrintReport.tsx, PrintStylesheet.tsx, CumulativeLineChart.tsx",
+        reference_links: null,
+        status: "open"
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error adding printing issue:', error);
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error in logPrintingIssue:', error);
+    return null;
   }
 };
