@@ -65,7 +65,7 @@ export const NotReachedPieChart: React.FC<NotReachedPieChartProps> = ({ data, to
 
   return (
     <div className="h-72 bg-white rounded-lg border border-gray-200 flex flex-col">
-      <h3 className="text-sm font-medium p-2 text-center">Not Reached Breakdown</h3>
+      <h3 className="text-sm font-bold p-2 text-center">Not Reached Breakdown</h3>
       <div className="flex-1">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
@@ -87,9 +87,9 @@ export const NotReachedPieChart: React.FC<NotReachedPieChartProps> = ({ data, to
             <Tooltip content={<CustomPieTooltip />} />
             <Legend 
               content={renderLegend}
-              layout="vertical"
-              align="left"
-              verticalAlign="middle"
+              layout="horizontal"
+              align="center"
+              verticalAlign="bottom"
             />
           </PieChart>
         </ResponsiveContainer>

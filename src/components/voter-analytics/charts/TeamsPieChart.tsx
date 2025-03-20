@@ -64,9 +64,9 @@ export const TeamsPieChart: React.FC<TeamsPieChartProps> = ({ data, total }) => 
             <Tooltip content={<CustomPieTooltip />} />
             <Legend 
               content={renderLegend}
-              layout="vertical"
-              align="left"
-              verticalAlign="middle"
+              layout="horizontal"
+              align="center"
+              verticalAlign="bottom"
             />
           </PieChart>
         </ResponsiveContainer>
