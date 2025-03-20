@@ -63,10 +63,19 @@ IMPORTANT: Use this data to answer the question comprehensively. Refer to specif
     if (queryParams) {
       console.log("Applying query parameters to database query:", queryParams);
       
-      // For any person queries, use standard approach
+      // For any person queries, use more flexible case-insensitive matching
       if (queryParams.person) {
-        // Use OR filter on first_name and last_name for better matching
-        query = query.or(`first_name.ilike.%${queryParams.person}%,last_name.ilike.%${queryParams.person}%`);
+        const personName = queryParams.person.toLowerCase();
+        // Split the name to check first and last name separately
+        const nameParts = personName.split(' ');
+        
+        if (nameParts.length > 1) {
+          // Try to match both first and last name
+          query = query.or(`first_name.ilike.%${nameParts[0]}%,last_name.ilike.%${nameParts[nameParts.length-1]}%`);
+        } else {
+          // Single name part - search in both first and last name
+          query = query.or(`first_name.ilike.%${personName}%,last_name.ilike.%${personName}%`);
+        }
       }
       
       if (queryParams.tactic) {
@@ -91,8 +100,8 @@ IMPORTANT: Use this data to answer the question comprehensively. Refer to specif
       console.log(`Total matching records: ${count || 0}`);
     }
     
-    // Set a reasonable limit for all queries
-    const MAX_RECORDS_FOR_CONTEXT = 75; // Standard limit for all queries
+    // Set a higher reasonable limit for queries
+    const MAX_RECORDS_FOR_CONTEXT = 100; // Increased limit for better context
     
     // For very large datasets, we'll limit the records to avoid token limits
     // but still provide enough data for meaningful analysis
@@ -168,14 +177,15 @@ EXTREMELY IMPORTANT INSTRUCTIONS:
 1. The above data shows voter contact records. ANSWER ANY QUESTIONS USING ONLY THIS DATA.
 2. YOU MUST NEVER refuse to answer or claim you don't have access to data. This data is RIGHT HERE.
 3. NEVER say phrases like "I don't have access", "I'd need access", "my knowledge is limited", or similar.
-4. If the user asks about a person, search through the data for that name.
+4. If the user asks about a person, search through the data for that name using case-insensitive matching.
 5. If asked to count something (like "How many phone attempts"), COUNT IT using the data above.
-6. If the data doesn't contain what was asked for, simply say "Based on the data I have, I couldn't find [X]."
+6. If the data doesn't contain what was asked for, simply say "Based on the data provided, I couldn't find records for [X]."
 7. ALWAYS begin your response with "Based on the data provided..."
 8. The data contains records with fields like first_name, last_name, tactic (Phone/SMS/Canvas), attempts, etc.
 9. A "Phone attempt" refers to the "attempts" field in records where "tactic" is "Phone".
 10. These are REAL DATABASE RECORDS that you can directly analyze right now.
 11. DO NOT ask for more context - all the data you need is above.
+12. I expect you to COUNT records and CALCULATE totals from the data provided.
 
 YOU ARE ANALYZING REAL VOTER CONTACT DATA FROM THE DATABASE SHOWN ABOVE.`;
       

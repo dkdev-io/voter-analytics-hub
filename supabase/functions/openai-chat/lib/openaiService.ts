@@ -40,6 +40,9 @@ THIS IS EXTREMELY IMPORTANT - FOLLOWS THESE RULES EXACTLY:
 10. ALWAYS begin your response with "Based on the data provided, ..."
 11. Be factual and specific, providing exact numbers when the data shows them.
 12. UNDER NO CIRCUMSTANCES ask for more context or claim you can't answer without more information.
+13. If you can't find a specific person in the data, say "Based on the data provided, I couldn't find records for [name]" and NEVER say you don't have access.
+14. Perform case-insensitive searches when looking for names.
+15. NEVER say you apologize for not having information.
 
 These database records are arranged as JSON objects with properties like:
 - first_name & last_name: The person's name
@@ -55,8 +58,8 @@ CRITICAL: The JSON data that follows this prompt IS YOUR DATA SOURCE. You have D
   // Determine which model to use
   const modelToUse = useAdvancedModel ? 'gpt-4o' : 'gpt-4o-mini';
   
-  // Set a moderate temperature for consistent responses
-  const temperature = isParameterExtraction ? 0.1 : 0.3;
+  // Set a lower temperature for more consistent responses
+  const temperature = isParameterExtraction ? 0.1 : 0.2;
   
   // Calculate appropriate max tokens based on response type and model
   const maxTokens = isParameterExtraction 

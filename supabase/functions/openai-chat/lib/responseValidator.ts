@@ -45,7 +45,18 @@ export async function validateResponse(
     "i need more information",
     "i don't see",
     "i cannot see",
-    "there are many individuals named"
+    "there are many individuals named",
+    "i couldn't find any information",
+    "i don't have any data",
+    "i don't have that information",
+    "i'm not able to provide",
+    "i'm not able to tell you",
+    "i can't tell you",
+    "i cannot tell you",
+    "i'm not able to find",
+    "i can't find",
+    "cannot find",
+    "i couldn't find"
   ];
   
   // Check if the answer contains any blacklisted phrases or is too short (indicating a non-answer)
@@ -77,7 +88,7 @@ export async function validateResponse(
     // Special case: If we got a denial but have no data, explain this clearly
     console.log("WARNING: OpenAI returned denial response and we have no matching data");
     return {
-      answer: `Based on the data provided, I don't see any records that match your query for ${queryParams.person || 'the person'} ${queryParams.tactic ? `using ${queryParams.tactic}` : ''}.`,
+      answer: `Based on the data provided, I don't see any records that match your query ${queryParams.person ? `for ${queryParams.person}` : ''} ${queryParams.tactic ? `using ${queryParams.tactic}` : ''}.`,
       finishReason
     };
   }
@@ -105,14 +116,20 @@ async function createDirectAnswer(sampleData: any[], queryParams: any, prompt: s
   let filteredData = [...sampleData];
   let filters = [];
   
-  // Apply person filter if present
+  // Apply person filter if present - use more flexible case-insensitive matching
   if (person) {
     filteredData = filteredData.filter(record => {
       const fullName = `${record.first_name || ''} ${record.last_name || ''}`.toLowerCase();
-      return fullName.includes(person);
+      return fullName.includes(person.toLowerCase());
     });
     
     filters.push(`person: ${queryParams.person}`);
+    
+    if (filteredData.length === 0) {
+      directAnswer += `I couldn't find any records for "${queryParams.person}". `;
+      return directAnswer;
+    }
+    
     directAnswer += `I found ${filteredData.length} records for ${queryParams.person}. `;
   }
   
