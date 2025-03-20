@@ -43,7 +43,7 @@ export const Pricing = () => {
   return (
     <section className="py-20 px-4 md:px-6" id="pricing">
       <div className="container mx-auto max-w-6xl">
-        <h2 className="text-3xl md:text-4xl font-bold mb-4 text-center">Clear and Simple Pricing</h2>
+        <h2 className="text-3xl md:text-4xl font-bold mb-4 text-center">Pricing</h2>
         
         <div className="grid md:grid-cols-3 gap-8 mt-12">
           {plans.map((plan, index) => (
