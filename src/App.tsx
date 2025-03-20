@@ -12,6 +12,7 @@ import NotFound from '@/pages/NotFound';
 import { AuthGuard } from '@/components/AuthGuard';
 import AIChat from '@/pages/AIChat';
 import { IssueTracker } from '@/components/issue-log/IssueTracker';
+import { DashboardNavbar } from '@/components/DashboardNavbar';
 import './App.css';
 
 function App() {
@@ -31,6 +32,7 @@ function App() {
 function AppContent() {
   return (
     <div className="app">
+      <DashboardNavbar />
       <main>
         <Routes>
           <Route path="/" element={<Landing />} />
