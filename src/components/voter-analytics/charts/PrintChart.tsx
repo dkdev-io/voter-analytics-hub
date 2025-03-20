@@ -32,44 +32,73 @@ export const PrintChart: React.FC<PrintChartProps> = ({
 
     // Create a new container for the print view that fills the entire page
     const printContainer = document.createElement('div');
-    printContainer.id = 'print-only-container';
-    printContainer.style.position = 'absolute';
-    printContainer.style.left = '-9999px';
+    printContainer.id = 'print-single-chart-container';
+    printContainer.style.position = 'fixed';
+    printContainer.style.left = '0';
     printContainer.style.top = '0';
-    printContainer.style.width = '100%';
+    printContainer.style.width = '100vw';
+    printContainer.style.height = '100vh';
+    printContainer.style.zIndex = '9999';
     printContainer.style.backgroundColor = 'white';
+    printContainer.style.display = 'flex';
+    printContainer.style.flexDirection = 'column';
     document.body.appendChild(printContainer);
 
-    // Create title element with minimal margins
+    // Create title element
     const titleElement = document.createElement('div');
-    titleElement.id = 'print-title';
     titleElement.style.textAlign = 'center';
-    titleElement.style.margin = '5px 0';
+    titleElement.style.padding = '10px 0';
+    titleElement.style.borderBottom = '1px solid #eee';
     titleElement.innerHTML = `
-      <h1 style="font-size: 24px; font-weight: bold; margin: 0;">VoterContact.io Report</h1>
-      <h2 style="font-size: 20px; font-weight: bold; margin: 3px 0;">${chartTitle}</h2>
-      <p style="font-size: 14px; margin: 3px 0;">${formatSubtitle(query)}</p>
+      <h1 style="font-size: 18px; font-weight: bold; margin: 0;">VoterContact.io Report: ${chartTitle}</h1>
+      <p style="font-size: 12px; margin: 5px 0;">${formatSubtitle(query)}</p>
     `;
     printContainer.appendChild(titleElement);
 
-    // Clone the chart and add to print container with maximized dimensions
+    // Create container for the chart that takes up most of the page
+    const chartContainer = document.createElement('div');
+    chartContainer.style.flexGrow = '1';
+    chartContainer.style.display = 'flex';
+    chartContainer.style.alignItems = 'center';
+    chartContainer.style.justifyContent = 'center';
+    printContainer.appendChild(chartContainer);
+
+    // Clone the chart and add to chart container
     const chartClone = originalChart.cloneNode(true) as HTMLElement;
     chartClone.id = 'print-chart-clone';
-    chartClone.style.height = '750px'; // Significantly increased height
-    chartClone.style.width = '100%';
-    chartClone.style.margin = '5px 0';
-    chartClone.style.display = 'block';
-    printContainer.appendChild(chartClone);
+    chartClone.style.width = '95vw';
+    chartClone.style.height = '80vh';
+    chartContainer.appendChild(chartClone);
 
-    // Create compact footer element
+    // Find and resize all SVG elements to ensure they fill the available space
+    const svgElements = chartClone.querySelectorAll('svg');
+    svgElements.forEach(svg => {
+      svg.setAttribute('width', '100%');
+      svg.setAttribute('height', '100%');
+      svg.style.width = '100%';
+      svg.style.height = '100%';
+    });
+
+    // Find all Recharts components and ensure they expand properly
+    const rechartsWrapper = chartClone.querySelector('.recharts-wrapper');
+    if (rechartsWrapper) {
+      (rechartsWrapper as HTMLElement).style.width = '100%';
+      (rechartsWrapper as HTMLElement).style.height = '100%';
+    }
+
+    const rechartsSurface = chartClone.querySelector('.recharts-surface');
+    if (rechartsSurface) {
+      (rechartsSurface as HTMLElement).style.width = '100%';
+      (rechartsSurface as HTMLElement).style.height = '100%';
+    }
+
+    // Create footer
     const footerElement = document.createElement('div');
-    footerElement.id = 'print-footer';
+    footerElement.style.padding = '10px';
     footerElement.style.borderTop = '1px solid #eee';
-    footerElement.style.padding = '5px 0';
-    footerElement.style.margin = '5px 0';
-    footerElement.style.textAlign = 'center';
     footerElement.style.fontSize = '10px';
     footerElement.style.color = '#666';
+    footerElement.style.textAlign = 'center';
     const currentDate = new Date().toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -80,66 +109,45 @@ export const PrintChart: React.FC<PrintChartProps> = ({
     footerElement.textContent = `Prepared for ${userEmail || 'user@example.com'} on ${currentDate}. From ${datasetName || 'Voter Contacts Dataset'}.`;
     printContainer.appendChild(footerElement);
 
-    // Add enhanced print stylesheet for full-page chart
+    // Add print-specific stylesheet
     const style = document.createElement('style');
     style.innerHTML = `
       @media print {
-        body > * {
+        /* Hide everything except our print container */
+        body > *:not(#print-single-chart-container) {
           display: none !important;
         }
-        #print-only-container {
-          display: block !important;
+        
+        /* Ensure the print container is visible and takes up the full page */
+        #print-single-chart-container {
+          display: flex !important;
           position: absolute !important;
           left: 0 !important;
           top: 0 !important;
           width: 100vw !important;
           height: 100vh !important;
-          padding: 5px !important;
-          margin: 0 !important;
-          visibility: visible !important;
+          z-index: 9999 !important;
           background-color: white !important;
-          box-sizing: border-box !important;
         }
-        #print-only-container * {
-          visibility: visible !important;
-        }
+        
+        /* Make sure chart is maximized */
         #print-chart-clone {
-          height: 80vh !important;
-          width: 98vw !important;
-          max-width: 98vw !important;
-          margin: 0 auto !important;
-          transform-origin: top left !important;
+          width: 95vw !important;
+          height: 78vh !important;
         }
+        
+        /* Ensure Recharts components expand properly */
         #print-chart-clone .recharts-wrapper {
           width: 100% !important;
           height: 100% !important;
         }
+        
         #print-chart-clone .recharts-surface {
           width: 100% !important;
           height: 100% !important;
         }
-        #print-title {
-          height: 10vh !important;
-          margin: 0 !important;
-          padding: 5px 0 !important;
-        }
-        #print-title h1 {
-          margin: 0 !important;
-          padding: 0 !important;
-        }
-        #print-title h2 {
-          margin: 3px 0 !important;
-          padding: 0 !important;
-        }
-        #print-title p {
-          margin: 3px 0 !important;
-          padding: 0 !important;
-        }
-        #print-footer {
-          height: 5vh !important;
-          margin: 0 !important;
-          padding: 5px 0 !important;
-        }
+        
+        /* Remove page margins */
         @page {
           size: landscape;
           margin: 0;
@@ -152,34 +160,21 @@ export const PrintChart: React.FC<PrintChartProps> = ({
     const originalTitle = document.title;
     document.title = `${chartTitle} - VoterContact.io Report`;
     
-    // Give more time for the DOM to update and chart to render in print container
+    // Trigger print dialog after a slight delay to ensure everything is rendered
     setTimeout(() => {
-      // Force all SVG elements in the chart to redraw at full width
-      const svgElements = chartClone.querySelectorAll('svg');
-      svgElements.forEach(svg => {
-        svg.setAttribute('width', '100%');
-        svg.setAttribute('height', '100%');
-        svg.setAttribute('preserveAspectRatio', 'xMinYMin meet');
-        svg.style.width = '100%';
-        svg.style.height = '100%';
-      });
+      window.print();
       
-      // Print with slightly longer delay to ensure SVG redrawing
+      // Cleanup after printing
       setTimeout(() => {
-        window.print();
-        
-        // Clean up after printing
-        setTimeout(() => {
-          document.head.removeChild(style);
-          document.body.removeChild(printContainer);
-          document.title = originalTitle;
-          if (onCleanup) onCleanup();
-        }, 1000);
-      }, 300);
-    }, 700);
+        document.head.removeChild(style);
+        document.body.removeChild(printContainer);
+        document.title = originalTitle;
+        if (onCleanup) onCleanup();
+      }, 1000);
+    }, 500);
     
+    // Cleanup if component unmounts before printing completes
     return () => {
-      // Ensure cleanup happens if component unmounts before printing completes
       if (document.head.contains(style)) {
         document.head.removeChild(style);
       }
