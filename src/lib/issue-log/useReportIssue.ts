@@ -1,9 +1,10 @@
-
 import { useState } from 'react';
 import { useErrorLogger } from '@/hooks/useErrorLogger';
 import { 
   logNotReachedPieChartIssue, 
   logNotReachedPieChartSolution,
+  logYAxisStretchIssue,
+  logYAxisStretchSolution,
   type Issue
 } from './issueLogService';
 
@@ -34,7 +35,6 @@ export const useReportIssue = () => {
     }
   };
 
-  // Add a more specific function to report calculation issues
   const reportPieChartCalculationIssue = async (chartType: string, expectedValues: Record<string, number>, actualValues: Record<string, number>) => {
     try {
       setIsReporting(true);
@@ -75,10 +75,33 @@ Actual: ${JSON.stringify(actualValues)}`;
     }
   };
 
+  const reportYAxisStretchIssue = async () => {
+    try {
+      setIsReporting(true);
+      
+      // Log the issue
+      const issue = await logYAxisStretchIssue();
+      setReportedIssue(issue);
+      
+      // Log the attempted solution if we have an issue ID
+      if (issue?.id) {
+        await logYAxisStretchSolution(issue.id);
+      }
+      
+      return issue;
+    } catch (error) {
+      logError(error as Error, 'useReportIssue.reportYAxisStretchIssue');
+      return null;
+    } finally {
+      setIsReporting(false);
+    }
+  };
+
   return {
     isReporting,
     reportedIssue,
     reportNotReachedPieChartIssue,
-    reportPieChartCalculationIssue
+    reportPieChartCalculationIssue,
+    reportYAxisStretchIssue
   };
 };

@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { type QueryParams } from '@/types/analytics';
 import { ActivityLineChart } from './charts/ActivityLineChart';
 import { CumulativeLineChart } from './charts/CumulativeLineChart';
@@ -13,6 +12,8 @@ import { PrintChart } from './charts/PrintChart';
 import { useDataLoader } from './charts/DataLoader';
 import { useAuth } from '@/hooks/useAuth';
 import { format } from 'date-fns';
+import { useReportIssue } from '@/lib/issue-log/useReportIssue';
+import { useToast } from '@/hooks/use-toast';
 
 interface DashboardChartsProps {
   isLoading: boolean;
@@ -28,8 +29,24 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
   const [isPrinting, setIsPrinting] = useState(false);
   const [printingChart, setPrintingChart] = useState<string | null>(null);
   const { user, userMetadata } = useAuth();
+  const { reportYAxisStretchIssue } = useReportIssue();
+  const { toast } = useToast();
   
-  // Use the data loader hook to fetch and process chart data
+  useEffect(() => {
+    const logYAxisIssue = async () => {
+      const issue = await reportYAxisStretchIssue();
+      if (issue) {
+        toast({
+          title: "Y-Axis Stretch Issue Logged",
+          description: "The PrintChart Y-axis issue has been logged to the issue tracking system.",
+          variant: "default"
+        });
+      }
+    };
+    
+    logYAxisIssue();
+  }, []);
+  
   const {
     tacticsData,
     contactsData,
@@ -42,36 +59,29 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
     datasetName
   } = useDataLoader({ query, showFilteredData });
   
-  // Format upload date if available
   const uploadDate = userMetadata?.last_dataset_upload_date 
     ? format(new Date(userMetadata.last_dataset_upload_date), "MMMM d, yyyy")
     : null;
   
-  // Get the filename from user metadata
   const uploadedFileName = userMetadata?.last_dataset_name || null;
   
-  // Handle print functionality for all charts
   const handlePrint = () => {
     setIsPrinting(true);
     setTimeout(() => {
       window.print();
-      // Reset printing state after a short delay (for cleanup)
       setTimeout(() => {
         setIsPrinting(false);
       }, 1000);
     }, 100);
   };
   
-  // Handle print functionality for individual charts
   const handlePrintChart = (chartId: string) => {
     console.log(`Printing chart: ${chartId}`);
     setPrintingChart(chartId);
     
-    // The PrintChart component will handle the actual printing
-    // We reset the state after a longer delay to ensure printing completes
     setTimeout(() => {
       setPrintingChart(null);
-    }, 3000);  // Give enough time for print dialog to appear and complete
+    }, 3000);
   };
   
   if (loading || isLoading) {
@@ -80,7 +90,6 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md dashboard-container">
-      {/* Apply print styles only when printing all charts */}
       {isPrinting && !printingChart && (
         <PrintStylesheet 
           onCleanup={() => setIsPrinting(false)} 
@@ -89,7 +98,6 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
         />
       )}
       
-      {/* Apply print styles for individual chart printing */}
       {printingChart && (
         <PrintChart 
           query={query}
@@ -101,7 +109,6 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
         />
       )}
       
-      {/* Title section with dataset info - hidden when printing */}
       <div className="text-center mb-6 print-hidden">
         <h2 className="text-xl font-semibold mb-1">
           <span className="font-bold">Your Voter Contact</span>
@@ -116,12 +123,9 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
         </div>
       </div>
       
-      {/* Printable report container - this is the only section that will be visible when printing */}
       <div className="print-container">
-        {/* Report title component - visible in print */}
         <ReportTitle query={query} />
         
-        {/* Pie charts row component - three charts on one line */}
         <div id="pie-charts-row">
           <PieChartsRow 
             tacticsData={tacticsData}
@@ -133,7 +137,6 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
           />
         </div>
         
-        {/* Line chart showing attempts, contacts, and issues by date */}
         <div id="activity-line-chart" className="mt-6">
           <ActivityLineChart 
             data={lineChartData} 
@@ -141,7 +144,6 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
           />
         </div>
         
-        {/* Cumulative Line Chart */}
         <div id="cumulative-line-chart" className="mt-6">
           <CumulativeLineChart 
             data={lineChartData} 
@@ -149,14 +151,12 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
           />
         </div>
         
-        {/* Report footer - only visible when printing */}
         <ReportFooter 
           userEmail={user?.email} 
           datasetName={uploadedFileName || datasetName} 
         />
       </div>
-
-      {/* Print Report Button positioned at bottom */}
+      
       <div className="print-hidden">
         <PrintReport query={query} onPrint={handlePrint} />
       </div>

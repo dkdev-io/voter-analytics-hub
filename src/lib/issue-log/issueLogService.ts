@@ -253,3 +253,60 @@ export const logNotReachedPieChartSolution = async (issueId: number): Promise<So
     return null;
   }
 };
+
+// Function to log the Y-axis stretch issue for chart printing
+export const logYAxisStretchIssue = async (): Promise<Issue | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('issue_log')
+      .insert({
+        title: "Chart Y-Axis Not Stretching in Print View",
+        description: "When printing individual charts, the Y-axis does not properly stretch to fill the entire screen, making the chart appear smaller than desired and harder to read.",
+        expected_behavior: "The Y-axis should stretch vertically to fill the entire printable area, with the chart scaling appropriately to use all available space on the printed page.",
+        actual_behavior: "The Y-axis remains at its default size and does not stretch to fill the available vertical space. The chart appears smaller than expected in the printout.",
+        console_logs: null,
+        theories: "1. CSS transformation and SVG viewBox settings may not be properly applying in print context.\n2. The Recharts Y-axis component might need specific print-mode styling that our current approach isn't addressing.\n3. The PrintChart component's container sizing or hierarchy might be preventing proper Y-axis expansion.\n4. The @media print CSS rules may be conflicting or not targeting the right elements.",
+        component: "PrintChart.tsx",
+        reference_links: null,
+        status: "open"
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error adding Y-axis stretch issue:', error);
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error in logYAxisStretchIssue:', error);
+    return null;
+  }
+};
+
+// Function to log the attempted solution for the Y-axis stretch issue
+export const logYAxisStretchSolution = async (issueId: number): Promise<SolutionAttempt | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('solution_attempts')
+      .insert({
+        issue_id: issueId,
+        description: "Attempted multiple styling approaches to fix the Y-axis stretching issue:\n1. Adjusted container dimensions and positioning with fixed height/width.\n2. Modified SVG viewBox attributes and preserveAspectRatio to control scaling.\n3. Added specific styles targeting .recharts-yAxis elements.\n4. Increased the transform scale values for the chart.\n5. Added print-specific CSS to maximize chart size in print view.\n6. Added specific styling for axes, including increased stroke width and forced height properties.\n7. Applied special styling to all Recharts elements to ensure they expand properly.",
+        result: "The changes did not resolve the issue. The Y-axis still does not properly stretch to fill the entire screen in print view. The chart remains smaller than desired in the printout.",
+        successful: false
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error adding Y-axis stretch solution attempt:', error);
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error in logYAxisStretchSolution:', error);
+    return null;
+  }
+};
