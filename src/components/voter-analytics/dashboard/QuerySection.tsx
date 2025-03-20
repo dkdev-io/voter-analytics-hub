@@ -36,7 +36,8 @@ export function QuerySection({
         isDataMigrated={isDataMigrated}
         onRefresh={onRefresh}
       />
-      <div className="mt-4">
+      
+      <div className="mt-6">
         <Button 
           onClick={onSubmit}
           disabled={isLoading}

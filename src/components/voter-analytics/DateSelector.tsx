@@ -7,6 +7,7 @@ interface DateSelectorProps {
   availableDates: string[];
   isLoading: boolean;
   label?: string;
+  placeholder?: string;
 }
 
 export const DateSelector = ({ 
@@ -14,7 +15,8 @@ export const DateSelector = ({
   onChange,
   availableDates,
   isLoading,
-  label = "Date"
+  label = "Date",
+  placeholder = "Select Date"
 }: DateSelectorProps) => {
   // Get unique dates and sort them chronologically
   const uniqueDates = [...new Set(availableDates)].sort((a, b) => {
@@ -36,7 +38,7 @@ export const DateSelector = ({
         disabled={isLoading}
       >
         <SelectTrigger className="w-full">
-          <SelectValue placeholder={isLoading ? "Loading..." : `Select ${label}`} />
+          <SelectValue placeholder={isLoading ? "Loading..." : placeholder} />
         </SelectTrigger>
         <SelectContent 
           className="max-h-[300px] overflow-y-auto bg-white z-50"
@@ -44,7 +46,7 @@ export const DateSelector = ({
           sideOffset={5}
           align="start"
         >
-          <SelectItem value="All">All Dates</SelectItem>
+          <SelectItem value="All">{label === "Start Date" ? "All Dates" : "No End Date"}</SelectItem>
           {uniqueDates && uniqueDates.length > 0 ? (
             uniqueDates.map((dateValue: string) => (
               <SelectItem key={dateValue} value={dateValue}>

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { type QueryParams } from '@/types/analytics';
 import { useMetadata } from '@/hooks/use-metadata';
@@ -176,6 +175,7 @@ export const QueryBuilder = ({
               availableDates={availableDates}
               isLoading={isLoading}
               label="Start Date"
+              placeholder="Select Start Date"
             />
             
             <DateSelector 
@@ -184,6 +184,7 @@ export const QueryBuilder = ({
               availableDates={availableDates}
               isLoading={isLoading}
               label="End Date"
+              placeholder="Select End Date"
             />
           </div>
         </div>
