@@ -19,8 +19,13 @@ export const NotReachedPieChart: React.FC<NotReachedPieChartProps> = ({ data, to
   // Calculate the total directly from the data to ensure accuracy
   const calculatedTotal = data.reduce((sum, item) => sum + item.value, 0);
   
-  // Use the calculated total or the passed total, whichever is higher
-  const actualTotal = Math.max(calculatedTotal, total);
+  // Ensure we use the calculated total rather than the passed total which might be incorrect
+  const actualTotal = calculatedTotal || total;
+  
+  // Log data for debugging
+  console.log('NotReachedPieChart data:', data);
+  console.log('NotReachedPieChart calculated total:', calculatedTotal);
+  console.log('NotReachedPieChart passed total:', total);
   
   // Add total to each data point for percentage calculation
   const dataWithTotal = data.map(item => ({

@@ -55,12 +55,13 @@ export const useDataLoader = ({ query, showFilteredData }: UseDataLoaderProps) =
         const totalTactics = tacticsChartData.reduce((sum, item) => sum + item.value, 0);
         const totalContactsValue = contactsChartData.reduce((sum, item) => sum + item.value, 0);
         
-        // Calculate the total not reached directly from the metrics
+        // Calculate the total not reached directly from the metrics structure
         const totalNotReachedValue = 
-          metrics.notReached.notHome + 
-          metrics.notReached.refusal + 
-          metrics.notReached.badData;
+          (metrics.notReached.notHome || 0) + 
+          (metrics.notReached.refusal || 0) + 
+          (metrics.notReached.badData || 0);
         
+        console.log("Not Reached data for pie chart:", notReachedChartData);
         console.log("Total not reached calculated:", totalNotReachedValue, "breakdown:", {
           notHome: metrics.notReached.notHome,
           refusal: metrics.notReached.refusal,

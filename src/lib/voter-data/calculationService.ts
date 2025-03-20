@@ -99,14 +99,18 @@ export const aggregateVoterMetrics = (filteredData: any[]): VoterMetrics => {
     metrics.contacts.oppose += Number(item.oppose) || 0;
     metrics.contacts.undecided += Number(item.undecided) || 0;
     
-    // Aggregate not reached - ensure proper number conversion
-    metrics.notReached.notHome += Number(item.not_home) || 0;
-    metrics.notReached.refusal += Number(item.refusal) || 0;
-    metrics.notReached.badData += Number(item.bad_data) || 0;
+    // Properly aggregate the "Not Reached" metrics - ensure explicit Number conversion for all values
+    const notHome = Number(item.not_home) || 0;
+    const refusal = Number(item.refusal) || 0;
+    const badData = Number(item.bad_data) || 0;
+    
+    metrics.notReached.notHome += notHome;
+    metrics.notReached.refusal += refusal;
+    metrics.notReached.badData += badData;
   });
   
   // Log the not reached metrics for debugging
-  console.log("Not Reached aggregation:", {
+  console.log("Not Reached aggregation details:", {
     notHome: metrics.notReached.notHome,
     refusal: metrics.notReached.refusal,
     badData: metrics.notReached.badData,
