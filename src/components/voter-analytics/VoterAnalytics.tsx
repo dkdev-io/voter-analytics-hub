@@ -69,7 +69,14 @@ export const VoterAnalytics = () => {
           className="absolute top-2 left-2 z-10 p-1 h-8 w-8 hidden-print"
           aria-label={isSearchVisible ? "Hide search options" : "Show search options"}
         >
-          {isSearchVisible ? <ChevronLeft className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
+          {isSearchVisible ? (
+            <ChevronLeft className="h-5 w-5" />
+          ) : (
+            <>
+              <ChevronRight className="h-5 w-5" />
+              <span className="sr-only md:not-sr-only md:ml-1 text-xs">Search</span>
+            </>
+          )}
         </Button>
         
         <ResizablePanelGroup
