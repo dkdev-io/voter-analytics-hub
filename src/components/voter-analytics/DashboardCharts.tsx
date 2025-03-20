@@ -74,7 +74,7 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
       )}
       
       {/* Title section with dataset info */}
-      <div className="text-center mb-6">
+      <div className="text-center mb-6 print:hidden">
         <h2 className="text-xl font-semibold mb-1">
           <span className="font-bold">Your Voter Contact</span>
         </h2>
@@ -89,8 +89,8 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
       </div>
       
       {/* Report container - only this will be visible when printing */}
-      <div id="report-container" className="print:block print:mt-0">
-        {/* Report title component - always render but only visible in print */}
+      <div id="report-container" className="print:block">
+        {/* Report title component - visible in print */}
         <ReportTitle query={query} />
         
         {/* Pie charts row component - three charts on one line */}
@@ -106,12 +106,12 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
         </div>
         
         {/* Line chart showing attempts, contacts, and issues by date */}
-        <div id="line-chart-container" className="mt-6 print:mt-8">
+        <div id="line-chart-container" className="mt-6">
           <ActivityLineChart data={lineChartData} />
         </div>
         
         {/* Cumulative Line Chart */}
-        <div id="cumulative-line-chart-container" className="mt-6 print:mt-8">
+        <div id="cumulative-line-chart-container" className="mt-6">
           <CumulativeLineChart data={lineChartData} />
         </div>
         

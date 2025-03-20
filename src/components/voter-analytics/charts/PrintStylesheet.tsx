@@ -31,63 +31,23 @@ export const PrintStylesheet: React.FC<PrintStylesheetProps> = ({ onCleanup, use
           left: 0 !important;
           top: 0 !important;
           width: 100% !important;
-          padding: 15px !important;
+          padding: 20px !important;
           margin: 0 !important;
           box-sizing: border-box !important;
           background-color: white !important;
-          font-size: 95% !important;
-          max-height: 100vh !important;
-          overflow: visible !important;
         }
         
-        /* Force hide the left column and ResizablePanel */
-        .ResizablePanelGroup,
-        [data-panel="left"],
-        [data-orientation="horizontal"] > div:first-child,
-        div[style*="resize"],
-        .ResizablePanel:first-child {
-          display: none !important;
-          visibility: hidden !important;
-          width: 0 !important;
-          height: 0 !important;
-          overflow: hidden !important;
-          position: absolute !important;
-          pointer-events: none !important;
-          opacity: 0 !important;
-        }
-        
-        /* Force hide the ResizableHandle */
-        [data-orientation="horizontal"] > div[role="separator"],
-        [data-panel-handle],
-        .ResizableHandle,
-        div[style*="cursor: col-resize"] {
-          display: none !important;
-          visibility: hidden !important;
-          width: 0 !important;
-          opacity: 0 !important;
-        }
-        
-        /* Hide the print button and "Analytics Overall" text */
-        .hidden-print,
-        h2:contains("Analytics"),
-        button,
-        [role="button"],
-        .print\\:hidden {
-          display: none !important;
-          visibility: hidden !important;
-        }
-        
-        /* Ensure the report title is visible and properly positioned */
+        /* Ensure the report title is visible */
         #report-title {
           display: block !important;
-          margin: 0 0 20px !important;
+          margin: 0 0 15px !important;
           text-align: center !important;
           position: relative !important;
           visibility: visible !important;
           page-break-after: avoid !important;
         }
         
-        /* Make pie charts appear on the same line when printing */
+        /* Adjust pie charts layout to fit on one page */
         #pie-charts-row {
           display: flex !important;
           flex-direction: row !important;
@@ -95,7 +55,7 @@ export const PrintStylesheet: React.FC<PrintStylesheetProps> = ({ onCleanup, use
           width: 100% !important;
           break-inside: avoid !important;
           margin-bottom: 15px !important;
-          gap: 5px !important;
+          scale: 0.9 !important;
         }
         
         .pie-chart-container {
@@ -103,79 +63,74 @@ export const PrintStylesheet: React.FC<PrintStylesheetProps> = ({ onCleanup, use
           max-width: 32% !important;
           min-width: 32% !important;
           break-inside: avoid !important;
-          height: auto !important;
-          transform: scale(0.95) !important;
+          transform: scale(0.9) !important;
+          margin: 0 !important;
         }
         
-        /* Line chart should be full width below */
-        #line-chart-container {
-          width: 100% !important;
-          margin-top: 15px !important;
-          break-before: auto !important;
-          break-after: auto !important;
-          height: auto !important;
-          max-height: 30vh !important;
-          transform: scale(0.95) !important;
+        /* Reduce chart height to fit on one page */
+        .h-72 {
+          height: 220px !important;
+          max-height: 220px !important;
         }
         
-        /* Cumulative line chart */
+        /* Make line charts smaller to fit on one page */
+        #line-chart-container,
         #cumulative-line-chart-container {
           width: 100% !important;
-          margin-top: 15px !important;
-          height: auto !important;
-          max-height: 30vh !important;
-          transform: scale(0.95) !important;
+          margin-top: 10px !important;
+          scale: 0.9 !important;
+          transform-origin: top center !important;
         }
         
-        /* Make sure charts are properly sized and spaced */
         .recharts-wrapper {
-          width: 100% !important;
-          height: auto !important;
-          max-height: 200px !important;
+          max-height: 180px !important;
         }
         
-        /* Adjust chart heights */
-        .h-72 {
-          height: auto !important;
-          max-height: 250px !important;
-        }
-        
-        /* Make sure text is properly sized and doesn't overflow */
+        /* Reduce font sizes */
         .text-xs {
-          font-size: 8px !important;
-          line-height: 1.2 !important;
+          font-size: 7px !important;
         }
         
-        .whitespace-nowrap {
-          white-space: nowrap !important;
-          overflow: hidden !important;
-          text-overflow: ellipsis !important;
+        .text-sm {
+          font-size: 9px !important;
         }
         
-        /* Footer styling */
+        /* Condense spacing */
+        .pb-4 {
+          padding-bottom: 10px !important;
+        }
+        
+        /* Report footer styling */
         #report-footer {
           display: block !important;
           visibility: visible !important;
-          margin-top: 15px !important;
-          border-top: 1px solid #eee !important;
-          padding-top: 8px !important;
+          margin-top: 10px !important;
+          padding-top: 5px !important;
           text-align: center !important;
-          font-size: 8px !important;
+          font-size: 7px !important;
           color: #666 !important;
         }
         
-        /* Aggressively force hide everything except the report */
-        body > *:not(:has(#report-container)),
-        #root > *:not(:has(#report-container)),
-        [data-orientation="horizontal"] > div:first-child,
-        div:has(> [role="tablist"]),
-        div[style*="resize"],
+        /* Fix legends to be more compact */
+        .recharts-legend-wrapper ul {
+          padding: 0 !important;
+          margin: 0 !important;
+        }
+        
+        .recharts-legend-wrapper li {
+          margin-bottom: 1px !important;
+        }
+        
+        /* Hide absolutely everything except for the report */
+        body > *:not(#report-container),
+        #root > *:not(#report-container),
+        .ResizablePanelGroup,
+        [data-panel="left"],
+        [role="tablist"],
         button, 
         nav, 
         header, 
-        footer, 
-        .tabs-container, 
-        [role="tablist"], 
+        footer,
         input, 
         select, 
         form, 
@@ -183,11 +138,12 @@ export const PrintStylesheet: React.FC<PrintStylesheetProps> = ({ onCleanup, use
         .print\\:hidden {
           display: none !important;
           visibility: hidden !important;
-          width: 0 !important;
-          height: 0 !important;
-          position: absolute !important;
-          overflow: hidden !important;
-          z-index: -9999 !important;
+        }
+        
+        /* Ensure page doesn't break in middle of charts */
+        @page {
+          size: letter portrait;
+          margin: 0.5cm;
         }
       }
     `;

@@ -16,10 +16,10 @@ export const PrintReport: React.FC<PrintReportProps> = ({ query, onPrint }) => {
       variant="outline"
       size="sm"
       className="flex items-center gap-1 print:hidden mt-6 mx-auto"
-      aria-label="Print Report"
+      aria-label="Print Charts"
     >
       <Printer className="h-3 w-3" />
-      <span className="text-xs">Print Report</span>
+      <span className="text-xs">Print Charts</span>
     </Button>
   );
 };
