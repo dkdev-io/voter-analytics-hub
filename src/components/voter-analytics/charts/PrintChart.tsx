@@ -61,13 +61,14 @@ export const PrintChart: React.FC<PrintChartProps> = ({
     chartContainer.style.display = 'flex';
     chartContainer.style.alignItems = 'center';
     chartContainer.style.justifyContent = 'center';
+    chartContainer.style.padding = '20px';
     printContainer.appendChild(chartContainer);
 
     // Clone the chart and add to chart container
     const chartClone = originalChart.cloneNode(true) as HTMLElement;
     chartClone.id = 'print-chart-clone';
-    chartClone.style.width = '95vw';
-    chartClone.style.height = '80vh';
+    chartClone.style.width = '100%';
+    chartClone.style.height = '100%';
     chartContainer.appendChild(chartClone);
 
     // Find and resize all SVG elements to ensure they fill the available space
@@ -91,6 +92,14 @@ export const PrintChart: React.FC<PrintChartProps> = ({
       (rechartsSurface as HTMLElement).style.width = '100%';
       (rechartsSurface as HTMLElement).style.height = '100%';
     }
+
+    // Remove any overlay graphics or unwanted elements
+    const overlayElements = chartClone.querySelectorAll('.chart-overlay, [style*="position: absolute"]');
+    overlayElements.forEach(element => {
+      if (element.parentNode) {
+        element.parentNode.removeChild(element);
+      }
+    });
 
     // Create footer
     const footerElement = document.createElement('div');
@@ -132,8 +141,8 @@ export const PrintChart: React.FC<PrintChartProps> = ({
         
         /* Make sure chart is maximized */
         #print-chart-clone {
-          width: 95vw !important;
-          height: 78vh !important;
+          width: 100% !important;
+          height: 100% !important;
         }
         
         /* Ensure Recharts components expand properly */
@@ -145,6 +154,21 @@ export const PrintChart: React.FC<PrintChartProps> = ({
         #print-chart-clone .recharts-surface {
           width: 100% !important;
           height: 100% !important;
+        }
+        
+        /* Ensure the axis lines and labels extend fully */
+        #print-chart-clone .recharts-cartesian-axis-line,
+        #print-chart-clone .recharts-cartesian-axis-tick-line {
+          stroke-width: 1px !important;
+        }
+        
+        #print-chart-clone .recharts-cartesian-grid-horizontal line,
+        #print-chart-clone .recharts-cartesian-grid-vertical line {
+          stroke-width: 1px !important;
+        }
+        
+        #print-chart-clone .recharts-cartesian-axis-tick {
+          font-size: 12px !important;
         }
         
         /* Remove page margins */
