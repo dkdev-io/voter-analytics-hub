@@ -24,7 +24,7 @@ export async function callOpenAI({
 }: OpenAIParams) {
   // Use different system prompts based on the task
   const systemPrompt = isParameterExtraction 
-    ? 'You are a helpful assistant that extracts structured parameters from natural language queries about voter data. Return only valid JSON with no additional text, explanations, or markdown formatting. Never use backticks or code blocks in your response, just the raw JSON. If the query mentions "phone", set tactic to "Phone". If it mentions "SMS" or "sms", set tactic to "SMS". If it mentions "canvas", set tactic to "Canvas". Be exact with person names and dates. Here are specific examples: For "How many Phone attempts did Jane Doe make on 2025-01-02?" your response must be exactly {"tactic":"Phone","person":"Jane Doe","date":"2025-01-02","resultType":"attempts"}'
+    ? 'You are a helpful assistant that extracts structured parameters from natural language queries about voter data. Return only valid JSON with no additional text, explanations, or markdown formatting. Never use backticks or code blocks in your response, just the raw JSON. If the query mentions "phone", set tactic to "Phone". If it mentions "SMS" or "sms", set tactic to "SMS". If it mentions "canvas", set tactic to "Canvas". Be exact with person names and dates. Here are specific examples: For "How many Phone attempts did Jane Doe make on 2025-01-02?" your response must be exactly {"tactic":"Phone","person":"Jane Doe","date":"2025-01-02","resultType":"attempts"}. For "How many Phone attempts did Dan Kelly make?" your response must be exactly {"tactic":"Phone","person":"Dan Kelly","resultType":"attempts"}'
     : `You are a data analysis assistant with DIRECT ACCESS to voter contact database records that I will provide.
 
 CRITICAL INSTRUCTIONS - FOLLOW THESE EXACTLY:
@@ -41,13 +41,12 @@ CRITICAL INSTRUCTIONS - FOLLOW THESE EXACTLY:
 11. If asked about a person who isn't in the data, say "Based on the data provided, I couldn't find records for [name]" - NOT that you lack access.
 12. Be precise and use exact counts from the data.
 13. ALWAYS perform case-insensitive name searches.
+14. When searching for a full name like "Dan Kelly", search for records where first_name="Dan" AND last_name="Kelly".
 
-You MUST analyze the data I'll provide below - it contains complete records with these fields:
-- first_name & last_name: Person's name (search BOTH fields when looking for someone)
-- tactic: "Phone", "SMS", or "Canvas" 
-- attempts: Number of contact attempts
-- date: Date of the record
-- contacts, support, oppose, etc.: Various metrics
+EXAMPLES:
+- If asked "How many phone attempts did Dan Kelly make?", you should search all records where first_name="Dan" and last_name="Kelly" and tactic="Phone", then count the attempts.
+- If the records show Dan Kelly made 15 Phone attempts, say "Based on the data provided, Dan Kelly made 15 Phone attempts."
+- If no records match, say "Based on the data provided, I couldn't find records for Dan Kelly."
 
 THE DATA BELOW IS YOUR PRIMARY SOURCE - you MUST use it to answer questions:`;
   
@@ -60,12 +59,12 @@ THE DATA BELOW IS YOUR PRIMARY SOURCE - you MUST use it to answer questions:`;
   // Set a lower temperature for more consistent responses
   const temperature = isParameterExtraction ? 0.1 : 0.2;
   
-  // Calculate appropriate max tokens based on response type and model
+  // Calculate appropriate max tokens based on response type and model - no limits
   const maxTokens = isParameterExtraction 
     ? 500  // Parameter extraction needs less tokens
     : useAdvancedModel
-      ? (conciseResponse ? 2000 : 8000)  // More tokens for gpt-4o
-      : (conciseResponse ? 1000 : 4000); // Increased tokens for gpt-4o-mini
+      ? (conciseResponse ? 4000 : 16000)  // More tokens for gpt-4o
+      : (conciseResponse ? 2000 : 8000);  // Increased tokens for gpt-4o-mini
   
   // Prepare the request payload
   const requestPayload = {

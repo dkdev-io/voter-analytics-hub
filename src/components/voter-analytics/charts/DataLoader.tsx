@@ -67,9 +67,6 @@ export const useDataLoader = ({ query, showFilteredData }: UseDataLoaderProps) =
           issues: item.issues || 0
         }));
         
-        console.log("Line chart data before filtering:", metrics.byDate?.length || 0, "entries");
-        console.log("Line chart data after filtering:", validatedLineData.length, "entries");
-        
         // Calculate totals
         const totalTactics = tacticsChartData.reduce((sum, item) => sum + item.value, 0);
         const totalContactsValue = contactsChartData.reduce((sum, item) => sum + item.value, 0);

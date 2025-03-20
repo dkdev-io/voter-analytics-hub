@@ -32,6 +32,14 @@ export const calculateResultFromSupabase = async (query: Partial<QueryParams>) =
       console.log("Updated query after extraction:", query);
     }
     
+    // Enhanced name parsing - if person contains first and last name, split them
+    if (query.person) {
+      const personParts = query.person.trim().split(' ');
+      if (personParts.length > 1) {
+        console.log(`Person query detected: "${query.person}" - will look for first_name="${personParts[0]}" AND last_name="${personParts.slice(1).join(' ')}"`);
+      }
+    }
+    
     // Filter the data based on query parameters
     const filteredData = filterVoterData(data, query);
     
