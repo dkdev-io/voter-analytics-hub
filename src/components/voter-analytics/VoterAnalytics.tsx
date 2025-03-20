@@ -61,16 +61,19 @@ export const VoterAnalytics = () => {
       />
       
       <div className="relative bg-white rounded-lg shadow-sm border border-gray-200 h-full min-h-[80vh] overflow-hidden">
-        {/* Toggle Button - Always visible */}
+        {/* Toggle Button - positioned based on visibility */}
         <Button 
           variant="ghost" 
           size="sm" 
           onClick={toggleSearchPanel}
-          className="absolute top-2 left-2 z-10 p-1 h-8 w-8 hidden-print"
+          className={`absolute top-2 z-10 p-1 h-8 w-8 hidden-print ${isSearchVisible ? 'right-2' : 'left-2'}`}
           aria-label={isSearchVisible ? "Hide search options" : "Show search options"}
         >
           {isSearchVisible ? (
-            <ChevronLeft className="h-5 w-5" />
+            <>
+              <span className="sr-only md:not-sr-only md:mr-1 text-xs">Dashboard</span>
+              <ChevronLeft className="h-5 w-5" />
+            </>
           ) : (
             <>
               <ChevronRight className="h-5 w-5" />
