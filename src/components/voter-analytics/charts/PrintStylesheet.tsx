@@ -31,10 +31,13 @@ export const PrintStylesheet: React.FC<PrintStylesheetProps> = ({ onCleanup, use
           left: 0 !important;
           top: 0 !important;
           width: 100% !important;
-          padding: 20px !important;
+          padding: 15px !important;
           margin: 0 !important;
           box-sizing: border-box !important;
           background-color: white !important;
+          font-size: 95% !important;
+          max-height: 100vh !important;
+          overflow: visible !important;
         }
         
         /* Force hide the left column and ResizablePanel */
@@ -68,7 +71,8 @@ export const PrintStylesheet: React.FC<PrintStylesheetProps> = ({ onCleanup, use
         .hidden-print,
         h2:contains("Analytics"),
         button,
-        [role="button"] {
+        [role="button"],
+        .print\\:hidden {
           display: none !important;
           visibility: hidden !important;
         }
@@ -76,7 +80,7 @@ export const PrintStylesheet: React.FC<PrintStylesheetProps> = ({ onCleanup, use
         /* Ensure the report title is visible and properly positioned */
         #report-title {
           display: block !important;
-          margin: 0 0 30px !important;
+          margin: 0 0 20px !important;
           text-align: center !important;
           position: relative !important;
           visibility: visible !important;
@@ -90,7 +94,8 @@ export const PrintStylesheet: React.FC<PrintStylesheetProps> = ({ onCleanup, use
           justify-content: space-between !important;
           width: 100% !important;
           break-inside: avoid !important;
-          margin-bottom: 20px !important;
+          margin-bottom: 15px !important;
+          gap: 5px !important;
         }
         
         .pie-chart-container {
@@ -98,31 +103,64 @@ export const PrintStylesheet: React.FC<PrintStylesheetProps> = ({ onCleanup, use
           max-width: 32% !important;
           min-width: 32% !important;
           break-inside: avoid !important;
+          height: auto !important;
+          transform: scale(0.95) !important;
         }
         
         /* Line chart should be full width below */
         #line-chart-container {
           width: 100% !important;
-          margin-top: 20px !important;
+          margin-top: 15px !important;
           break-before: auto !important;
           break-after: auto !important;
+          height: auto !important;
+          max-height: 30vh !important;
+          transform: scale(0.95) !important;
+        }
+        
+        /* Cumulative line chart */
+        #cumulative-line-chart-container {
+          width: 100% !important;
+          margin-top: 15px !important;
+          height: auto !important;
+          max-height: 30vh !important;
+          transform: scale(0.95) !important;
         }
         
         /* Make sure charts are properly sized and spaced */
         .recharts-wrapper {
           width: 100% !important;
           height: auto !important;
+          max-height: 200px !important;
+        }
+        
+        /* Adjust chart heights */
+        .h-72 {
+          height: auto !important;
+          max-height: 250px !important;
+        }
+        
+        /* Make sure text is properly sized and doesn't overflow */
+        .text-xs {
+          font-size: 8px !important;
+          line-height: 1.2 !important;
+        }
+        
+        .whitespace-nowrap {
+          white-space: nowrap !important;
+          overflow: hidden !important;
+          text-overflow: ellipsis !important;
         }
         
         /* Footer styling */
         #report-footer {
           display: block !important;
           visibility: visible !important;
-          margin-top: 30px !important;
+          margin-top: 15px !important;
           border-top: 1px solid #eee !important;
-          padding-top: 10px !important;
+          padding-top: 8px !important;
           text-align: center !important;
-          font-size: 11px !important;
+          font-size: 8px !important;
           color: #666 !important;
         }
         
@@ -141,7 +179,8 @@ export const PrintStylesheet: React.FC<PrintStylesheetProps> = ({ onCleanup, use
         input, 
         select, 
         form, 
-        .hidden-print {
+        .hidden-print,
+        .print\\:hidden {
           display: none !important;
           visibility: hidden !important;
           width: 0 !important;

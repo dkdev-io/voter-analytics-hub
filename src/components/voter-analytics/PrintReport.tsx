@@ -15,7 +15,7 @@ export const PrintReport: React.FC<PrintReportProps> = ({ query, onPrint }) => {
       onClick={onPrint}
       variant="outline"
       size="sm"
-      className="flex items-center gap-1 hidden-print mt-6 mx-auto"
+      className="flex items-center gap-1 hidden-print mt-6 mx-auto print:hidden"
       aria-label="Print Report"
     >
       <Printer className="h-3 w-3" />

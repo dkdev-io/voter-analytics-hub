@@ -35,7 +35,7 @@ export const NotReachedPieChart: React.FC<NotReachedPieChartProps> = ({ data, to
               className="inline-block w-3 h-3 mr-2"
               style={{ backgroundColor: entry.color }}
             />
-            <span>{entry.value} - {entry.payload.value} ({((entry.payload.value / total) * 100).toFixed(1)}%)</span>
+            <span className="whitespace-nowrap">{entry.value} - {entry.payload.value} ({((entry.payload.value / total) * 100).toFixed(1)}%)</span>
           </li>
         ))}
       </ul>
@@ -44,8 +44,8 @@ export const NotReachedPieChart: React.FC<NotReachedPieChartProps> = ({ data, to
 
   return (
     <div className="h-72 bg-white rounded-lg border border-gray-200 flex flex-col">
-      <h3 className="text-sm font-bold p-2 text-center">Not Reached Breakdown</h3>
-      <div className="text-center text-sm font-medium pb-1">
+      <h3 className="text-sm font-bold p-2 text-center">Not Reached</h3>
+      <div className="text-center text-sm font-medium pb-3">
         Total: {total}
       </div>
       <div className="flex-1">

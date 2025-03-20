@@ -61,27 +61,6 @@ export const VoterAnalytics = () => {
       />
       
       <div className="relative bg-white rounded-lg shadow-sm border border-gray-200 h-full min-h-[80vh] overflow-hidden">
-        {/* Toggle Button - positioned based on visibility */}
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={toggleSearchPanel}
-          className={`absolute top-2 z-10 p-1 h-8 ${isSearchVisible ? 'right-2' : 'left-2'} hidden-print`}
-          aria-label={isSearchVisible ? "Hide search options" : "Show search options"}
-        >
-          {isSearchVisible ? (
-            <>
-              <ChevronLeft className="h-5 w-5" />
-              <span className="sr-only md:not-sr-only md:ml-1 text-xs">Dashboard</span>
-            </>
-          ) : (
-            <>
-              <span className="sr-only md:not-sr-only md:mr-1 text-xs">Search</span>
-              <ChevronRight className="h-5 w-5" />
-            </>
-          )}
-        </Button>
-        
         <ResizablePanelGroup
           direction="horizontal"
           className="h-full"
@@ -91,6 +70,20 @@ export const VoterAnalytics = () => {
             <>
               <ResizablePanel defaultSize={25} minSize={20} maxSize={40} className="p-4 border-r border-gray-200">
                 <div className="h-full flex flex-col">
+                  {/* Toggle button moved inside and at the top of the search panel */}
+                  <div className="flex justify-end mb-4 hidden-print">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={toggleSearchPanel}
+                      className="p-1 h-8 hidden-print"
+                      aria-label="Hide search options"
+                    >
+                      <span className="text-xs mr-1">Dashboard</span>
+                      <ChevronLeft className="h-5 w-5" />
+                    </Button>
+                  </div>
+                  
                   <div className="text-lg font-semibold mb-4">Search Options</div>
                   
                   <div className="mb-4">
@@ -163,6 +156,22 @@ export const VoterAnalytics = () => {
             defaultSize={isSearchVisible ? 75 : 100} 
             className="p-4 overflow-y-auto"
           >
+            {/* Toggle button when search panel is hidden */}
+            {!isSearchVisible && (
+              <div className="flex mb-4 hidden-print">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={toggleSearchPanel}
+                  className="p-1 h-8 hidden-print"
+                  aria-label="Show search options"
+                >
+                  <ChevronRight className="h-5 w-5" />
+                  <span className="text-xs ml-1">Search</span>
+                </Button>
+              </div>
+            )}
+            
             <div className="space-y-6">
               {/* Results Display */}
               <ResultsSection error={error} result={result} query={query} />
