@@ -36,7 +36,13 @@ export const OpenAIChat = () => {
         body: { 
           prompt: prompt.trim(),
           useAdvancedModel: true,  // Always use advanced model for better results
-          includeData: true        // Include relevant data for analysis
+          includeData: true,       // Include relevant data for analysis
+          queryParams: {           // Add empty query params to ensure validation works properly
+            tactic: null,
+            person: null,
+            date: null,
+            resultType: null
+          }
         }
       });
 

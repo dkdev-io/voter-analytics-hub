@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertCircle, AlertTriangle, Calendar } from 'lucide-react';
+import { AlertCircle, AlertTriangle, Calendar, Database } from 'lucide-react';
 
 interface AIAssistantResponseProps {
   response: string | null;
@@ -59,6 +59,9 @@ export const AIAssistantResponse: React.FC<AIAssistantResponseProps> = ({
     (response.toLowerCase().includes("invalid date") && 
     (response.toLowerCase().includes("month") || response.toLowerCase().includes("day")))
   );
+  
+  // Detect direct data answers from our fallback system
+  const isDirectDataAnswer = response && response.toLowerCase().startsWith("based on the data provided");
 
   // Get the first sentence of the response for the bold summary
   const getFirstSentence = (text: string): string => {
@@ -120,6 +123,33 @@ export const AIAssistantResponse: React.FC<AIAssistantResponseProps> = ({
             <p className="font-bold mb-2">{getFirstSentence(response)}</p>
             <p>I've analyzed the data in your dashboard.</p>
             <p className="text-xs text-gray-500 mt-2">Try using the format YYYY-MM-DD (e.g., 2025-01-31 for January 31, 2025)</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+  
+  // Special styling for direct data answers
+  if (isDirectDataAnswer) {
+    return (
+      <Card className="mt-4 border-blue-100">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-medium flex items-center">
+            <Database className="h-4 w-4 mr-2 text-blue-500" />
+            Data Analysis
+            {model && (
+              <span className="text-xs bg-gray-100 rounded-full px-2 py-0.5 ml-2">
+                Data-driven
+              </span>
+            )}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-sm">
+            <p className="font-bold mb-2">{getFirstSentence(response)}</p>
+            <div className="text-xs text-gray-700 mt-4 whitespace-pre-wrap prose prose-sm max-w-none">
+              {response}
+            </div>
           </div>
         </CardContent>
       </Card>

@@ -47,13 +47,22 @@ export async function validateResponse(
     "i cannot see"
   ];
   
-  // Check if the answer contains any blacklisted phrases
+  // Check if the answer contains any blacklisted phrases or is too short (indicating a non-answer)
   const containsBlacklistedPhrase = blacklistedPhrases.some(phrase => 
     answer.toLowerCase().includes(phrase)
   );
   
-  if (containsBlacklistedPhrase && sampleData.length > 0) {
-    console.log("WARNING: OpenAI response contains blacklisted phrases - generating direct answer from data");
+  // Check for overly generic answers
+  const isGenericAnswer = 
+    answer.toLowerCase().includes("based on the information provided") && 
+    answer.length < 100 &&
+    !answer.includes("records") &&
+    !answer.includes("attempts");
+  
+  // If the model is claiming it doesn't have access to data, or providing a generic answer
+  // when we have data, generate a direct answer from the data
+  if ((containsBlacklistedPhrase || isGenericAnswer) && sampleData.length > 0) {
+    console.log("WARNING: OpenAI response contains blacklisted phrases or generic answer - generating direct answer from data");
     
     // Generate a direct answer from the data
     return {
@@ -79,9 +88,11 @@ async function createDirectAnswer(sampleData: any[], queryParams: any, prompt: s
   const person = queryParams?.person?.toLowerCase();
   const date = queryParams?.date;
   const resultType = queryParams?.resultType?.toLowerCase();
+  const team = queryParams?.team;
   
   // Filter data based on query parameters - generic approach without special cases
   let filteredData = [...sampleData];
+  let filters = [];
   
   // Apply person filter if present
   if (person) {
@@ -90,6 +101,7 @@ async function createDirectAnswer(sampleData: any[], queryParams: any, prompt: s
       return fullName.includes(person);
     });
     
+    filters.push(`person: ${queryParams.person}`);
     directAnswer += `I found ${filteredData.length} records for ${queryParams.person}. `;
   }
   
@@ -97,13 +109,31 @@ async function createDirectAnswer(sampleData: any[], queryParams: any, prompt: s
   if (tactic) {
     const previousCount = filteredData.length;
     filteredData = filteredData.filter(record => 
-      record.tactic && record.tactic.toLowerCase() === tactic
+      record.tactic && record.tactic.toLowerCase() === tactic.toLowerCase()
     );
     
+    filters.push(`tactic: ${tactic}`);
+    
     if (person) {
-      directAnswer += `Of these, ${filteredData.length} records involve ${tactic} tactic. `;
+      directAnswer += `Of these, ${filteredData.length} records involve the ${tactic} tactic. `;
     } else {
-      directAnswer += `I found ${filteredData.length} records for ${tactic} tactic. `;
+      directAnswer += `I found ${filteredData.length} records for the ${tactic} tactic. `;
+    }
+  }
+  
+  // Apply team filter if present
+  if (team && team !== 'All') {
+    const previousCount = filteredData.length;
+    filteredData = filteredData.filter(record => 
+      record.team && record.team.toLowerCase() === team.toLowerCase()
+    );
+    
+    filters.push(`team: ${team}`);
+    
+    if (filters.length > 1) {
+      directAnswer += `Within team ${team}, there are ${filteredData.length} matching records. `;
+    } else {
+      directAnswer += `For team ${team}, I found ${filteredData.length} records. `;
     }
   }
   
@@ -112,14 +142,40 @@ async function createDirectAnswer(sampleData: any[], queryParams: any, prompt: s
     const previousCount = filteredData.length;
     filteredData = filteredData.filter(record => record.date === date);
     
+    filters.push(`date: ${date}`);
+    
     directAnswer += `For the date ${date}, there are ${filteredData.length} matching records. `;
+  }
+  
+  // No matching data after all filters
+  if (filteredData.length === 0) {
+    directAnswer += `No records match all the specified criteria (${filters.join(', ')}).`;
+    return directAnswer;
   }
   
   // Calculate metrics based on filtered data
   const totalAttempts = filteredData.reduce((sum, record) => sum + (Number(record.attempts) || 0), 0);
+  const totalContacts = filteredData.reduce((sum, record) => sum + (Number(record.contacts) || 0), 0);
+  const totalSupport = filteredData.reduce((sum, record) => sum + (Number(record.support) || 0), 0);
+  const totalOppose = filteredData.reduce((sum, record) => sum + (Number(record.oppose) || 0), 0);
+  const totalUndecided = filteredData.reduce((sum, record) => sum + (Number(record.undecided) || 0), 0);
+  const totalNotHome = filteredData.reduce((sum, record) => sum + (Number(record.not_home) || 0), 0);
+  const totalRefusal = filteredData.reduce((sum, record) => sum + (Number(record.refusal) || 0), 0);
+  const totalBadData = filteredData.reduce((sum, record) => sum + (Number(record.bad_data) || 0), 0);
   
   // Add general metrics
   directAnswer += `The total number of attempts is ${totalAttempts}. `;
+  
+  // Add details about contacts if we have any
+  if (totalContacts > 0) {
+    directAnswer += `There were ${totalContacts} successful contacts: ${totalSupport} support, ${totalOppose} oppose, and ${totalUndecided} undecided. `;
+  }
+  
+  // Add details about not reached if we have any
+  const totalNotReached = totalNotHome + totalRefusal + totalBadData;
+  if (totalNotReached > 0) {
+    directAnswer += `${totalNotReached} were not reached: ${totalNotHome} not home, ${totalRefusal} refusals, and ${totalBadData} bad data. `;
+  }
   
   // Add result type specific information if requested
   if (resultType) {

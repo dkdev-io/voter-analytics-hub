@@ -45,6 +45,8 @@ export async function processRequest(req: Request) {
         const dataResult = await fetchDataContext(dataSummary, req, queryParams);
         dataContext = dataResult.dataContext;
         sampleData = dataResult.sampleData;
+        
+        console.log(`Retrieved ${sampleData.length} data records for validation`);
       }
       
       // Call OpenAI API
@@ -58,7 +60,8 @@ export async function processRequest(req: Request) {
         queryParams
       });
       
-      // Validate and possibly fix the response
+      // Validate and possibly fix the response using our direct data generation
+      // Pass sample data and query parameters to enable fallback answer generation
       const { answer, finishReason } = await validateResponse(
         aiResponse, 
         sampleData, 

@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { useErrorLogger } from '@/hooks/useErrorLogger';
 import { supabase } from '@/integrations/supabase/client';
@@ -30,12 +29,23 @@ export const useAIAssistant = () => {
       console.log("With query parameters:", queryParams);
       console.log("Using advanced model:", useAdvancedModel);
       
+      // Make sure queryParams has defined values for all fields to help the validator
+      const enhancedQueryParams = {
+        tactic: queryParams?.tactic || null,
+        person: queryParams?.person || null,
+        date: queryParams?.date || null,
+        resultType: queryParams?.resultType || null,
+        team: queryParams?.team || null,
+        searchQuery: queryParams?.searchQuery || inputValue,
+        ...queryParams
+      };
+      
       // Prepare request with explicit instructions to use the provided data
       const { data, error } = await supabase.functions.invoke('openai-chat', {
         body: { 
           prompt: inputValue,
           includeData: true, 
-          queryParams: queryParams || {}, // Pass the extracted parameters to filter relevant data
+          queryParams: enhancedQueryParams, // Pass the enhanced parameters to filter relevant data
           conciseResponse: true,
           useAdvancedModel: true // Always use advanced model for better results
         },
@@ -54,6 +64,8 @@ export const useAIAssistant = () => {
       console.log("AI response received:", data.answer);
       
       // Check if the response contains any indication that the AI is claiming lack of access
+      // This check is now redundant as the validator should have fixed these issues,
+      // but we keep it for logging purposes
       const accessDenialPhrases = [
         "i don't have access", 
         "i don't have information",
@@ -83,8 +95,6 @@ export const useAIAssistant = () => {
           response: data.answer,
           model: data.model
         });
-        
-        // Still set the response and let the UI component handle the error display
       }
       
       setAiResponse(data.answer);
