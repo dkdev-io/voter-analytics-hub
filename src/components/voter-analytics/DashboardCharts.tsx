@@ -9,6 +9,7 @@ import { PieChartsRow } from './charts/PieChartsRow';
 import { ReportTitle } from './charts/ReportTitle';
 import { ReportFooter } from './charts/ReportFooter';
 import { PrintStylesheet } from './charts/PrintStylesheet';
+import { PrintChart } from './charts/PrintChart';
 import { useDataLoader } from './charts/DataLoader';
 import { useAuth } from '@/hooks/useAuth';
 import { format } from 'date-fns';
@@ -25,6 +26,7 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
   showFilteredData 
 }) => {
   const [isPrinting, setIsPrinting] = useState(false);
+  const [printingChart, setPrintingChart] = useState<string | null>(null);
   const { user, userMetadata } = useAuth();
   
   // Use the data loader hook to fetch and process chart data
@@ -48,14 +50,26 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
   // Get the filename from user metadata
   const uploadedFileName = userMetadata?.last_dataset_name || null;
   
-  // Handle print functionality
+  // Handle print functionality for all charts
   const handlePrint = () => {
     setIsPrinting(true);
+    setPrintingChart(null);
     window.print();
     
     // Reset printing state after a short delay (for cleanup)
     setTimeout(() => {
       setIsPrinting(false);
+    }, 1000);
+  };
+  
+  // Handle print functionality for individual charts
+  const handlePrintChart = (chartId: string) => {
+    setPrintingChart(chartId);
+    window.print();
+    
+    // Reset printing state after a short delay (for cleanup)
+    setTimeout(() => {
+      setPrintingChart(null);
     }, 1000);
   };
   
@@ -65,12 +79,24 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md dashboard-container">
-      {/* Apply print styles only when printing */}
-      {isPrinting && (
+      {/* Apply print styles only when printing all charts */}
+      {isPrinting && !printingChart && (
         <PrintStylesheet 
           onCleanup={() => setIsPrinting(false)} 
           userEmail={user?.email} 
           datasetName={uploadedFileName || datasetName} 
+        />
+      )}
+      
+      {/* Apply print styles for individual chart printing */}
+      {printingChart && (
+        <PrintChart 
+          query={query}
+          userEmail={user?.email}
+          datasetName={uploadedFileName || datasetName}
+          chartId={printingChart}
+          chartTitle={printingChart === 'activity-line-chart' ? 'Activity Over Time' : 'Cumulative Progress'}
+          onCleanup={() => setPrintingChart(null)}
         />
       )}
       
@@ -107,13 +133,19 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
         </div>
         
         {/* Line chart showing attempts, contacts, and issues by date */}
-        <div id="line-chart-container" className="mt-6">
-          <ActivityLineChart data={lineChartData} />
+        <div id="activity-line-chart" className="mt-6">
+          <ActivityLineChart 
+            data={lineChartData} 
+            onPrintChart={() => handlePrintChart('activity-line-chart')} 
+          />
         </div>
         
         {/* Cumulative Line Chart */}
-        <div id="cumulative-line-chart-container" className="mt-6">
-          <CumulativeLineChart data={lineChartData} />
+        <div id="cumulative-line-chart" className="mt-6">
+          <CumulativeLineChart 
+            data={lineChartData} 
+            onPrintChart={() => handlePrintChart('cumulative-line-chart')} 
+          />
         </div>
         
         {/* Report footer - only visible when printing */}

@@ -12,6 +12,8 @@ import {
 } from 'recharts';
 import { CHART_COLORS } from '@/types/analytics';
 import { format, isValid, parseISO } from 'date-fns';
+import { Button } from '@/components/ui/button';
+import { Printer } from 'lucide-react';
 
 interface CumulativeLineChartProps {
   data: Array<{
@@ -20,13 +22,14 @@ interface CumulativeLineChartProps {
     contacts: number;
     issues: number;
   }>;
+  onPrintChart?: () => void;
 }
 
 const formatNumber = (value: number) => {
   return value.toLocaleString();
 };
 
-export const CumulativeLineChart: React.FC<CumulativeLineChartProps> = ({ data }) => {
+export const CumulativeLineChart: React.FC<CumulativeLineChartProps> = ({ data, onPrintChart }) => {
   // Filter out any data points with invalid dates
   const validData = data.filter(item => {
     // Check if the date is valid
@@ -72,8 +75,8 @@ export const CumulativeLineChart: React.FC<CumulativeLineChartProps> = ({ data }
     : 0;
 
   return (
-    <div className="mt-8 h-80 bg-white rounded-lg border border-gray-200">
-      <h3 className="text-sm font-bold p-2 text-center">Cumulative Progress Over Time</h3>
+    <div className="mt-8 h-80 bg-white rounded-lg border border-gray-200 relative">
+      <h3 className="text-sm font-bold p-2 text-center">Cumulative Progress</h3>
       <ResponsiveContainer width="100%" height="90%">
         <LineChart
           data={cumulativeData}
@@ -101,7 +104,7 @@ export const CumulativeLineChart: React.FC<CumulativeLineChartProps> = ({ data }
             stroke={CHART_COLORS.LINE.ATTEMPTS}
             activeDot={{ r: 8 }}
             strokeWidth={2}
-            name="Cumulative Attempts"
+            name="Attempts"
             dot={false}
             connectNulls={false}
           />
@@ -111,7 +114,7 @@ export const CumulativeLineChart: React.FC<CumulativeLineChartProps> = ({ data }
             stroke={CHART_COLORS.LINE.CONTACTS}
             activeDot={{ r: 6 }}
             strokeWidth={2}
-            name="Cumulative Contacts"
+            name="Contacts"
             dot={false}
             connectNulls={false}
           />
@@ -121,12 +124,28 @@ export const CumulativeLineChart: React.FC<CumulativeLineChartProps> = ({ data }
             stroke={CHART_COLORS.LINE.ISSUES}
             activeDot={{ r: 6 }}
             strokeWidth={2}
-            name="Cumulative Issues"
+            name="Issues"
             dot={false}
             connectNulls={false}
           />
         </LineChart>
       </ResponsiveContainer>
+      
+      {/* Print Chart Button */}
+      {onPrintChart && (
+        <div className="absolute bottom-2 right-2 print:hidden">
+          <Button 
+            onClick={onPrintChart}
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-1 text-xs py-1 px-2 h-7"
+            aria-label="Print This Chart"
+          >
+            <Printer className="h-3 w-3" />
+            <span>Print This Chart</span>
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

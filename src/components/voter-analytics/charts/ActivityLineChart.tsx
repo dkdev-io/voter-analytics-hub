@@ -11,6 +11,8 @@ import {
 } from 'recharts';
 import { CHART_COLORS } from '@/types/analytics';
 import { format, isValid, parseISO } from 'date-fns';
+import { Button } from '@/components/ui/button';
+import { Printer } from 'lucide-react';
 
 interface ActivityLineChartProps {
   data: Array<{
@@ -19,9 +21,10 @@ interface ActivityLineChartProps {
     contacts: number;
     issues: number;
   }>;
+  onPrintChart?: () => void;
 }
 
-export const ActivityLineChart: React.FC<ActivityLineChartProps> = ({ data }) => {
+export const ActivityLineChart: React.FC<ActivityLineChartProps> = ({ data, onPrintChart }) => {
   // Filter out any data points with invalid dates
   const validData = data.filter(item => {
     // Check if the date is valid
@@ -49,7 +52,7 @@ export const ActivityLineChart: React.FC<ActivityLineChartProps> = ({ data }) =>
   }, 0);
 
   return (
-    <div className="mt-8 h-80 bg-white rounded-lg border border-gray-200">
+    <div className="mt-8 h-80 bg-white rounded-lg border border-gray-200 relative">
       <h3 className="text-sm font-bold p-2 text-center">Activity Over Time</h3>
       <ResponsiveContainer width="100%" height="90%">
         <LineChart
@@ -100,6 +103,22 @@ export const ActivityLineChart: React.FC<ActivityLineChartProps> = ({ data }) =>
           />
         </LineChart>
       </ResponsiveContainer>
+      
+      {/* Print Chart Button */}
+      {onPrintChart && (
+        <div className="absolute bottom-2 right-2 print:hidden">
+          <Button 
+            onClick={onPrintChart}
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-1 text-xs py-1 px-2 h-7"
+            aria-label="Print This Chart"
+          >
+            <Printer className="h-3 w-3" />
+            <span>Print This Chart</span>
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
