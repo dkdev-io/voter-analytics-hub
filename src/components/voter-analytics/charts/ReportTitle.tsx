@@ -36,8 +36,8 @@ export const formatTitle = (query: Partial<QueryParams>) => {
     title += " Results";
   }
   
-  // Second line: "completed by Team Member"
-  title += "\ncompleted by ";
+  // Second line: "Completed by Team Member" - capitalize "Completed"
+  title += "\nCompleted by ";
   
   if (team && team !== 'All') {
     title += `${team} `;

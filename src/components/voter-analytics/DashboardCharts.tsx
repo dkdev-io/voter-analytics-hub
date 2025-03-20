@@ -34,7 +34,8 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
     totalAttempts,
     totalContacts,
     totalNotReached,
-    loading
+    loading,
+    datasetName // Get the actual dataset name from the data loader
   } = useDataLoader({ query, showFilteredData });
   
   // Handle print functionality
@@ -58,7 +59,7 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
         <PrintStylesheet 
           onCleanup={() => setIsPrinting(false)} 
           userEmail={user?.email} 
-          datasetName="Voter Analytics Dataset" 
+          datasetName={datasetName || "Canvassing Dataset"} 
         />
       )}
       
@@ -93,7 +94,7 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
         {/* Report footer - only visible when printing */}
         <ReportFooter 
           userEmail={user?.email} 
-          datasetName="Voter Analytics Dataset" 
+          datasetName={datasetName || "Canvassing Dataset"} 
         />
       </div>
     </div>

@@ -37,16 +37,38 @@ export const PrintStylesheet: React.FC<PrintStylesheetProps> = ({ onCleanup, use
           background-color: white !important;
         }
         
-        /* Hide the left column */
+        /* Force hide the left column and ResizablePanel - extra specific selectors */
         .left-panel, 
-        [data-panel="left"] {
+        [data-panel="left"],
+        [data-orientation="horizontal"] > div:first-child,
+        div[style*="resize"],
+        .ResizablePanel-PANE {
           display: none !important;
           visibility: hidden !important;
+          width: 0 !important;
+          height: 0 !important;
+          overflow: hidden !important;
+          position: absolute !important;
+          pointer-events: none !important;
+          opacity: 0 !important;
+        }
+        
+        /* Force hide the ResizableHandle */
+        [data-orientation="horizontal"] > div[role="separator"],
+        [data-panel-handle],
+        .ResizableHandle,
+        div[style*="cursor: col-resize"] {
+          display: none !important;
+          visibility: hidden !important;
+          width: 0 !important;
+          opacity: 0 !important;
         }
         
         /* Hide the print button and "Analytics Overall" text */
         .hidden-print,
-        h2:contains("Analytics") {
+        h2:contains("Analytics"),
+        button,
+        [role="button"] {
           display: none !important;
           visibility: hidden !important;
         }
@@ -118,7 +140,10 @@ export const PrintStylesheet: React.FC<PrintStylesheetProps> = ({ onCleanup, use
         .hidden-print,
         h2:not(#report-title h2),
         .flex:not(#report-container .flex),
-        .mb-4:not(#report-container .mb-4) {
+        .mb-4:not(#report-container .mb-4),
+        .ResizablePanelGroup,
+        .ResizablePanel,
+        div[style*="resize"] {
           display: none !important;
           visibility: hidden !important;
         }
@@ -129,7 +154,8 @@ export const PrintStylesheet: React.FC<PrintStylesheetProps> = ({ onCleanup, use
         div:has(> .welcome-section),
         div:has(> .tabs-container),
         div:has(button),
-        div:has(> [role="tablist"]) {
+        div:has(> [role="tablist"]),
+        div[role="group"] {
           display: none !important;
           visibility: hidden !important;
         }
