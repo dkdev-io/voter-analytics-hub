@@ -16,6 +16,7 @@ interface QueryBuilderProps {
   isLoading: boolean;
   isDataMigrated: boolean;
   onRefresh?: () => Promise<void>;
+  renderSubmitButton?: () => React.ReactNode;
 }
 
 export const QueryBuilder = ({ 
@@ -24,7 +25,8 @@ export const QueryBuilder = ({
   setError,
   isLoading: parentIsLoading,
   isDataMigrated,
-  onRefresh
+  onRefresh,
+  renderSubmitButton
 }: QueryBuilderProps) => {
   // Ensure query is never undefined
   const safeQuery = query || {};
@@ -189,6 +191,9 @@ export const QueryBuilder = ({
             />
           </div>
         </div>
+        
+        {/* Render the submit button after date selectors */}
+        {renderSubmitButton && renderSubmitButton()}
       </div>
     </ScrollArea>
   );
