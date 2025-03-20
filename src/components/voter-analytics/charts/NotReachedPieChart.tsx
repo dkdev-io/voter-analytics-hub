@@ -41,18 +41,25 @@ export const NotReachedPieChart: React.FC<NotReachedPieChartProps> = ({ data, to
     
     return (
       <ul className="text-xs flex flex-col items-start mt-2">
-        {payload.map((entry: any, index: number) => (
-          <li key={`legend-item-${index}`} className="flex items-center mb-1">
-            <span
-              className="inline-block w-3 h-3 mr-2"
-              style={{ backgroundColor: entry.color }}
-            />
-            <span className="whitespace-nowrap">
-              {entry.value}: {Number(entry.payload.value).toLocaleString()} 
-              ({actualTotal > 0 ? ((entry.payload.value / actualTotal) * 100).toFixed(1) : '0.0'}%)
-            </span>
-          </li>
-        ))}
+        {payload.map((entry: any, index: number) => {
+          // Get the original data point that matches this legend entry's name
+          const dataPoint = data.find(item => item.name === entry.value);
+          const value = dataPoint ? Number(dataPoint.value) : 0;
+          const percentage = actualTotal > 0 ? ((value / actualTotal) * 100).toFixed(1) : '0.0';
+          
+          return (
+            <li key={`legend-item-${index}`} className="flex items-center mb-1">
+              <span
+                className="inline-block w-3 h-3 mr-2"
+                style={{ backgroundColor: entry.color }}
+              />
+              <span className="whitespace-nowrap">
+                {entry.value}: {value.toLocaleString()} 
+                ({percentage}%)
+              </span>
+            </li>
+          );
+        })}
       </ul>
     );
   };
