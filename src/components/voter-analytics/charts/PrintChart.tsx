@@ -61,9 +61,9 @@ export const PrintChart: React.FC<PrintChartProps> = ({
     chartContainer.style.display = 'flex';
     chartContainer.style.alignItems = 'center';
     chartContainer.style.justifyContent = 'center';
-    chartContainer.style.padding = '10px';
+    chartContainer.style.padding = '5px'; // Reduced padding to maximize space
     chartContainer.style.width = '100%';
-    chartContainer.style.height = '80%';
+    chartContainer.style.height = '85%'; // Increased to give more space to the chart
     printContainer.appendChild(chartContainer);
 
     // Clone the chart and add to chart container
@@ -73,6 +73,8 @@ export const PrintChart: React.FC<PrintChartProps> = ({
     chartClone.style.height = '100%';
     chartClone.style.maxWidth = 'none';
     chartClone.style.maxHeight = 'none';
+    chartClone.style.transform = 'scale(1.05)'; // Slightly scale up to fill more space
+    chartClone.style.transformOrigin = 'center center';
     chartContainer.appendChild(chartClone);
 
     // Find and resize all SVG elements to ensure they fill the available space
@@ -108,21 +110,49 @@ export const PrintChart: React.FC<PrintChartProps> = ({
       (rechartsSurface as HTMLElement).style.maxHeight = 'none';
     }
 
-    // Make the axes extend fully
+    // Make the axes extend fully with thicker lines for better visibility
     const axisLines = chartClone.querySelectorAll('.recharts-cartesian-axis-line, .recharts-cartesian-axis-tick-line');
     axisLines.forEach(line => {
-      (line as SVGElement).style.strokeWidth = '1.5px';
+      (line as SVGElement).style.strokeWidth = '2px';
     });
 
+    // Make grid lines more visible
     const gridLines = chartClone.querySelectorAll('.recharts-cartesian-grid-horizontal line, .recharts-cartesian-grid-vertical line');
     gridLines.forEach(line => {
-      (line as SVGElement).style.strokeWidth = '1px';
+      (line as SVGElement).style.strokeWidth = '1.2px';
+      (line as SVGElement).style.stroke = '#e0e0e0';
     });
 
-    // Ensure axis ticks are visible
+    // Ensure axis ticks are larger and more visible
     const axisTicks = chartClone.querySelectorAll('.recharts-cartesian-axis-tick');
     axisTicks.forEach(tick => {
-      (tick as SVGElement).style.fontSize = '12px';
+      (tick as SVGElement).style.fontSize = '14px';
+      const text = tick.querySelector('text');
+      if (text) {
+        (text as SVGElement).style.fill = '#333';
+        (text as SVGElement).style.fontWeight = '500';
+      }
+    });
+
+    // Ensure the chart container fills maximum available space
+    const chartArea = chartClone.querySelector('.recharts-cartesian-grid');
+    if (chartArea) {
+      (chartArea as SVGElement).style.width = '100%';
+      (chartArea as SVGElement).style.height = '100%';
+    }
+
+    // Make the chart plots and lines more prominent
+    const plotItems = chartClone.querySelectorAll('.recharts-curve');
+    plotItems.forEach(item => {
+      (item as SVGElement).style.strokeWidth = '3px';
+    });
+
+    // Make dots bigger for better visibility
+    const dots = chartClone.querySelectorAll('.recharts-dot');
+    dots.forEach(dot => {
+      const currentR = dot.getAttribute('r');
+      const newR = currentR ? Math.max(parseFloat(currentR), 5) : 5;
+      dot.setAttribute('r', newR.toString());
     });
 
     // Remove any overlay graphics or unwanted elements
@@ -169,6 +199,8 @@ export const PrintChart: React.FC<PrintChartProps> = ({
           height: 100% !important;
           z-index: 9999 !important;
           background-color: white !important;
+          padding: 0 !important;
+          margin: 0 !important;
         }
         
         /* Make sure chart is maximized */
@@ -177,6 +209,8 @@ export const PrintChart: React.FC<PrintChartProps> = ({
           height: 100% !important;
           max-width: none !important;
           max-height: none !important;
+          transform: scale(1.05) !important;
+          transform-origin: center center !important;
         }
         
         /* Ensure Recharts components expand properly */
@@ -193,33 +227,45 @@ export const PrintChart: React.FC<PrintChartProps> = ({
           max-width: none !important;
           max-height: none !important;
         }
+
+        /* Ensure chart container is maximized */
+        #print-chart-clone .recharts-cartesian-grid {
+          width: 100% !important;
+          height: 100% !important;
+        }
         
-        /* Ensure the axis lines and labels extend fully */
+        /* Ensure the axis lines and labels extend fully and are more visible */
         #print-chart-clone .recharts-cartesian-axis-line,
         #print-chart-clone .recharts-cartesian-axis-tick-line {
-          stroke-width: 1.5px !important;
+          stroke-width: 2px !important;
         }
         
         #print-chart-clone .recharts-cartesian-grid-horizontal line,
         #print-chart-clone .recharts-cartesian-grid-vertical line {
-          stroke-width: 1px !important;
+          stroke-width: 1.2px !important;
+          stroke: #e0e0e0 !important;
         }
         
         #print-chart-clone .recharts-cartesian-axis-tick {
-          font-size: 12px !important;
+          font-size: 14px !important;
         }
         
-        /* Ensure curves and data points are visible */
+        #print-chart-clone .recharts-cartesian-axis-tick text {
+          fill: #333 !important;
+          font-weight: 500 !important;
+        }
+        
+        /* Ensure curves and data points are very visible */
         #print-chart-clone .recharts-curve,
         #print-chart-clone .recharts-line {
-          stroke-width: 2.5px !important;
+          stroke-width: 3px !important;
         }
         
         #print-chart-clone .recharts-dot {
-          r: 4 !important;
+          r: 5 !important;
         }
         
-        /* Remove page margins */
+        /* Set landscape orientation and remove page margins */
         @page {
           size: landscape;
           margin: 0;
@@ -296,3 +342,4 @@ const formatSubtitle = (query: Partial<QueryParams>) => {
   
   return subtitle;
 };
+
