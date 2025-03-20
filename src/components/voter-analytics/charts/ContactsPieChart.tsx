@@ -16,6 +16,33 @@ interface ContactsPieChartProps {
 }
 
 export const ContactsPieChart: React.FC<ContactsPieChartProps> = ({ data, total }) => {
+  // Add total to each data point for percentage calculation
+  const dataWithTotal = data.map(item => ({
+    ...item,
+    total
+  }));
+
+  const renderCustomizedLabel = (props: any) => {
+    const { cx, cy, midAngle, innerRadius, outerRadius, percent, index, name } = props;
+    const radius = innerRadius + (outerRadius - innerRadius) * 1.1;
+    const x = cx + radius * Math.cos(-midAngle * Math.PI / 180);
+    const y = cy + radius * Math.sin(-midAngle * Math.PI / 180);
+    
+    return (
+      <text 
+        x={x} 
+        y={y} 
+        fill={data[index].color}
+        textAnchor={x > cx ? 'start' : 'end'} 
+        dominantBaseline="central"
+        fontSize="12"
+        fontWeight="bold"
+      >
+        {`${(percent * 100).toFixed(1)}%`}
+      </text>
+    );
+  };
+
   return (
     <div className="h-72 bg-white rounded-lg border border-gray-200 flex flex-col">
       <h3 className="text-sm font-medium p-2 text-center">Contact Results</h3>
@@ -23,13 +50,15 @@ export const ContactsPieChart: React.FC<ContactsPieChartProps> = ({ data, total 
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
-              data={data}
+              data={dataWithTotal}
               cx="50%"
               cy="45%"
               innerRadius={40}
               outerRadius={70}
               paddingAngle={5}
               dataKey="value"
+              labelLine={false}
+              label={renderCustomizedLabel}
             >
               {data.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.color} />

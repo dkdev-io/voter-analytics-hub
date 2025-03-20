@@ -1,0 +1,89 @@
+
+import React from 'react';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer
+} from 'recharts';
+import { CHART_COLORS } from '@/types/analytics';
+
+interface CumulativeLineChartProps {
+  data: Array<{
+    date: string;
+    attempts: number;
+    contacts: number;
+    issues: number;
+  }>;
+}
+
+export const CumulativeLineChart: React.FC<CumulativeLineChartProps> = ({ data }) => {
+  // Transform the data to create cumulative totals
+  const cumulativeData = data.reduce((acc, current, index) => {
+    if (index === 0) {
+      // First item stays the same
+      acc.push({
+        ...current,
+        cumulativeAttempts: current.attempts,
+        cumulativeContacts: current.contacts,
+        cumulativeIssues: current.issues
+      });
+    } else {
+      // Add current values to previous cumulative totals
+      const prevCumulative = acc[index - 1];
+      acc.push({
+        ...current,
+        cumulativeAttempts: prevCumulative.cumulativeAttempts + current.attempts,
+        cumulativeContacts: prevCumulative.cumulativeContacts + current.contacts,
+        cumulativeIssues: prevCumulative.cumulativeIssues + current.issues
+      });
+    }
+    return acc;
+  }, [] as Array<any>);
+
+  return (
+    <div className="mt-8 h-80 bg-white rounded-lg border border-gray-200">
+      <h3 className="text-sm font-medium p-2 text-center">Cumulative Progress Over Time</h3>
+      <ResponsiveContainer width="100%" height="90%">
+        <LineChart
+          data={cumulativeData}
+          margin={{ top: 20, right: 30, left: 20, bottom: 10 }}
+        >
+          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+          <XAxis dataKey="date" />
+          <YAxis />
+          <Tooltip />
+          <Legend />
+          <Line
+            type="monotone"
+            dataKey="cumulativeAttempts"
+            stroke={CHART_COLORS.LINE.ATTEMPTS}
+            activeDot={{ r: 8 }}
+            strokeWidth={2}
+            name="Cumulative Attempts"
+          />
+          <Line
+            type="monotone"
+            dataKey="cumulativeContacts"
+            stroke={CHART_COLORS.LINE.CONTACTS}
+            activeDot={{ r: 6 }}
+            strokeWidth={2}
+            name="Cumulative Contacts"
+          />
+          <Line
+            type="monotone"
+            dataKey="cumulativeIssues"
+            stroke={CHART_COLORS.LINE.ISSUES}
+            activeDot={{ r: 6 }}
+            strokeWidth={2}
+            name="Cumulative Issues"
+          />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
+  );
+};

@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { type QueryParams } from '@/types/analytics';
 import { ActivityLineChart } from './charts/ActivityLineChart';
+import { CumulativeLineChart } from './charts/CumulativeLineChart';
 import { PrintReport } from './PrintReport';
 import { LoadingState } from './charts/LoadingState';
 import { PieChartsRow } from './charts/PieChartsRow';
@@ -89,6 +90,11 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
         {/* Line chart showing attempts, contacts, and issues by date */}
         <div id="line-chart-container" className="mt-6 print:mt-8">
           <ActivityLineChart data={lineChartData} />
+        </div>
+        
+        {/* Cumulative Line Chart */}
+        <div id="cumulative-line-chart-container" className="mt-6 print:mt-8">
+          <CumulativeLineChart data={lineChartData} />
         </div>
         
         {/* Report footer - only visible when printing */}
