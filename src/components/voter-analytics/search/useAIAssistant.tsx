@@ -1,6 +1,5 @@
 
 import { useState, useCallback } from 'react';
-import { useToast } from '@/hooks/use-toast';
 import { useErrorLogger } from '@/hooks/useErrorLogger';
 import { supabase } from '@/integrations/supabase/client';
 import { type QueryParams } from '@/types/analytics';
@@ -10,7 +9,6 @@ export const useAIAssistant = () => {
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [isResponseTruncated, setIsResponseTruncated] = useState(false);
   const [responseModel, setResponseModel] = useState<string | null>(null);
-  const { toast } = useToast();
   const { logError, logDataIssue } = useErrorLogger();
 
   const getAIAssistance = useCallback(async (
@@ -19,11 +17,6 @@ export const useAIAssistant = () => {
     useAdvancedModel: boolean = true
   ) => {
     if (!inputValue.trim()) {
-      toast({
-        title: "Empty Query",
-        description: "Please enter a question or query before submitting.",
-        variant: "destructive",
-      });
       return;
     }
 
@@ -108,28 +101,16 @@ export const useAIAssistant = () => {
         console.log("Response generated using model:", data.model);
       }
       
-      // Remove the toast notification as requested by the user
+      // No toast notifications at all
     } catch (error) {
       console.error('Error calling OpenAI:', error);
       logError(error as Error, 'SearchField.handleAiAssist');
       
-      const errorMessage = error instanceof Error 
-        ? error.message 
-        : "Failed to get response from AI assistant";
-        
-      const isEdgeFunctionError = errorMessage.includes("Failed to send a request to the Edge Function");
-      
-      toast({
-        title: isEdgeFunctionError ? "Server Connection Error" : "AI Assistant Error",
-        description: isEdgeFunctionError 
-          ? "Could not connect to the AI service. Please try again in a moment." 
-          : errorMessage,
-        variant: "destructive",
-      });
+      // No toast notification for errors either
     } finally {
       setIsAiLoading(false);
     }
-  }, [toast, logError, logDataIssue]);
+  }, [logError, logDataIssue]);
 
   return {
     aiResponse,

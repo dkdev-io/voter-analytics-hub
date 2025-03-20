@@ -1,7 +1,6 @@
 
 import { useState } from 'react';
 import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/hooks/use-toast';
 import { type QueryParams } from '@/types/analytics';
 import { useLLMProcessor } from './search/useLLMProcessor';
 import { useAIAssistant } from './search/useAIAssistant';
@@ -25,7 +24,6 @@ export const SearchField: React.FC<SearchFieldProps> = ({
 }) => {
   const [inputValue, setInputValue] = useState(value);
   const [currentQuery, setCurrentQuery] = useState<Partial<QueryParams>>({});
-  const { toast } = useToast();
   
   const { isProcessingQuery, processWithLLM } = useLLMProcessor({ setQuery });
   const { 
@@ -38,11 +36,6 @@ export const SearchField: React.FC<SearchFieldProps> = ({
 
   const handleSubmit = async () => {
     if (!inputValue.trim()) {
-      toast({
-        title: "Empty Query",
-        description: "Please enter a question before submitting.",
-        variant: "destructive",
-      });
       return;
     }
 
@@ -76,11 +69,7 @@ export const SearchField: React.FC<SearchFieldProps> = ({
         }
       } catch (error) {
         console.error("Error in query processing:", error);
-        toast({
-          title: "Query Processing Error",
-          description: error instanceof Error ? error.message : "Failed to process your query",
-          variant: "destructive",
-        });
+        // No toast notification for errors
       }
     } else {
       // If no setQuery function is provided, just get AI assistance 

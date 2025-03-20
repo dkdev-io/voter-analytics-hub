@@ -1,6 +1,5 @@
 
 import { useState, useCallback } from 'react';
-import { useToast } from '@/hooks/use-toast';
 import { useErrorLogger } from '@/hooks/useErrorLogger';
 import { supabase } from '@/integrations/supabase/client';
 import { type QueryParams } from '@/types/analytics';
@@ -11,7 +10,6 @@ interface UseLLMProcessorOptions {
 
 export const useLLMProcessor = ({ setQuery }: UseLLMProcessorOptions) => {
   const [isProcessingQuery, setIsProcessingQuery] = useState(false);
-  const { toast } = useToast();
   const { logError } = useErrorLogger();
 
   const processWithLLM = useCallback(async (userQuery: string) => {
@@ -108,11 +106,6 @@ export const useLLMProcessor = ({ setQuery }: UseLLMProcessorOptions) => {
           // Check if the date is valid
           if (!isValidDate(extractedParams.date)) {
             console.error("Invalid date detected:", extractedParams.date);
-            toast({
-              title: "Invalid Date Format",
-              description: `The date '${extractedParams.date}' appears to be invalid. Please use YYYY-MM-DD format.`,
-              variant: "destructive",
-            });
             
             // Try to fix common date format issues
             if (/^\d{4}-\d{2}-\d{2}$/.test(extractedParams.date)) {
@@ -128,11 +121,6 @@ export const useLLMProcessor = ({ setQuery }: UseLLMProcessorOptions) => {
                 if (isValidDate(correctedDate)) {
                   console.log("Corrected date format:", correctedDate);
                   extractedParams.date = correctedDate;
-                  
-                  toast({
-                    title: "Date Format Corrected",
-                    description: `The date has been corrected to ${correctedDate}`,
-                  });
                 }
               }
             }
@@ -141,13 +129,6 @@ export const useLLMProcessor = ({ setQuery }: UseLLMProcessorOptions) => {
         
         // Update the query state with the extracted parameters
         setQuery(extractedParams);
-        
-        toast({
-          title: "Query Processed",
-          description: `Interpreted as: ${Object.entries(extractedParams)
-            .map(([key, value]) => `${key}: ${value}`)
-            .join(', ')}`,
-        });
         
         // Return the extracted parameters for further use
         return extractedParams;
@@ -163,7 +144,7 @@ export const useLLMProcessor = ({ setQuery }: UseLLMProcessorOptions) => {
     } finally {
       setIsProcessingQuery(false);
     }
-  }, [setQuery, logError, toast]);
+  }, [setQuery, logError]);
 
   /**
    * Validates whether a date string is a valid date in YYYY-MM-DD format
