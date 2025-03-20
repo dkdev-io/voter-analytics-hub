@@ -108,7 +108,7 @@ export const useAIAssistant = () => {
         console.log("Response generated using model:", data.model);
       }
       
-      // We're removing the toast notification here as requested by the user
+      // Remove the toast notification as requested by the user
     } catch (error) {
       console.error('Error calling OpenAI:', error);
       logError(error as Error, 'SearchField.handleAiAssist');

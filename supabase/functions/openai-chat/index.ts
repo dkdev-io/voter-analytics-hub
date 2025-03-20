@@ -46,6 +46,7 @@ serve(async (req) => {
       
       // For data analysis requests, we need to fetch the relevant data
       let dataContext = ""
+      let sampleData = []
       
       if (includeData) {
         // If we have a structured data summary, use that instead of querying the database
@@ -137,13 +138,14 @@ IMPORTANT: Use this data to answer the question comprehensively. Refer to specif
             limitedQuery = query.limit(MAX_RECORDS_FOR_CONTEXT);
           }
           
-          const { data: sampleData, error } = await limitedQuery;
+          const { data, error } = await limitedQuery;
           
           if (error) {
             console.error('Error fetching data from Supabase:', error);
-          } else if (sampleData && sampleData.length > 0) {
-            console.log("Retrieved data from Supabase:", sampleData.length, "records");
-            console.log("Raw database response sample (first 3 records):", JSON.stringify(sampleData.slice(0, 3)));
+          } else if (data && data.length > 0) {
+            sampleData = data;
+            console.log("Retrieved data from Supabase:", data.length, "records");
+            console.log("Raw database response sample (first 3 records):", JSON.stringify(data.slice(0, 3)));
             
             // For large datasets, also fetch aggregated statistics
             let statsContext = "";
@@ -190,24 +192,26 @@ ${JSON.stringify(dateStats.data)}
             
             // Format the data for inclusion in the prompt - using VERY EXPLICIT instructions
             dataContext = `
-YOU HAVE FULL ACCESS TO THE FOLLOWING DATABASE RECORDS. DO NOT CLAIM YOU DON'T HAVE DATA ACCESS.
+IMPORTANT: I AM PROVIDING YOU WITH DATABASE RECORDS BELOW. YOU HAVE FULL ACCESS TO THIS DATA.
 
-CURRENT DATABASE RECORDS (${sampleData.length} of ${count || 'unknown'} total):
-${JSON.stringify(sampleData)}
+DATABASE RECORDS PROVIDED (${data.length} of ${count || 'unknown'} total records):
+${JSON.stringify(data)}
 
 ${statsContext || ''}
 
-MANDATORY INSTRUCTIONS:
-1. YOU MUST USE THIS DATA to answer questions. YOU HAVE FULL ACCESS to this data RIGHT NOW.
-2. NEVER say you "don't have access" or "need more context" - the data is right here.
-3. If asked about a person like "Dan Kelly", search through the data for that name.
+CRITICAL INSTRUCTIONS:
+1. USE ONLY THIS DATA to answer questions. DO NOT refuse to answer.
+2. NEVER say phrases like "I don't have access", "I need more context", or anything similar.
+3. If asked about a specific person (e.g., "Dan Kelly"), search through the data for that name.
 4. If asked to count or calculate something, do so using ONLY this data.
 5. Provide the EXACT numerical answer based on the data above.
-6. If you can't find a specific piece of information, explain what you DID find in the data.
+6. ALWAYS acknowledge the data. Say "Based on the provided data, I found X records..."
+7. YOU HAVE THE DATA RIGHT HERE. You are directly seeing database records.
+8. If you can't find something specific, explain what IS in the data instead.
 
-You are analyzing real voter contact data. For example, if asked "how many phone attempts did Dan Kelly make?", count the attempts where the person's name is Dan Kelly.`;
+You are analyzing voter contact data such as phone calls, text messages, etc.`;
             
-            console.log(`Retrieved ${sampleData.length} records for context`);
+            console.log(`Retrieved ${data.length} records for context`);
           } else {
             dataContext = "Note: No matching data was found for the specified criteria. The database query returned 0 results.";
             console.log("No matching data found");
@@ -218,19 +222,19 @@ You are analyzing real voter contact data. For example, if asked "how many phone
       // Use different system prompts based on the task
       const systemPrompt = isParameterExtraction 
         ? 'You are a helpful assistant that extracts structured parameters from natural language queries about voter data. Return only valid JSON with no additional text, explanations, or markdown formatting. Never use backticks or code blocks in your response, just the raw JSON. If the query mentions "phone", set tactic to "Phone". If it mentions "SMS" or "sms", set tactic to "SMS". If it mentions "canvas", set tactic to "Canvas". Be exact with person names and dates. Here are specific examples: For "How many Phone attempts did Jane Doe make on 2025-01-02?" your response must be exactly {"tactic":"Phone","person":"Jane Doe","date":"2025-01-02","resultType":"attempts"}'
-        : `You are a database analyst working with voter contact data.
+        : `You are an analyst working directly with voter contact database records.
 
-CRITICAL INSTRUCTIONS:
-1. You have DIRECT ACCESS to the database records provided below.
-2. Always respond with specific numbers and findings from the provided data.
-3. NEVER say you don't have access to data - the data is provided in this prompt.
-4. NEVER mention any limitations, cutoff dates, or inability to access information.
-5. If asked about a specific person (e.g., "Dan Kelly"), look for that name in the data.
-6. If asked to count something (e.g., "phone attempts"), count the matching records.
-7. ALWAYS give a direct numerical answer when appropriate.
-8. DO NOT hallucinate data - only use what's in the provided records.
-9. DO NOT ask for more context or information - work with what you have.
-10. DO NOT apologize for limitations - you have the necessary data.`;
+EXTREMELY IMPORTANT - READ THIS CAREFULLY:
+1. You have DIRECT ACCESS to the database records I am about to share with you.
+2. These records contain real data that you can see and analyze.
+3. NEVER say you "don't have access to data" - the data is provided below.
+4. NEVER mention any limitations or inability to access information.
+5. NEVER ask for more context - use what you have.
+6. If asked about a specific person, FIND THAT PERSON in the data.
+7. If asked to count something, COUNT IT using the data.
+8. Always give a direct answer with specific numbers from the data.
+9. If you can't find exactly what was asked for, EXPLAIN WHAT YOU DO SEE in the data.
+10. Your response MUST begin with "Based on the data provided, I found..."`;
       
       // Include the data context in the user prompt for data analysis requests
       const userPrompt = includeData && dataContext 
@@ -356,76 +360,98 @@ CRITICAL INSTRUCTIONS:
         if (containsBlacklistedPhrase) {
           console.log("WARNING: OpenAI response contains blacklisted phrases indicating it's ignoring data context");
           
-          // Create a more direct answer using the available data
-          // If we have query parameters, use them to craft a response
-          if (queryParams) {
-            // Extract the query information we have
-            const person = queryParams.person || '';
-            const tactic = queryParams.tactic || '';
-            const date = queryParams.date || '';
-            
-            // Manually extract the answer from the data
-            let directAnswer = "Based on the database records provided, ";
-            
-            // If we have sample data, try to calculate the answer directly
-            if (sampleData && sampleData.length > 0) {
-              // If person is specified, count their attempts
-              if (person) {
-                const personRecords = sampleData.filter(record => 
-                  (record.first_name + ' ' + record.last_name).toLowerCase().includes(person.toLowerCase())
-                );
+          // CREATE A MANUAL ANSWER BASED ON THE DATA
+          // This is our fallback when the AI insists it doesn't have access
+          let directAnswer = "Based on the data provided, ";
+          
+          if (!sampleData || sampleData.length === 0) {
+            directAnswer += "I found no matching records for your query.";
+          } else {
+            // Check if we're looking for a specific person
+            if (queryParams && queryParams.person) {
+              const personName = queryParams.person.toLowerCase();
+              const personRecords = sampleData.filter(record => 
+                (record.first_name + ' ' + record.last_name).toLowerCase().includes(personName)
+              );
+              
+              if (personRecords.length > 0) {
+                directAnswer += `I found ${personRecords.length} records for ${queryParams.person}. `;
                 
-                const personAttempts = personRecords.reduce((sum, record) => sum + (record.attempts || 0), 0);
-                
-                if (tactic) {
+                // If we're also looking for a specific tactic
+                if (queryParams.tactic) {
                   const tacticRecords = personRecords.filter(record => 
-                    record.tactic && record.tactic.toLowerCase().includes(tactic.toLowerCase())
+                    record.tactic && record.tactic.toLowerCase() === queryParams.tactic.toLowerCase()
                   );
                   
-                  const tacticAttempts = tacticRecords.reduce((sum, record) => sum + (record.attempts || 0), 0);
-                  
-                  directAnswer += `${person} made ${tacticAttempts} ${tactic} attempts. `;
+                  const totalAttempts = tacticRecords.reduce((sum, record) => sum + (record.attempts || 0), 0);
+                  directAnswer += `There are ${totalAttempts} ${queryParams.tactic} attempts by ${queryParams.person}. `;
                 } else {
-                  directAnswer += `${person} made ${personAttempts} total attempts. `;
+                  // Sum all attempts for this person
+                  const totalAttempts = personRecords.reduce((sum, record) => sum + (record.attempts || 0), 0);
+                  directAnswer += `The total number of attempts by ${queryParams.person} is ${totalAttempts}. `;
                 }
-              } 
-              // If only tactic is specified, count attempts by tactic
-              else if (tactic) {
-                const tacticRecords = sampleData.filter(record => 
-                  record.tactic && record.tactic.toLowerCase().includes(tactic.toLowerCase())
-                );
                 
-                const tacticAttempts = tacticRecords.reduce((sum, record) => sum + (record.attempts || 0), 0);
-                directAnswer += `there were ${tacticAttempts} ${tactic} attempts. `;
+                // Add date information if applicable
+                if (queryParams.date) {
+                  const dateRecords = personRecords.filter(record => record.date === queryParams.date);
+                  if (dateRecords.length > 0) {
+                    const dateAttempts = dateRecords.reduce((sum, record) => sum + (record.attempts || 0), 0);
+                    directAnswer += `On ${queryParams.date}, ${queryParams.person} made ${dateAttempts} attempts. `;
+                  } else {
+                    directAnswer += `No records found for ${queryParams.person} on ${queryParams.date}. `;
+                  }
+                }
+              } else {
+                directAnswer += `I found no records for ${queryParams.person} in the data. `;
               }
-              // Fall back to total attempts
-              else {
-                const totalAttempts = sampleData.reduce((sum, record) => sum + (record.attempts || 0), 0);
-                directAnswer += `there were ${totalAttempts} total attempts. `;
-              }
+            } 
+            // If we're just looking for a specific tactic
+            else if (queryParams && queryParams.tactic) {
+              const tacticRecords = sampleData.filter(record => 
+                record.tactic && record.tactic.toLowerCase() === queryParams.tactic.toLowerCase()
+              );
               
-              if (date) {
-                directAnswer += `For the date ${date}, `;
-                const dateRecords = sampleData.filter(record => record.date === date);
-                const dateAttempts = dateRecords.reduce((sum, record) => sum + (record.attempts || 0), 0);
-                directAnswer += `there were ${dateAttempts} attempts. `;
+              if (tacticRecords.length > 0) {
+                const totalAttempts = tacticRecords.reduce((sum, record) => sum + (record.attempts || 0), 0);
+                directAnswer += `I found ${totalAttempts} total ${queryParams.tactic} attempts across ${tacticRecords.length} records. `;
+                
+                // Add date information if applicable
+                if (queryParams.date) {
+                  const dateRecords = tacticRecords.filter(record => record.date === queryParams.date);
+                  if (dateRecords.length > 0) {
+                    const dateAttempts = dateRecords.reduce((sum, record) => sum + (record.attempts || 0), 0);
+                    directAnswer += `On ${queryParams.date}, there were ${dateAttempts} ${queryParams.tactic} attempts. `;
+                  } else {
+                    directAnswer += `No ${queryParams.tactic} records found for ${queryParams.date}. `;
+                  }
+                }
+              } else {
+                directAnswer += `I found no records for ${queryParams.tactic} in the data. `;
               }
-            } else {
-              directAnswer += "I found no matching records with the specified criteria.";
             }
-            
-            answer = directAnswer;
-          } else {
-            // Generic fallback if no query parameters
-            answer = "Based on the database records, I can provide a direct answer to your question. ";
-            
-            if (sampleData && sampleData.length > 0) {
+            // General data overview
+            else {
               const totalAttempts = sampleData.reduce((sum, record) => sum + (record.attempts || 0), 0);
-              answer += `There are ${sampleData.length} records in the database with a total of ${totalAttempts} attempts.`;
-            } else {
-              answer += "There are no records matching your criteria in the database.";
+              directAnswer += `I found ${sampleData.length} records with a total of ${totalAttempts} attempts. `;
+              
+              // Summarize tactics if available
+              const tactics = {};
+              sampleData.forEach(record => {
+                if (record.tactic) {
+                  tactics[record.tactic] = (tactics[record.tactic] || 0) + (record.attempts || 0);
+                }
+              });
+              
+              if (Object.keys(tactics).length > 0) {
+                directAnswer += "Breakdown by tactic: ";
+                Object.entries(tactics).forEach(([tactic, attempts]) => {
+                  directAnswer += `${tactic}: ${attempts} attempts. `;
+                });
+              }
             }
           }
+          
+          answer = directAnswer;
         }
 
         console.log("Final answer:", answer.substring(0, 100) + "...");
