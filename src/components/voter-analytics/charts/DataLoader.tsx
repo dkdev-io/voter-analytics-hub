@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { type VoterMetrics, type QueryParams, CHART_COLORS } from '@/types/analytics';
 import { fetchVoterMetrics } from '@/lib/voter-data';
+import { isValid, parseISO } from 'date-fns';
 
 interface UseDataLoaderProps {
   query: Partial<QueryParams>;
@@ -54,20 +55,23 @@ export const useDataLoader = ({ query, showFilteredData }: UseDataLoaderProps) =
           (metrics.notReached.refusal || 0) + 
           (metrics.notReached.badData || 0);
         
-        // Line chart data
-        const lineData = metrics.byDate || [];
+        // Filter out any data points with empty/invalid dates or missing data
+        const validatedLineData = (metrics.byDate || []).filter(item => {
+          // Check if date is valid
+          const isValidDate = item.date && isValid(parseISO(item.date));
+          
+          // Ensure we have at least some data for this date (non-zero)
+          const hasData = item.attempts > 0 || item.contacts > 0 || item.issues > 0;
+          
+          return isValidDate && hasData;
+        });
+        
+        console.log("Line chart data before filtering:", metrics.byDate?.length || 0, "entries");
+        console.log("Line chart data after filtering:", validatedLineData.length, "entries");
         
         // Calculate totals
         const totalTactics = tacticsChartData.reduce((sum, item) => sum + item.value, 0);
         const totalContactsValue = contactsChartData.reduce((sum, item) => sum + item.value, 0);
-        
-        console.log("Not Reached data for pie chart:", notReachedChartData);
-        console.log("Total not reached calculated:", totalNotReachedValue, "breakdown:", {
-          notHome: metrics.notReached.notHome,
-          refusal: metrics.notReached.refusal,
-          badData: metrics.notReached.badData,
-          total: totalNotReachedValue
-        });
         
         // Determine dataset name based on user's query or default
         // In a real implementation, this might come from metadata associated with the dataset
@@ -80,7 +84,7 @@ export const useDataLoader = ({ query, showFilteredData }: UseDataLoaderProps) =
         setTacticsData(tacticsChartData);
         setContactsData(contactsChartData);
         setNotReachedData(notReachedChartData);
-        setLineChartData(lineData);
+        setLineChartData(validatedLineData);
         setTotalAttempts(totalTactics);
         setTotalContacts(totalContactsValue);
         setTotalNotReached(totalNotReachedValue);

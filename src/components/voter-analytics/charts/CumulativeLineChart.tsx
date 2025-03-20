@@ -11,7 +11,7 @@ import {
   ResponsiveContainer
 } from 'recharts';
 import { CHART_COLORS } from '@/types/analytics';
-import { format } from 'date-fns';
+import { format, isValid, parseISO } from 'date-fns';
 
 interface CumulativeLineChartProps {
   data: Array<{
@@ -27,8 +27,19 @@ const formatNumber = (value: number) => {
 };
 
 export const CumulativeLineChart: React.FC<CumulativeLineChartProps> = ({ data }) => {
-  // Transform the data to create cumulative totals
-  const cumulativeData = data.reduce((acc, current, index) => {
+  // Filter out any data points with invalid dates or zeros across all metrics
+  const validData = data.filter(item => {
+    // Check if the date is valid
+    const isValidDate = item.date && isValid(parseISO(item.date));
+    
+    // Check if there's actual data (at least one metric has a value)
+    const hasData = item.attempts > 0 || item.contacts > 0 || item.issues > 0;
+    
+    return isValidDate && hasData;
+  });
+
+  // Transform the data to create cumulative totals from valid data points
+  const cumulativeData = validData.reduce((acc, current, index) => {
     if (index === 0) {
       // First item stays the same
       acc.push({

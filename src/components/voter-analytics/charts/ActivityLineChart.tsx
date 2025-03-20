@@ -10,7 +10,7 @@ import {
   ResponsiveContainer
 } from 'recharts';
 import { CHART_COLORS } from '@/types/analytics';
-import { format } from 'date-fns';
+import { format, isValid, parseISO } from 'date-fns';
 
 interface ActivityLineChartProps {
   data: Array<{
@@ -22,8 +22,19 @@ interface ActivityLineChartProps {
 }
 
 export const ActivityLineChart: React.FC<ActivityLineChartProps> = ({ data }) => {
+  // Filter out any data points with invalid dates or zeros across all metrics
+  const validData = data.filter(item => {
+    // Check if the date is valid
+    const isValidDate = item.date && isValid(parseISO(item.date));
+    
+    // Check if there's actual data (at least one metric has a value)
+    const hasData = item.attempts > 0 || item.contacts > 0 || item.issues > 0;
+    
+    return isValidDate && hasData;
+  });
+  
   // Format dates to MM/DD format for display
-  const formattedData = data.map(item => ({
+  const formattedData = validData.map(item => ({
     ...item,
     displayDate: format(new Date(item.date), 'MM/dd')
   }));
