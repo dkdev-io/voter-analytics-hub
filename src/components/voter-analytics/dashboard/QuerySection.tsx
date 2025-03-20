@@ -37,7 +37,8 @@ export function QuerySection({
         onRefresh={onRefresh}
       />
       
-      <div className="mt-6">
+      {/* Button with margin top for spacing */}
+      <div className="mt-8">
         <Button 
           onClick={onSubmit}
           disabled={isLoading}

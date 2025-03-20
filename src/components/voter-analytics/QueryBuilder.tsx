@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { type QueryParams } from '@/types/analytics';
 import { useMetadata } from '@/hooks/use-metadata';
@@ -125,7 +126,7 @@ export const QueryBuilder = ({
   });
 
   return (
-    <ScrollArea className="pr-4 max-h-[calc(100vh-300px)]">
+    <ScrollArea className="pr-4 max-h-[calc(100vh-350px)]">
       <div className="space-y-6">
         {/* First row: Show + Tactic + Metric all as stacked items */}
         <div className="space-y-2">
