@@ -31,6 +31,7 @@ export const VoterAnalytics = () => {
 
   const [activeTab, setActiveTab] = useState<"metric" | "question">("metric");
   const [isSearchVisible, setIsSearchVisible] = useState(true);
+  const [isPrinting, setIsPrinting] = useState(false);
 
   // Create a wrapper function that discards the boolean return value
   const handleRefreshData = async () => {
@@ -38,11 +39,22 @@ export const VoterAnalytics = () => {
     // No return value, which makes this Promise<void>
   };
 
-  // Check if data was uploaded by user
-  const hasUserUploadedData = dataStats && dataStats.source === 'csv-upload';
-
+  // Toggle search panel visibility
   const toggleSearchPanel = () => {
     setIsSearchVisible(!isSearchVisible);
+  };
+
+  // Toggle search panel specifically for printing
+  const toggleSearchPanelForPrinting = () => {
+    // Only toggle if search panel is currently visible
+    if (isSearchVisible) {
+      setIsSearchVisible(false);
+      setIsPrinting(true);
+    } else if (isPrinting) {
+      // If we're in printing mode, restore the search panel
+      setIsSearchVisible(true);
+      setIsPrinting(false);
+    }
   };
 
   return (
@@ -156,7 +168,7 @@ export const VoterAnalytics = () => {
             className="p-4 overflow-y-auto"
           >
             {/* Toggle button when search panel is hidden */}
-            {!isSearchVisible && (
+            {!isSearchVisible && !isPrinting && (
               <div className="flex hidden-print">
                 <Button 
                   variant="ghost" 
@@ -180,6 +192,7 @@ export const VoterAnalytics = () => {
                 isLoading={isLoading} 
                 query={query}
                 showFilteredData={showFilteredData}
+                onToggleSearchPanel={toggleSearchPanelForPrinting}
               />
             </div>
           </ResizablePanel>

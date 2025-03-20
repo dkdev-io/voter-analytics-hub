@@ -19,12 +19,14 @@ interface DashboardChartsProps {
   isLoading: boolean;
   query: Partial<QueryParams>;
   showFilteredData: boolean;
+  onToggleSearchPanel?: () => void;
 }
 
 export const DashboardCharts: React.FC<DashboardChartsProps> = ({ 
   isLoading, 
   query, 
-  showFilteredData 
+  showFilteredData,
+  onToggleSearchPanel
 }) => {
   const [isPrinting, setIsPrinting] = useState(false);
   const [printingChart, setPrintingChart] = useState<string | null>(null);
@@ -158,7 +160,11 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
       </div>
       
       <div className="print-hidden">
-        <PrintReport query={query} onPrint={handlePrint} />
+        <PrintReport 
+          query={query} 
+          onPrint={handlePrint} 
+          onToggleSearchPanel={onToggleSearchPanel}
+        />
       </div>
     </div>
   );
