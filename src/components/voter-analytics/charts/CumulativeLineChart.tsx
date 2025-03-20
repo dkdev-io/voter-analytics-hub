@@ -85,11 +85,13 @@ export const CumulativeLineChart: React.FC<CumulativeLineChartProps> = ({ data }
             interval={0}
             angle={-45}
             textAnchor="end"
-            height={50}
+            height={60}
+            tick={{ fontSize: 8 }}
           />
           <YAxis 
             tickFormatter={formatNumber} 
             domain={[0, Math.ceil(maxCumulativeValue * 1.1)]} // Add 10% padding to the top
+            tick={{ fontSize: 10 }}
           />
           <Tooltip formatter={(value) => [formatNumber(value as number), '']} />
           <Legend />

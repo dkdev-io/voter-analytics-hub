@@ -62,10 +62,12 @@ export const ActivityLineChart: React.FC<ActivityLineChartProps> = ({ data }) =>
             interval={0}
             angle={-45}
             textAnchor="end"
-            height={50}
+            height={60}
+            tick={{ fontSize: 8 }}
           />
           <YAxis 
             domain={[0, Math.ceil(maxValue * 1.1)]} // Add 10% padding to the top
+            tick={{ fontSize: 10 }}
           />
           <Tooltip />
           <Legend />
