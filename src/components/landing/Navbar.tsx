@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Menu, X } from 'lucide-react';
 import { useMobile } from '@/hooks/useMobile';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 export const Navbar = () => {
   const { isMobile } = useMobile();
@@ -12,24 +13,25 @@ export const Navbar = () => {
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
   return (
-    <header className="fixed top-0 left-0 right-0 bg-white border-b z-50">
+    <header className="fixed top-0 left-0 right-0 bg-background border-b z-50">
       <div className="container mx-auto py-4 px-4 md:px-6">
         <div className="flex justify-between items-center">
           <Link to="/" className="font-bold text-xl">VoterContact.io</Link>
           
           {isMobile ? (
-            <div>
-              <Button variant="ghost" size="icon" onClick={toggleMenu}>
+            <div className="flex items-center">
+              <ThemeToggle />
+              <Button variant="ghost" size="icon" onClick={toggleMenu} className="ml-2">
                 {isMenuOpen ? <X /> : <Menu />}
               </Button>
               
               {isMenuOpen && (
-                <div className="absolute top-16 left-0 right-0 bg-white shadow-lg p-4 flex flex-col gap-4">
+                <div className="absolute top-16 left-0 right-0 bg-background shadow-lg p-4 flex flex-col gap-4">
                   <Link to="/#features" className="py-2" onClick={toggleMenu}>Features</Link>
                   <Link to="/#pricing" className="py-2" onClick={toggleMenu}>Pricing</Link>
                   <Link to="/#more-info" className="py-2" onClick={toggleMenu}>More Info</Link>
                   <Link to="/auth">
-                    <Button className="w-full bg-blue-500 hover:bg-blue-600 text-white">Get Started</Button>
+                    <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">Get Started</Button>
                   </Link>
                 </div>
               )}
@@ -37,12 +39,13 @@ export const Navbar = () => {
           ) : (
             <div className="flex items-center gap-6">
               <nav className="flex items-center gap-6">
-                <Link to="/#features" className="text-sm font-medium hover:text-blue-500 transition-colors">Features</Link>
-                <Link to="/#pricing" className="text-sm font-medium hover:text-blue-500 transition-colors">Pricing</Link>
-                <Link to="/#more-info" className="text-sm font-medium hover:text-blue-500 transition-colors">More Info</Link>
+                <Link to="/#features" className="text-sm font-medium hover:text-primary transition-colors">Features</Link>
+                <Link to="/#pricing" className="text-sm font-medium hover:text-primary transition-colors">Pricing</Link>
+                <Link to="/#more-info" className="text-sm font-medium hover:text-primary transition-colors">More Info</Link>
               </nav>
+              <ThemeToggle />
               <Link to="/auth">
-                <Button className="bg-blue-500 hover:bg-blue-600 text-white">Get Started</Button>
+                <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">Get Started</Button>
               </Link>
             </div>
           )}
