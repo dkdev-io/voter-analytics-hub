@@ -36,7 +36,9 @@ export const calculateResultFromSupabase = async (query: Partial<QueryParams>) =
     if (query.person) {
       const personParts = query.person.trim().split(' ');
       if (personParts.length > 1) {
-        console.log(`Person query detected: "${query.person}" - will look for first_name="${personParts[0]}" AND last_name="${personParts.slice(1).join(' ')}"`);
+        const firstName = personParts[0];
+        const lastName = personParts.slice(1).join(' ');
+        console.log(`Person query detected: "${query.person}" - will look for first_name="${firstName}" AND last_name="${lastName}"`);
       }
     }
     

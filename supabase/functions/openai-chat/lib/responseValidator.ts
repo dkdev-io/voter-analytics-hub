@@ -1,4 +1,3 @@
-
 // Validate and fix AI responses if needed
 export async function validateResponse(
   aiResponse: { answer: string, finishReason: string }, 
@@ -97,18 +96,45 @@ export async function validateResponse(
     answer.toLowerCase().includes(`couldn't find`) && 
     answer.toLowerCase().includes(queryParams.person.toLowerCase());
     
+  // Check for answer where the AI references itself
+  const isSelfReferring = 
+    answer.toLowerCase().includes("as an ai") || 
+    answer.toLowerCase().includes("my capabilities") ||
+    answer.toLowerCase().includes("my training") ||
+    answer.toLowerCase().includes("my knowledge");
+    
+  // Check for apologies - almost always a sign the AI is trying to dodge giving a direct answer
+  const isApologizing = 
+    answer.toLowerCase().includes("i apologize") || 
+    answer.toLowerCase().includes("i'm sorry");
+    
+  // Check if the answer doesn't start with "Based on the data provided"
+  const doesNotStartWithDataPhrase = !answer.toLowerCase().startsWith("based on the data provided");
+  
   console.log("Response validation checks:", {
     containsBlacklistedPhrase,
     isGenericAnswer,
     isClaimingPersonNotFound,
+    isSelfReferring,
+    isApologizing,
+    doesNotStartWithDataPhrase,
     sampleDataLength: sampleData.length,
     hasPerson: !!queryParams?.person
   });
   
+  // Force a direct data answer for any of these conditions
+  const shouldGenerateDirectAnswer = 
+    (containsBlacklistedPhrase || 
+     isGenericAnswer || 
+     isSelfReferring || 
+     isApologizing ||
+     (doesNotStartWithDataPhrase && sampleData.length > 0)) && 
+    sampleData.length > 0;
+  
   // If the model is claiming it doesn't have access to data, or providing a generic answer
   // when we have data, generate a direct answer from the data
-  if ((containsBlacklistedPhrase || isGenericAnswer) && sampleData.length > 0) {
-    console.log("WARNING: OpenAI response contains blacklisted phrases or generic answer - generating direct answer from data");
+  if (shouldGenerateDirectAnswer) {
+    console.log("WARNING: OpenAI response contains problems - generating direct answer from data");
     console.log("Original answer:", answer);
     console.log("Sample data size:", sampleData.length);
     console.log("Query params:", queryParams);
@@ -170,16 +196,25 @@ function findPersonInData(data: any[], personName: string): any[] {
   
   console.log(`Searching for name: firstName="${firstName}", lastName="${lastName}"`);
   
+  // First try exact match for both first and last name
+  const exactMatches = data.filter(record => {
+    const recordFirstName = (record.first_name || '').toLowerCase();
+    const recordLastName = (record.last_name || '').toLowerCase();
+    return recordFirstName === firstName && recordLastName === lastName;
+  });
+  
+  // If we found exact matches, return those
+  if (exactMatches.length > 0) {
+    console.log(`Found ${exactMatches.length} exact matches for "${firstName} ${lastName}"`);
+    return exactMatches;
+  }
+  
+  // Otherwise, try partial matching
   return data.filter(record => {
     const recordFirstName = (record.first_name || '').toLowerCase();
     const recordLastName = (record.last_name || '').toLowerCase();
     
-    // Look for exact matches first
-    if (recordFirstName === firstName && recordLastName === lastName) {
-      return true;
-    }
-    
-    // Then look for partial matches (significant improvement for names like Dan/Daniel, etc.)
+    // Look for partial matches (significant improvement for names like Dan/Daniel, etc.)
     const firstNameMatch = recordFirstName.includes(firstName) || firstName.includes(recordFirstName);
     const lastNameMatch = recordLastName.includes(lastName) || lastName.includes(recordLastName);
     

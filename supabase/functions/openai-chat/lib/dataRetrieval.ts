@@ -74,9 +74,9 @@ IMPORTANT: Use this data to answer the question comprehensively. Refer to specif
           const firstName = nameParts[0];
           const lastName = nameParts.slice(1).join(' ');
           
-          console.log(`Looking for person with first_name=${firstName} and last_name=${lastName}`);
+          console.log(`Looking for person with first_name="${firstName}" and last_name="${lastName}"`);
           
-          // Try to match both first and last name exactly first
+          // Try first+last name combination - use ilike for case-insensitivity
           query = query.or(`and(first_name.ilike.${firstName},last_name.ilike.${lastName}),and(first_name.ilike.%${firstName}%,last_name.ilike.%${lastName}%)`);
         } else {
           // Single name part - search in both first and last name
@@ -106,7 +106,7 @@ IMPORTANT: Use this data to answer the question comprehensively. Refer to specif
       console.log(`Total matching records: ${count || 0}`);
     }
     
-    // No limits on data size - retrieve all records for better context
+    // Get all matching records - no limits
     const { data, error } = await query;
     
     if (error) {
@@ -161,28 +161,23 @@ ${JSON.stringify(dateStats.data)}
       
       // Format the data for inclusion in the prompt - using VERY EXPLICIT instructions
       dataContext = `
-YOU HAVE ACCESS TO THE FOLLOWING DATABASE RECORDS:
+THESE ARE REAL DATABASE RECORDS FROM YOUR VOTER CONTACT DATABASE:
 
-DATABASE RECORDS (${data.length} of ${count || 'unknown'} total records):
+DATABASE RECORDS [${data.length} records]:
 ${JSON.stringify(data)}
 
 ${statsContext || ''}
 
-EXTREMELY IMPORTANT INSTRUCTIONS:
-1. The above data shows voter contact records. ANSWER ANY QUESTIONS USING ONLY THIS DATA.
-2. YOU MUST NEVER refuse to answer or claim you don't have access to data. This data is RIGHT HERE.
-3. NEVER say phrases like "I don't have access", "I'd need access", "my knowledge is limited", or similar.
-4. If the user asks about a person, search through the data for that name. For full names like "Dan Kelly", search for records where first_name="Dan" AND last_name="Kelly".
-5. If asked to count something (like "How many phone attempts"), COUNT IT using the data above.
-6. If the data doesn't contain what was asked for, simply say "Based on the data provided, I couldn't find records for [X]."
-7. ALWAYS begin your response with "Based on the data provided..."
-8. The data contains records with fields like first_name, last_name, tactic (Phone/SMS/Canvas), attempts, etc.
-9. A "Phone attempt" refers to the "attempts" field in records where "tactic" is "Phone".
-10. These are REAL DATABASE RECORDS that you can directly analyze right now.
-11. DO NOT ask for more context - all the data you need is above.
-12. I expect you to COUNT records and CALCULATE totals from the data provided.
+EXTREMELY IMPORTANT INSTRUCTIONS FOR USING THIS DATA:
+1. The above data shows REAL voter contact records. ANSWER QUESTIONS USING ONLY THIS DATA.
+2. EACH RECORD has these fields: first_name, last_name, team, date, tactic, attempts, contacts, etc.
+3. When searching for a person like "Dan Kelly", FIND RECORDS where first_name="Dan" AND last_name="Kelly".
+4. For "How many phone attempts did Dan Kelly make?", COUNT THE attempts field values in records where first_name="Dan" AND last_name="Kelly" AND tactic="Phone".
+5. ALWAYS begin responses with "Based on the data provided, ..."
+6. NEVER say "I don't have access to data" or similar phrases.
+7. DO NOT ASK for more context - all the data you need is above.
 
-YOU ARE ANALYZING REAL VOTER CONTACT DATA FROM THE DATABASE SHOWN ABOVE.`;
+THE QUESTION IS ABOUT THIS EXACT DATA. SEARCH AND ANALYZE THESE RECORDS DIRECTLY.`;
       
       console.log(`Retrieved ${data.length} records for context`);
     } else {

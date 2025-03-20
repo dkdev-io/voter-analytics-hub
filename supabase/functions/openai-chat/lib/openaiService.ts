@@ -25,30 +25,39 @@ export async function callOpenAI({
   // Use different system prompts based on the task
   const systemPrompt = isParameterExtraction 
     ? 'You are a helpful assistant that extracts structured parameters from natural language queries about voter data. Return only valid JSON with no additional text, explanations, or markdown formatting. Never use backticks or code blocks in your response, just the raw JSON. If the query mentions "phone", set tactic to "Phone". If it mentions "SMS" or "sms", set tactic to "SMS". If it mentions "canvas", set tactic to "Canvas". Be exact with person names and dates. Here are specific examples: For "How many Phone attempts did Jane Doe make on 2025-01-02?" your response must be exactly {"tactic":"Phone","person":"Jane Doe","date":"2025-01-02","resultType":"attempts"}. For "How many Phone attempts did Dan Kelly make?" your response must be exactly {"tactic":"Phone","person":"Dan Kelly","resultType":"attempts"}'
-    : `You are a data analysis assistant with DIRECT ACCESS to voter contact database records that I will provide.
+    : `You are a data analysis assistant with the VOTER CONTACT DATABASE RECORDS provided directly in this message.
 
-CRITICAL INSTRUCTIONS - FOLLOW THESE EXACTLY:
-1. I am giving you REAL DATABASE RECORDS as JSON data below.
-2. YOU HAVE FULL ACCESS to these records RIGHT NOW.
-3. NEVER say "I don't have access to data" or that you "don't have specific information" - the data is provided to you!
-4. NEVER apologize or mention limitations - you have all the necessary data.
-5. NEVER mention knowledge cutoffs or training data - focus ONLY on the provided data.
-6. NEVER say you "need more context" - analyze what you have!
-7. ALWAYS directly search through and analyze the provided data JSON.
-8. ALWAYS search for people by name in the data, checking both first_name and last_name fields.
-9. If asked to count attempts or contacts, COUNT THE ACTUAL RECORDS in the provided data.
-10. ALWAYS begin your response with "Based on the data provided, ..." and then give specific results.
-11. If asked about a person who isn't in the data, say "Based on the data provided, I couldn't find records for [name]" - NOT that you lack access.
-12. Be precise and use exact counts from the data.
-13. ALWAYS perform case-insensitive name searches.
-14. When searching for a full name like "Dan Kelly", search for records where first_name="Dan" AND last_name="Kelly".
+CRITICAL INSTRUCTIONS - I'M HAVING ISSUES WITH YOU CLAIMING YOU DON'T HAVE DATA - FOLLOW THESE EXACTLY:
+1. DO NOT EVER say you "don't have access to data" - I AM GIVING YOU THE ACTUAL DATABASE RECORDS in this message
+2. NEVER say you "don't have specific information" - the data is PROVIDED BELOW
+3. NEVER apologize or mention limitations - you have all the necessary data
+4. NEVER mention knowledge cutoffs or training data - focus ONLY on the provided data
+5. NEVER say you "need more context" - analyze what you have
+6. ALWAYS directly analyze the database records provided below - THEY ARE REAL AND COMPLETE
+7. ALWAYS search for people by checking both first_name and last_name fields in the data
+8. If asked to count attempts or contacts, COUNT THE ACTUAL RECORDS in the provided data
+9. ALWAYS begin your response with "Based on the data provided, ..." and then give specific results
+10. ALWAYS perform case-insensitive name searches when looking for a person
 
-EXAMPLES:
-- If asked "How many phone attempts did Dan Kelly make?", you should search all records where first_name="Dan" and last_name="Kelly" and tactic="Phone", then count the attempts.
-- If the records show Dan Kelly made 15 Phone attempts, say "Based on the data provided, Dan Kelly made 15 Phone attempts."
-- If no records match, say "Based on the data provided, I couldn't find records for Dan Kelly."
+IMPORTANT RULE: When searching for a full name like "Dan Kelly", search for records where first_name="Dan" AND last_name="Kelly"
+EXAMPLE: For "How many phone attempts did Dan Kelly make?", look for records where:
+   first_name is "Dan" AND last_name is "Kelly" AND tactic="Phone"
+   Then count the attempts field values in those records
 
-THE DATA BELOW IS YOUR PRIMARY SOURCE - you MUST use it to answer questions:`;
+EXAMPLE CORRECT RESPONSES:
+- Query: "How many phone attempts did Dan Kelly make?"
+  ✓ Correct: "Based on the data provided, Dan Kelly made 15 Phone attempts."
+  ✗ Incorrect: "I don't have specific information about Dan Kelly's phone attempts."
+
+- Query: "How many contacts did Jane Wilson make using Canvas?"
+  ✓ Correct: "Based on the data provided, Jane Wilson made 8 contacts using Canvas."
+  ✗ Incorrect: "I would need access to the database to answer this question."
+
+- Query: "How many voters did Team Tony contact in January?"
+  ✓ Correct: "Based on the data provided, Team Tony contacted 45 voters in January."
+  ✗ Incorrect: "I don't have access to Team Tony's contact information."
+
+THE DATA BELOW CONTAINS REAL DATABASE RECORDS - YOU MUST USE THESE TO ANSWER:`;
   
   // Include the data context in the user prompt for data analysis requests
   const userPrompt = dataContext ? `${prompt}\n\n${dataContext}` : prompt;
@@ -59,12 +68,12 @@ THE DATA BELOW IS YOUR PRIMARY SOURCE - you MUST use it to answer questions:`;
   // Set a lower temperature for more consistent responses
   const temperature = isParameterExtraction ? 0.1 : 0.2;
   
-  // Calculate appropriate max tokens based on response type and model - no limits
+  // No limits on max tokens - use maximum available
   const maxTokens = isParameterExtraction 
-    ? 500  // Parameter extraction needs less tokens
+    ? 500
     : useAdvancedModel
-      ? (conciseResponse ? 4000 : 16000)  // More tokens for gpt-4o
-      : (conciseResponse ? 2000 : 8000);  // Increased tokens for gpt-4o-mini
+      ? (conciseResponse ? 16000 : 32000)
+      : (conciseResponse ? 8000 : 16000);
   
   // Prepare the request payload
   const requestPayload = {
