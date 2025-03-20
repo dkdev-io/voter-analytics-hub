@@ -10,6 +10,7 @@ import ConnectData from '@/pages/ConnectData';
 import NotFound from '@/pages/NotFound';
 import { AuthGuard } from '@/components/AuthGuard';
 import AIChat from '@/pages/AIChat';
+import { IssueTracker } from '@/components/issue-log/IssueTracker';
 import './App.css';
 
 function App() {
@@ -34,6 +35,7 @@ function AppContent() {
           <Route path="/dashboard" element={<AuthGuard><Index /></AuthGuard>} />
           <Route path="/connect-data" element={<AuthGuard><ConnectData /></AuthGuard>} />
           <Route path="/ai-chat" element={<AuthGuard><AIChat /></AuthGuard>} />
+          <Route path="/issues/*" element={<AuthGuard><IssueTracker /></AuthGuard>} />
           <Route path="/404" element={<NotFound />} />
           <Route path="*" element={<Navigate to="/404" replace />} />
         </Routes>

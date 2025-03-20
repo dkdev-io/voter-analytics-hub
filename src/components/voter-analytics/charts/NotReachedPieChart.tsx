@@ -9,6 +9,7 @@ import {
 } from 'recharts';
 import { CHART_COLORS } from '@/types/analytics';
 import { CustomPieTooltip } from './CustomTooltip';
+import { ReportChartIssueButton } from './ReportChartIssueButton';
 
 interface NotReachedPieChartProps {
   data: Array<{ name: string; value: number; color: string }>;
@@ -17,7 +18,7 @@ interface NotReachedPieChartProps {
 
 export const NotReachedPieChart: React.FC<NotReachedPieChartProps> = ({ data, total }) => {
   // Calculate the total directly from the data to ensure accuracy
-  const calculatedTotal = data.reduce((sum, item) => sum + item.value, 0);
+  const calculatedTotal = data.reduce((sum, item) => sum + (Number(item.value) || 0), 0);
   
   // Use calculated total rather than the passed total which might be incorrect
   const actualTotal = calculatedTotal > 0 ? calculatedTotal : total;
@@ -30,8 +31,9 @@ export const NotReachedPieChart: React.FC<NotReachedPieChartProps> = ({ data, to
   // Add total to each data point for percentage calculation
   const dataWithTotal = data.map(item => ({
     ...item,
+    value: Number(item.value) || 0, // Make sure this is a number
     total: actualTotal,
-    percent: actualTotal > 0 ? ((item.value / actualTotal) * 100).toFixed(1) : '0.0'
+    percent: actualTotal > 0 ? ((Number(item.value) / actualTotal) * 100).toFixed(1) : '0.0'
   }));
 
   // Custom legend that includes percentages
@@ -47,7 +49,7 @@ export const NotReachedPieChart: React.FC<NotReachedPieChartProps> = ({ data, to
               style={{ backgroundColor: entry.color }}
             />
             <span className="whitespace-nowrap">
-              {entry.value} - {entry.payload.value.toLocaleString()} 
+              {entry.value} - {Number(entry.payload.value).toLocaleString()} 
               ({actualTotal > 0 ? ((entry.payload.value / actualTotal) * 100).toFixed(1) : '0.0'}%)
             </span>
           </li>
@@ -58,7 +60,15 @@ export const NotReachedPieChart: React.FC<NotReachedPieChartProps> = ({ data, to
 
   return (
     <div className="h-72 bg-white rounded-lg border border-gray-200 flex flex-col">
-      <h3 className="text-sm font-bold p-2 text-center">Not Reached</h3>
+      <div className="flex justify-between items-center p-2">
+        <h3 className="text-sm font-bold">Not Reached</h3>
+        <ReportChartIssueButton 
+          chartType="NotReached"
+          actualData={data}
+          expectedTotal={total}
+          className="ml-auto h-6 text-xs"
+        />
+      </div>
       <div className="text-center text-sm font-medium pb-3">
         Total: {actualTotal.toLocaleString()}
       </div>
