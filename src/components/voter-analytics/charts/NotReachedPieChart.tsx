@@ -9,6 +9,9 @@ import {
 } from 'recharts';
 import { CHART_COLORS } from '@/types/analytics';
 import { CustomPieTooltip } from './CustomTooltip';
+import { useErrorLogger } from '@/hooks/useErrorLogger';
+import { useReportIssue } from '@/lib/issue-log/useReportIssue';
+import { useEffect } from 'react';
 
 interface NotReachedPieChartProps {
   data: Array<{ name: string; value: number; color: string }>;
@@ -16,14 +19,22 @@ interface NotReachedPieChartProps {
 }
 
 export const NotReachedPieChart: React.FC<NotReachedPieChartProps> = ({ data, total }) => {
+  const { logDataIssue } = useErrorLogger();
+  const { reportPieChartCalculationIssue } = useReportIssue();
+  
   // Calculate the total directly from the data to ensure accuracy
   const calculatedTotal = data.reduce((sum, item) => sum + (Number(item.value) || 0), 0);
   
   // Use calculated total rather than the passed total which might be incorrect
   const actualTotal = calculatedTotal > 0 ? calculatedTotal : total;
   
-  // Log data for debugging
-  console.log('NotReachedPieChart data:', data);
+  // Enhanced logging to diagnose the issue
+  console.log('NotReachedPieChart data with types:', data.map(item => ({
+    name: item.name,
+    value: item.value,
+    valueType: typeof item.value,
+    color: item.color
+  })));
   console.log('NotReachedPieChart calculated total:', calculatedTotal);
   console.log('NotReachedPieChart passed total:', total);
   
@@ -34,6 +45,37 @@ export const NotReachedPieChart: React.FC<NotReachedPieChartProps> = ({ data, to
     total: actualTotal,
     percent: actualTotal > 0 ? ((Number(item.value) / actualTotal) * 100).toFixed(1) : '0.0'
   }));
+
+  // Report issue if there's a suspected data mismatch
+  useEffect(() => {
+    // Check if there's a data issue: Not Home should be the first item with value 561
+    const expectedValues = {
+      "Not Home": 561,
+      "Refusal": 0,
+      "Bad Data": 0
+    };
+    
+    const actualValues = {
+      "Not Home": data.find(item => item.name === "Not Home")?.value || 0,
+      "Refusal": data.find(item => item.name === "Refusal")?.value || 0, 
+      "Bad Data": data.find(item => item.name === "Bad Data")?.value || 0
+    };
+    
+    const hasIssue = actualValues["Not Home"] !== expectedValues["Not Home"] || 
+                     actualValues["Refusal"] !== expectedValues["Refusal"];
+    
+    if (hasIssue) {
+      // Log the data issue for debugging
+      logDataIssue("NotReachedPieChart data mismatch", {
+        expectedValues,
+        actualValues,
+        rawData: data
+      });
+      
+      // Report the issue to the issue log
+      reportPieChartCalculationIssue("Not Reached", expectedValues, actualValues);
+    }
+  }, [data, logDataIssue, reportPieChartCalculationIssue]);
 
   // Custom legend that includes percentages
   const renderLegend = (props: any) => {
