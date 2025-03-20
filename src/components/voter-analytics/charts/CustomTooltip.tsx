@@ -11,7 +11,7 @@ export const CustomPieTooltip = ({ active, payload }: any) => {
       <div className="bg-white p-2 border border-gray-200 shadow-md rounded text-xs">
         <p className="font-semibold">{payload[0].name}</p>
         <p style={{ color: payload[0].payload.color }}>
-          Value: {payload[0].value}
+          Value: {Number(payload[0].value).toLocaleString()}
         </p>
         {total > 0 && (
           <p>

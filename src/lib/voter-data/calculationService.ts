@@ -83,27 +83,28 @@ export const aggregateVoterMetrics = (filteredData: any[]): VoterMetrics => {
   
   metrics.byDate = dateData;
   
-  // Aggregate data - ensure we're parsing string values to numbers
+  // Aggregate data - ensure we're parsing string values to numbers with explicit conversion
   filteredData.forEach(item => {
     // Aggregate by tactic
-    if (item.tactic.toLowerCase() === 'sms') {
+    if (item.tactic && item.tactic.toLowerCase() === 'sms') {
       metrics.tactics.sms += Number(item.attempts) || 0;
-    } else if (item.tactic.toLowerCase() === 'phone') {
+    } else if (item.tactic && item.tactic.toLowerCase() === 'phone') {
       metrics.tactics.phone += Number(item.attempts) || 0;
-    } else if (item.tactic.toLowerCase() === 'canvas') {
+    } else if (item.tactic && item.tactic.toLowerCase() === 'canvas') {
       metrics.tactics.canvas += Number(item.attempts) || 0;
     }
     
-    // Aggregate contacts by result
+    // Aggregate contacts by result - explicit Number conversion for all values
     metrics.contacts.support += Number(item.support) || 0;
     metrics.contacts.oppose += Number(item.oppose) || 0;
     metrics.contacts.undecided += Number(item.undecided) || 0;
     
-    // Properly aggregate the "Not Reached" metrics - ensure explicit Number conversion for all values
+    // Explicitly convert all "Not Reached" values to numbers to ensure correct aggregation
     const notHome = Number(item.not_home) || 0;
     const refusal = Number(item.refusal) || 0;
     const badData = Number(item.bad_data) || 0;
     
+    // Add the values to the metrics
     metrics.notReached.notHome += notHome;
     metrics.notReached.refusal += refusal;
     metrics.notReached.badData += badData;

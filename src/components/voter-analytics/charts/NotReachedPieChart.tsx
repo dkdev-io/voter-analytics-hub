@@ -19,8 +19,8 @@ export const NotReachedPieChart: React.FC<NotReachedPieChartProps> = ({ data, to
   // Calculate the total directly from the data to ensure accuracy
   const calculatedTotal = data.reduce((sum, item) => sum + item.value, 0);
   
-  // Ensure we use the calculated total rather than the passed total which might be incorrect
-  const actualTotal = calculatedTotal || total;
+  // Use calculated total rather than the passed total which might be incorrect
+  const actualTotal = calculatedTotal > 0 ? calculatedTotal : total;
   
   // Log data for debugging
   console.log('NotReachedPieChart data:', data);
@@ -47,7 +47,7 @@ export const NotReachedPieChart: React.FC<NotReachedPieChartProps> = ({ data, to
               style={{ backgroundColor: entry.color }}
             />
             <span className="whitespace-nowrap">
-              {entry.value} - {entry.payload.value} 
+              {entry.value} - {entry.payload.value.toLocaleString()} 
               ({actualTotal > 0 ? ((entry.payload.value / actualTotal) * 100).toFixed(1) : '0.0'}%)
             </span>
           </li>
@@ -60,7 +60,7 @@ export const NotReachedPieChart: React.FC<NotReachedPieChartProps> = ({ data, to
     <div className="h-72 bg-white rounded-lg border border-gray-200 flex flex-col">
       <h3 className="text-sm font-bold p-2 text-center">Not Reached</h3>
       <div className="text-center text-sm font-medium pb-3">
-        Total: {actualTotal}
+        Total: {actualTotal.toLocaleString()}
       </div>
       <div className="flex-1">
         <ResponsiveContainer width="100%" height="100%">

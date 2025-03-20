@@ -44,6 +44,7 @@ export const DateSelector = ({
           className="max-h-[300px] overflow-y-auto bg-white z-50"
           position="popper"
           sideOffset={5}
+          side="bottom"
           align="start"
         >
           <SelectItem value="All">{label === "Start Date" ? "All Dates" : "No End Date"}</SelectItem>

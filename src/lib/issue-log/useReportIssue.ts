@@ -34,9 +34,43 @@ export const useReportIssue = () => {
     }
   };
 
+  // Add a more specific function to report calculation issues
+  const reportPieChartCalculationIssue = async (chartType: string, expectedValues: Record<string, number>, actualValues: Record<string, number>) => {
+    try {
+      setIsReporting(true);
+      
+      // Log a detailed issue with specific values
+      const issueDescription = `${chartType} pie chart calculations are incorrect.
+Expected: ${JSON.stringify(expectedValues)}
+Actual: ${JSON.stringify(actualValues)}`;
+      
+      // In a real implementation, you would send this to your issue tracking system
+      console.log("Reporting calculation issue:", issueDescription);
+      
+      // Create a placeholder issue object
+      const issue = {
+        id: Date.now().toString(),
+        title: `${chartType} Chart Calculation Issue`,
+        description: issueDescription,
+        status: 'open',
+        createdAt: new Date().toISOString()
+      };
+      
+      setReportedIssue(issue as Issue);
+      return issue as Issue;
+      
+    } catch (error) {
+      logError(error as Error, 'useReportIssue.reportPieChartCalculationIssue');
+      return null;
+    } finally {
+      setIsReporting(false);
+    }
+  };
+
   return {
     isReporting,
     reportedIssue,
-    reportNotReachedPieChartIssue
+    reportNotReachedPieChartIssue,
+    reportPieChartCalculationIssue
   };
 };

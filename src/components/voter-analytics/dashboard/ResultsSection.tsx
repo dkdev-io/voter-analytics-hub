@@ -24,7 +24,7 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ error, result, q
       {result !== null && !error && (
         <Card className="bg-white p-6 rounded-lg shadow-md hidden-print">
           <p className="text-xl font-medium text-gray-900 text-center">
-            Result: {result}
+            Result: {result.toLocaleString()}
           </p>
         </Card>
       )}

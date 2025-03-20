@@ -26,7 +26,7 @@ export const ResultDisplay = ({
 
       {result !== null && !error && (
         <p className="text-xl font-medium text-gray-900 mt-4 text-center">
-          Result: {result}
+          Result: {result.toLocaleString()}
         </p>
       )}
     </div>

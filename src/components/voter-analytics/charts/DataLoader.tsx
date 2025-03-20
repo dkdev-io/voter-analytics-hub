@@ -42,11 +42,19 @@ export const useDataLoader = ({ query, showFilteredData }: UseDataLoaderProps) =
         ];
         
         // Chart 3: Not Reached breakdown (Not Home, Refusal, Bad Data)
+        // Ensure we're using proper numbers, not strings
+        const notHome = Number(metrics.notReached.notHome) || 0;
+        const refusal = Number(metrics.notReached.refusal) || 0;
+        const badData = Number(metrics.notReached.badData) || 0;
+        
         const notReachedChartData = [
-          { name: 'Not Home', value: metrics.notReached.notHome || 0, color: CHART_COLORS.NOT_REACHED.NOT_HOME },
-          { name: 'Refusal', value: metrics.notReached.refusal || 0, color: CHART_COLORS.NOT_REACHED.REFUSAL },
-          { name: 'Bad Data', value: metrics.notReached.badData || 0, color: CHART_COLORS.NOT_REACHED.BAD_DATA }
+          { name: 'Not Home', value: notHome, color: CHART_COLORS.NOT_REACHED.NOT_HOME },
+          { name: 'Refusal', value: refusal, color: CHART_COLORS.NOT_REACHED.REFUSAL },
+          { name: 'Bad Data', value: badData, color: CHART_COLORS.NOT_REACHED.BAD_DATA }
         ];
+        
+        // Calculate the total not reached directly from the chart data values
+        const totalNotReachedValue = notHome + refusal + badData;
         
         // Line chart data
         const lineData = metrics.byDate || [];
@@ -55,17 +63,11 @@ export const useDataLoader = ({ query, showFilteredData }: UseDataLoaderProps) =
         const totalTactics = tacticsChartData.reduce((sum, item) => sum + item.value, 0);
         const totalContactsValue = contactsChartData.reduce((sum, item) => sum + item.value, 0);
         
-        // Calculate the total not reached directly from the metrics structure
-        const totalNotReachedValue = 
-          (metrics.notReached.notHome || 0) + 
-          (metrics.notReached.refusal || 0) + 
-          (metrics.notReached.badData || 0);
-        
         console.log("Not Reached data for pie chart:", notReachedChartData);
         console.log("Total not reached calculated:", totalNotReachedValue, "breakdown:", {
-          notHome: metrics.notReached.notHome,
-          refusal: metrics.notReached.refusal,
-          badData: metrics.notReached.badData
+          notHome,
+          refusal,
+          badData
         });
         
         // Determine dataset name based on user's query or default
