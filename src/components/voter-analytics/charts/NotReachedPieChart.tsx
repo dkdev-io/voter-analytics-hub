@@ -9,7 +9,6 @@ import {
 } from 'recharts';
 import { CHART_COLORS } from '@/types/analytics';
 import { CustomPieTooltip } from './CustomTooltip';
-import { ReportChartIssueButton } from './ReportChartIssueButton';
 
 interface NotReachedPieChartProps {
   data: Array<{ name: string; value: number; color: string }>;
@@ -62,12 +61,6 @@ export const NotReachedPieChart: React.FC<NotReachedPieChartProps> = ({ data, to
     <div className="h-72 bg-white rounded-lg border border-gray-200 flex flex-col">
       <div className="flex justify-between items-center p-2">
         <h3 className="text-sm font-bold">Not Reached</h3>
-        <ReportChartIssueButton 
-          chartType="NotReached"
-          actualData={data}
-          expectedTotal={total}
-          className="ml-auto h-6 text-xs"
-        />
       </div>
       <div className="text-center text-sm font-medium pb-3">
         Total: {actualTotal.toLocaleString()}
