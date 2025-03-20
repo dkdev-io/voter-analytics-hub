@@ -161,7 +161,7 @@ export const SearchField: React.FC<SearchFieldProps> = ({
           ) : (
             <span className="flex items-center">
               <Search className="mr-2 h-4 w-4" />
-              Get Insights {useAdvancedModel && <Zap className="ml-1 h-3 w-3" />}
+              Get Results {useAdvancedModel && <Zap className="ml-1 h-3 w-3" />}
             </span>
           )}
         </Button>

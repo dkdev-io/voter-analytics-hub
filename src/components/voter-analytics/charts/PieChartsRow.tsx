@@ -22,7 +22,7 @@ export const PieChartsRow: React.FC<PieChartsRowProps> = ({
   totalNotReached
 }) => {
   return (
-    <div id="pie-charts-row" className="grid grid-cols-1 md:grid-cols-3 gap-4 print:flex print:flex-row print:justify-between print:gap-1">
+    <div id="pie-charts-row" className="grid grid-cols-1 md:grid-cols-3 gap-6 print:flex print:flex-row print:justify-between print:gap-2 print:scale-90 print:mt-[-20px]">
       {/* Chart 1: Tactics Distribution */}
       <div className="pie-chart-container print:w-[32%] print:min-w-[32%] print:max-w-[32%]">
         <TacticsPieChart data={tacticsData} total={totalAttempts} />

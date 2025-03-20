@@ -70,8 +70,9 @@ export const VoterAnalytics = () => {
             <>
               <ResizablePanel defaultSize={25} minSize={20} maxSize={40} className="p-4 border-r border-gray-200">
                 <div className="h-full flex flex-col">
-                  {/* Toggle button moved inside and at the top of the search panel */}
-                  <div className="flex justify-end mb-4 hidden-print">
+                  {/* Toggle button at the top of the search panel */}
+                  <div className="flex justify-between mb-4 hidden-print">
+                    <div className="text-lg font-semibold">Search Options</div>
                     <Button 
                       variant="ghost" 
                       size="sm" 
@@ -84,8 +85,6 @@ export const VoterAnalytics = () => {
                     </Button>
                   </div>
                   
-                  <div className="text-lg font-semibold mb-4">Search Options</div>
-                  
                   <div className="mb-4">
                     <div className="grid grid-cols-2 gap-4 mb-6">
                       <button 
@@ -96,7 +95,7 @@ export const VoterAnalytics = () => {
                             : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                         }`}
                       >
-                        Pick a metric
+                        Select metric
                       </button>
                       <button 
                         onClick={() => setActiveTab("question")}

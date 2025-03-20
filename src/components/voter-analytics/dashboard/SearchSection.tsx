@@ -20,7 +20,7 @@ export function SearchSection({
   return (
     <div className="space-y-3">
       <p className="text-xs text-gray-600 mb-2">
-        Ask a question about your voter data and get AI-powered insights.
+        Ask a question below about your voter contact data.
       </p>
       
       <SearchField
