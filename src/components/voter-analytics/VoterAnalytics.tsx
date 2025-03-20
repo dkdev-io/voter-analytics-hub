@@ -39,6 +39,9 @@ export const VoterAnalytics = () => {
     // No return value, which makes this Promise<void>
   };
 
+  // Check if data was uploaded by user
+  const hasUserUploadedData = dataStats && dataStats.source === 'csv-upload';
+
   // Toggle search panel visibility
   const toggleSearchPanel = () => {
     setIsSearchVisible(!isSearchVisible);
