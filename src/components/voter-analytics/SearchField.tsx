@@ -1,14 +1,12 @@
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Search, Loader2, Zap } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { type QueryParams } from '@/types/analytics';
 import { useLLMProcessor } from './search/useLLMProcessor';
 import { useAIAssistant } from './search/useAIAssistant';
 import { AIAssistantResponse } from './search/AIAssistantResponse';
-import { Switch } from '@/components/ui/switch';
+import { Loader2, Search } from 'lucide-react';
 
 interface SearchFieldProps {
   value: string;
@@ -27,15 +25,12 @@ export const SearchField: React.FC<SearchFieldProps> = ({
 }) => {
   const [inputValue, setInputValue] = useState(value);
   const [currentQuery, setCurrentQuery] = useState<Partial<QueryParams>>({});
-  const [useAdvancedModel, setUseAdvancedModel] = useState(false);
   const { toast } = useToast();
   
   const { isProcessingQuery, processWithLLM } = useLLMProcessor({ setQuery });
   const { 
     aiResponse, 
-    isAiLoading, 
-    isResponseTruncated,
-    responseModel,
+    isAiLoading,
     getAIAssistance 
   } = useAIAssistant();
 
@@ -50,7 +45,6 @@ export const SearchField: React.FC<SearchFieldProps> = ({
     }
 
     console.log("Processing query:", inputValue);
-    console.log("Using advanced model:", useAdvancedModel);
     
     // Update the parent component's search query value
     onChange(inputValue);
@@ -72,8 +66,8 @@ export const SearchField: React.FC<SearchFieldProps> = ({
           
           console.log("Sending query with full parameters:", fullParams);
           
-          // Get AI insights with the FULL parameters and model preference
-          await getAIAssistance(inputValue, fullParams, useAdvancedModel);
+          // Always use advanced model for better results
+          await getAIAssistance(inputValue, fullParams, true);
           
           // Trigger the main search action if needed
           onSubmit();
@@ -87,22 +81,8 @@ export const SearchField: React.FC<SearchFieldProps> = ({
         });
       }
     } else {
-      // If no setQuery function is provided, just get AI assistance
-      await getAIAssistance(inputValue, undefined, useAdvancedModel);
-    }
-  };
-  
-  const handleAdvancedModelRetry = async () => {
-    try {
-      setUseAdvancedModel(true);
-      await getAIAssistance(inputValue, currentQuery, true);
-    } catch (error) {
-      console.error("Error retrying with advanced model:", error);
-      toast({
-        title: "Advanced Model Error",
-        description: "Failed to get a response from the advanced AI model. Please try again later.",
-        variant: "destructive",
-      });
+      // If no setQuery function is provided, just get AI assistance with advanced model
+      await getAIAssistance(inputValue, undefined, true);
     }
   };
 
@@ -127,32 +107,12 @@ export const SearchField: React.FC<SearchFieldProps> = ({
         <div className="text-xs text-gray-500 mt-1 text-right">Press ⌘+Enter to submit</div>
       </div>
       
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <Switch
-            id="advanced-model"
-            checked={useAdvancedModel}
-            onCheckedChange={setUseAdvancedModel}
-          />
-          <label 
-            htmlFor="advanced-model" 
-            className="text-sm cursor-pointer flex items-center"
-          >
-            <Zap className="h-3 w-3 mr-1 text-amber-500" />
-            Use Advanced Model
-            <span className="text-xs text-gray-500 ml-1">(Slower but handles complex data)</span>
-          </label>
-        </div>
-      </div>
-      
-      {/* Added margin-top to move the button 20% lower */}
+      {/* Get Results button - the only button now */}
       <div className="mt-8">
-        <Button 
+        <button 
           onClick={handleSubmit}
           disabled={isLoading || isAiLoading || isProcessingQuery}
-          variant="default"
-          className="w-full"
-          size="default"
+          className="w-full bg-primary hover:bg-primary/90 text-white py-2 px-4 rounded-md flex items-center justify-center"
         >
           {isLoading || isProcessingQuery || isAiLoading ? (
             <span className="flex items-center">
@@ -162,18 +122,15 @@ export const SearchField: React.FC<SearchFieldProps> = ({
           ) : (
             <span className="flex items-center">
               <Search className="mr-2 h-4 w-4" />
-              Get Results {useAdvancedModel && <Zap className="ml-1 h-3 w-3" />}
+              Get Results
             </span>
           )}
-        </Button>
+        </button>
       </div>
 
       <AIAssistantResponse 
-        response={aiResponse} 
-        isLoading={isAiLoading} 
-        isTruncated={isResponseTruncated}
-        model={responseModel}
-        onUseAdvancedModel={!useAdvancedModel && isResponseTruncated ? handleAdvancedModelRetry : undefined}
+        response={aiResponse}
+        isLoading={isAiLoading}
       />
     </div>
   );

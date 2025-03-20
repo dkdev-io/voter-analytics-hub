@@ -31,19 +31,30 @@ export const OpenAIChat = () => {
     setResponse(null);
 
     try {
+      // Use the updated API endpoint
       const { data, error } = await supabase.functions.invoke('openai-chat', {
-        body: { prompt: prompt.trim() }
+        body: { 
+          prompt: prompt.trim(),
+          useAdvancedModel: true  // Always use advanced model for better results
+        }
       });
 
       if (error) {
+        console.error('Supabase function error:', error);
         throw new Error(error.message);
       }
 
       if (data.error) {
+        console.error('OpenAI API error:', data.error);
         throw new Error(data.error);
       }
 
       setResponse(data.answer);
+      
+      toast({
+        title: "Response received",
+        description: "Successfully received response from AI",
+      });
     } catch (error) {
       console.error('Error calling OpenAI:', error);
       logError(error as Error, 'OpenAIChat.handleSubmit');

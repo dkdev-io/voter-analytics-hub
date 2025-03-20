@@ -1,24 +1,21 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertCircle, AlertTriangle, Zap, Calendar, UserCheck } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { AlertCircle, AlertTriangle, Calendar, UserCheck } from 'lucide-react';
 
 interface AIAssistantResponseProps {
   response: string | null;
   isLoading?: boolean;
   isTruncated?: boolean;
   model?: string | null;
-  onUseAdvancedModel?: () => void;
 }
 
 export const AIAssistantResponse: React.FC<AIAssistantResponseProps> = ({ 
   response,
   isLoading = false,
   isTruncated = false,
-  model = null,
-  onUseAdvancedModel
+  model = null
 }) => {
   // Expanded list of error patterns to catch more variations of "no access" messages
   const isErrorResponse = response && (
@@ -56,6 +53,12 @@ export const AIAssistantResponse: React.FC<AIAssistantResponseProps> = ({
      response.toLowerCase().includes("phone attempts"))
   );
 
+  // Get the first sentence of the response for the bold summary
+  const getFirstSentence = (text: string): string => {
+    const match = text.match(/^(.*?[.!?])\s/);
+    return match ? match[1] : text.split('\n')[0];
+  };
+
   if (isLoading) {
     return (
       <Card className="mt-4">
@@ -86,8 +89,9 @@ export const AIAssistantResponse: React.FC<AIAssistantResponseProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-sm whitespace-pre-wrap prose prose-sm max-w-none">
-            {response}
+          <div className="text-sm">
+            <p className="font-bold mb-2">{getFirstSentence(response)}</p>
+            <p>I've gone ahead and updated the charts in your dashboard.</p>
           </div>
         </CardContent>
       </Card>
@@ -105,7 +109,7 @@ export const AIAssistantResponse: React.FC<AIAssistantResponseProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-sm whitespace-pre-wrap prose prose-sm max-w-none">
+          <div className="text-sm">
             <p>The AI has incorrectly stated it doesn't have access to data. This is a system error.</p>
             <p className="text-xs text-gray-500 mt-2">Please try again with a different question or contact support if this persists.</p>
           </div>
@@ -125,8 +129,9 @@ export const AIAssistantResponse: React.FC<AIAssistantResponseProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-sm whitespace-pre-wrap prose prose-sm max-w-none">
-            {response}
+          <div className="text-sm">
+            <p className="font-bold mb-2">{getFirstSentence(response)}</p>
+            <p>I've gone ahead and updated the charts in your dashboard.</p>
             <p className="text-xs text-gray-500 mt-2">Try using the format YYYY-MM-DD (e.g., 2025-01-31 for January 31, 2025)</p>
           </div>
         </CardContent>
@@ -150,29 +155,14 @@ export const AIAssistantResponse: React.FC<AIAssistantResponseProps> = ({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="text-sm whitespace-pre-wrap prose prose-sm max-w-none">
-          {response}
+        <div className="text-sm">
+          <p className="font-bold mb-2">{getFirstSentence(response)}</p>
+          <p>I've gone ahead and updated the charts in your dashboard.</p>
+          <div className="text-xs text-gray-500 mt-4 whitespace-pre-wrap prose prose-sm max-w-none">
+            {response}
+          </div>
         </div>
       </CardContent>
-      {isTruncated && onUseAdvancedModel && (
-        <CardFooter className="flex justify-start pt-0 px-6 pb-4">
-          <div className="text-xs text-amber-600 bg-amber-50 rounded-lg p-2 mb-2 flex items-start">
-            <AlertTriangle className="h-3 w-3 mr-1 mt-0.5 flex-shrink-0" />
-            <span>
-              This response was truncated due to data complexity. Try using a more advanced model for better results.
-            </span>
-          </div>
-          <Button
-            size="sm"
-            variant="outline"
-            className="mt-2"
-            onClick={onUseAdvancedModel}
-          >
-            <Zap className="h-3 w-3 mr-1" />
-            Use Advanced Model
-          </Button>
-        </CardFooter>
-      )}
     </Card>
   );
 };
