@@ -64,12 +64,15 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
   
   // Handle print functionality for individual charts
   const handlePrintChart = (chartId: string) => {
+    // First set the printing chart state
     setPrintingChart(chartId);
-    // Wait a moment for state to update before printing
+    
+    // Wait for state to update and component to render
+    // The PrintChart component will trigger the print dialog in its useEffect
+    // We reset the state after a longer delay to ensure printing completes
     setTimeout(() => {
-      // PrintChart component will trigger print dialog in useEffect
       setPrintingChart(null);
-    }, 1500);  // Allow enough time for print dialog to appear
+    }, 2000);  // Give enough time for print dialog to appear and complete
   };
   
   if (loading || isLoading) {

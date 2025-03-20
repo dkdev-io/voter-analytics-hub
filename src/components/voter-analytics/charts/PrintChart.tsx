@@ -77,6 +77,9 @@ export const PrintChart: React.FC<PrintChartProps> = ({
           margin-top: 20px !important;
           margin-bottom: 20px !important;
           transform-origin: top center !important;
+          display: block !important;
+          visibility: visible !important;
+          overflow: visible !important;
         }
         
         /* Ensure the footer has space */
@@ -97,8 +100,11 @@ export const PrintChart: React.FC<PrintChartProps> = ({
     const originalTitle = document.title;
     document.title = `${chartTitle} - VoterContact.io Report`;
     
-    // Trigger the print dialog immediately
-    window.print();
+    // Make sure the target chart is fully rendered and visible before printing
+    // This adds a tiny delay to ensure the chart is ready
+    setTimeout(() => {
+      window.print();
+    }, 300);
     
     return () => {
       document.head.removeChild(style);
