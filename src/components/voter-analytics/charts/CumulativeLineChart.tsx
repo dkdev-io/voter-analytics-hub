@@ -11,6 +11,7 @@ import {
   ResponsiveContainer
 } from 'recharts';
 import { CHART_COLORS } from '@/types/analytics';
+import { format } from 'date-fns';
 
 interface CumulativeLineChartProps {
   data: Array<{
@@ -28,6 +29,7 @@ export const CumulativeLineChart: React.FC<CumulativeLineChartProps> = ({ data }
       // First item stays the same
       acc.push({
         ...current,
+        displayDate: format(new Date(current.date), 'MM/dd'),
         cumulativeAttempts: current.attempts,
         cumulativeContacts: current.contacts,
         cumulativeIssues: current.issues
@@ -37,6 +39,7 @@ export const CumulativeLineChart: React.FC<CumulativeLineChartProps> = ({ data }
       const prevCumulative = acc[index - 1];
       acc.push({
         ...current,
+        displayDate: format(new Date(current.date), 'MM/dd'),
         cumulativeAttempts: prevCumulative.cumulativeAttempts + current.attempts,
         cumulativeContacts: prevCumulative.cumulativeContacts + current.contacts,
         cumulativeIssues: prevCumulative.cumulativeIssues + current.issues
@@ -47,14 +50,14 @@ export const CumulativeLineChart: React.FC<CumulativeLineChartProps> = ({ data }
 
   return (
     <div className="mt-8 h-80 bg-white rounded-lg border border-gray-200">
-      <h3 className="text-sm font-medium p-2 text-center">Cumulative Progress Over Time</h3>
+      <h3 className="text-sm font-bold p-2 text-center">Cumulative Progress Over Time</h3>
       <ResponsiveContainer width="100%" height="90%">
         <LineChart
           data={cumulativeData}
           margin={{ top: 20, right: 30, left: 20, bottom: 10 }}
         >
           <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-          <XAxis dataKey="date" />
+          <XAxis dataKey="displayDate" />
           <YAxis />
           <Tooltip />
           <Legend />

@@ -44,7 +44,7 @@ export const TeamsPieChart: React.FC<TeamsPieChartProps> = ({ data, total }) => 
 
   return (
     <div className="h-72 bg-white rounded-lg border border-gray-200 flex flex-col">
-      <h3 className="text-sm font-medium p-2 text-center">Team Attempts</h3>
+      <h3 className="text-sm font-bold p-2 text-center">Team Attempts</h3>
       <div className="flex-1">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>

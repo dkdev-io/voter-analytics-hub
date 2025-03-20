@@ -36,7 +36,7 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
     totalContacts,
     totalNotReached,
     loading,
-    datasetName // Get the actual dataset name from the data loader
+    datasetName
   } = useDataLoader({ query, showFilteredData });
   
   // Handle print functionality
@@ -60,13 +60,15 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
         <PrintStylesheet 
           onCleanup={() => setIsPrinting(false)} 
           userEmail={user?.email} 
-          datasetName={datasetName || "Canvassing Dataset"} 
+          datasetName={datasetName} 
         />
       )}
       
       {/* This div is specifically marked to be hidden during printing */}
       <div className="flex justify-between items-center mb-4 hidden-print">
-        <h2 className="text-xl font-semibold hidden-print">Analytics {showFilteredData ? '(Filtered Results)' : '(Overall)'}</h2>
+        <h2 className="text-xl font-semibold hidden-print">
+          <span className="font-bold">Your Voter Contact</span> {datasetName ? `- ${datasetName}` : ''}
+        </h2>
         <PrintReport query={query} onPrint={handlePrint} />
       </div>
       
@@ -100,7 +102,7 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
         {/* Report footer - only visible when printing */}
         <ReportFooter 
           userEmail={user?.email} 
-          datasetName={datasetName || "Canvassing Dataset"} 
+          datasetName={datasetName} 
         />
       </div>
     </div>
