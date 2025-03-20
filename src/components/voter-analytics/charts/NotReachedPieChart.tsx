@@ -42,9 +42,11 @@ export const NotReachedPieChart: React.FC<NotReachedPieChartProps> = ({ data, to
     return (
       <ul className="text-xs flex flex-col items-start mt-2">
         {payload.map((entry: any, index: number) => {
-          // Get the original data point that matches this legend entry's name
-          const dataPoint = data.find(item => item.name === entry.value);
-          const value = dataPoint ? Number(dataPoint.value) : 0;
+          // Find the correct data point by matching names
+          const matchedItem = data.find(item => item.name === entry.value);
+          
+          // If we found a match, use its value, otherwise default to zero
+          const value = matchedItem ? matchedItem.value : 0;
           const percentage = actualTotal > 0 ? ((value / actualTotal) * 100).toFixed(1) : '0.0';
           
           return (
