@@ -15,8 +15,6 @@ export const updateUserMetadata = async (userId: string, fileName: string): Prom
     
     if (error) {
       console.error('Error updating user metadata:', error);
-    } else {
-      console.log('User metadata updated with dataset info');
     }
   } catch (error) {
     console.error('Failed to update user metadata:', error);

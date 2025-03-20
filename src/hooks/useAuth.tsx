@@ -1,5 +1,5 @@
 
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -30,8 +30,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [userMetadata, setUserMetadata] = useState<UserMetadata | null>(null);
   const [loading, setLoading] = useState(true);
-
-  const refreshUserMetadata = async () => {
+  const initialCheckDone = useRef(false);
+  
+  // Use a memoized function to refresh metadata to avoid creating a new function on every render
+  const refreshUserMetadata = useCallback(async () => {
     if (!user) return;
     
     try {
@@ -48,10 +50,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } catch (error) {
       console.error('Failed to refresh user metadata:', error);
     }
-  };
+  }, [user]);
 
+  // Initial session check - only run once
   useEffect(() => {
-    // Check active session
+    if (initialCheckDone.current) return;
+    
     const checkSession = async () => {
       try {
         const { data } = await supabase.auth.getSession();
@@ -66,13 +70,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         console.error('Error checking session:', error);
       } finally {
         setLoading(false);
+        initialCheckDone.current = true;
       }
     };
 
     checkSession();
+  }, []);
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+  // Auth state change listener
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) {
         setUser(session.user);
         setUserMetadata(session.user.user_metadata as UserMetadata || null);

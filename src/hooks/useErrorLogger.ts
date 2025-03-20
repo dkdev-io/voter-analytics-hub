@@ -1,6 +1,16 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { useLocation } from 'react-router-dom';
+
+// Simple debounce function to prevent rapid consecutive calls
+const debounce = (func: Function, wait = 1000) => {
+  let timeout: number | null = null;
+  return (...args: any[]) => {
+    if (timeout) {
+      clearTimeout(timeout);
+    }
+    timeout = setTimeout(() => func(...args), wait) as unknown as number;
+  };
+};
 
 export function useErrorLogger() {
   const location = useLocation();
@@ -26,29 +36,19 @@ export function useErrorLogger() {
         console.error('Failed to log error to Slack:', logError);
       }
     } catch (loggingError) {
-      // Don't throw from the error logger to avoid recursive errors
       console.error('Error while sending to error logger:', loggingError);
     }
   };
   
-  // Helper specifically for auth flow debugging
-  const logAuthFlowIssue = async (source: string, metadata: Record<string, any>) => {
-    // Get additional browser state for debugging
-    const authMetadata = {
-      ...metadata,
-      localStorage: {
-        skipAuth: localStorage.getItem('skipAuth'),
-      },
-      sessionStorage: {
-        completedDataConnection: sessionStorage.getItem('completedDataConnection'),
-      },
-      location: {
-        pathname: window.location.pathname,
-        href: window.location.href,
-      }
-    };
+  // Debounced version for auth flow to prevent excessive logging
+  const logAuthFlowIssue = debounce(async (source: string, metadata: Record<string, any>) => {
+    // Only log critical auth issues or errors, not routine state
+    if (!metadata.error && !source.includes("Error") && !source.includes("Failed")) {
+      // Skip logging for routine auth state changes
+      return;
+    }
     
-    console.warn(`[AUTH FLOW] ${source}:`, authMetadata);
+    console.warn(`[AUTH FLOW] ${source}:`, metadata);
     
     try {
       await supabase.functions.invoke('slack-error-logger', {
@@ -56,15 +56,21 @@ export function useErrorLogger() {
           message: `Auth Flow Issue: ${source}`,
           source: 'Auth Flow Debugger',
           route: location.pathname,
-          metadata: authMetadata
+          metadata: {
+            ...metadata,
+            // Minimal browser state for debugging
+            location: {
+              pathname: window.location.pathname
+            }
+          }
         }
       });
     } catch (loggingError) {
       console.error('Error while sending auth flow log:', loggingError);
     }
-  };
+  }, 2000);
   
-  // New function to log data issues specifically for the Dan Kelly debugging
+  // Keep existing functions for data issues and error wrapping
   const logDataIssue = async (source: string, metadata: Record<string, any>) => {
     console.warn(`[DATA ISSUE] ${source}:`, metadata);
     
@@ -91,7 +97,6 @@ export function useErrorLogger() {
     }
   };
   
-  // Utility method to wrap async functions with error logging
   const withErrorLogging = <T extends (...args: any[]) => Promise<any>>(
     fn: T,
     source: string
