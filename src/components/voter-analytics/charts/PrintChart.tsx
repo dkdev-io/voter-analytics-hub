@@ -99,10 +99,6 @@ export const PrintChart: React.FC<PrintChartProps> = ({
       svg.style.maxWidth = 'none';
       svg.style.maxHeight = 'none';
       
-      // Force ViewBox to ensure proper scaling - use actual dimensions
-      const containerWidth = chartContainer.clientWidth;
-      const containerHeight = chartContainer.clientHeight;
-      
       // Remove any existing viewBox to prevent scaling restrictions
       if (svg.hasAttribute('viewBox')) {
         svg.removeAttribute('viewBox');
@@ -136,11 +132,11 @@ export const PrintChart: React.FC<PrintChartProps> = ({
       (cartesianGrid as SVGElement).style.height = '100%';
     }
 
-    // Ensure X and Y axis are properly scaled
-    const cartesianAxes = chartClone.querySelectorAll('.recharts-cartesian-axis');
-    cartesianAxes.forEach(axis => {
-      (axis as SVGElement).style.transform = 'none'; // Remove transforms limiting scale
-    });
+    // Make sure X axis extends full width
+    const xAxis = chartClone.querySelector('.recharts-xAxis');
+    if (xAxis) {
+      (xAxis as SVGElement).style.width = '100%';
+    }
 
     // Make the Y-axis stretch to fill the full container height
     const yAxisElements = chartClone.querySelectorAll('.recharts-yAxis');
@@ -153,6 +149,9 @@ export const PrintChart: React.FC<PrintChartProps> = ({
       yAxisChildren.forEach(child => {
         (child as SVGElement).style.transform = 'none';
       });
+      
+      // Adjust the Y-axis width to accommodate labels
+      (yAxis as SVGElement).style.width = '60px';
       
       // Stretch the y-axis line to full height
       const yAxisLine = yAxis.querySelector('.recharts-cartesian-axis-line');
@@ -197,6 +196,20 @@ export const PrintChart: React.FC<PrintChartProps> = ({
       const currentR = dot.getAttribute('r');
       const newR = currentR ? Math.max(parseFloat(currentR), 6) : 6;
       dot.setAttribute('r', newR.toString());
+    });
+
+    // Enhance x-axis tick labels for better readability
+    const xAxisTicks = chartClone.querySelectorAll('.recharts-xAxis .recharts-cartesian-axis-tick text');
+    xAxisTicks.forEach(tick => {
+      (tick as SVGElement).style.fontSize = '11px';
+      (tick as SVGElement).style.fontWeight = '600';
+    });
+
+    // Enhance y-axis tick labels for better readability
+    const yAxisTicks = chartClone.querySelectorAll('.recharts-yAxis .recharts-cartesian-axis-tick text');
+    yAxisTicks.forEach(tick => {
+      (tick as SVGElement).style.fontSize = '11px';
+      (tick as SVGElement).style.fontWeight = '600';
     });
 
     // Create footer container
@@ -261,11 +274,18 @@ export const PrintChart: React.FC<PrintChartProps> = ({
         #print-chart-clone .recharts-surface {
           width: 100% !important;
           height: 100% !important;
+          preserveAspectRatio: none !important;
         }
 
-        /* Force stretch Y axis */
+        /* Expand X axis */
+        #print-chart-clone .recharts-xAxis {
+          width: 100% !important;
+        }
+
+        /* Expand Y axis */
         #print-chart-clone .recharts-yAxis {
           height: 100% !important;
+          width: 60px !important;
         }
         
         /* Make sure all SVG elements fill available space */
@@ -305,6 +325,12 @@ export const PrintChart: React.FC<PrintChartProps> = ({
         
         #print-chart-clone .recharts-dot {
           r: 6 !important;
+        }
+
+        /* Improve tick label readability */
+        #print-chart-clone .recharts-cartesian-axis-tick text {
+          font-size: 11px !important;
+          font-weight: 600 !important;
         }
       }
     `;

@@ -84,3 +84,44 @@ a:not(.no-invert):hover {
 a:has(button):hover {
   background-color: transparent;
 }
+
+/* Print-specific styles for charts */
+@media print {
+  /* Make sure charts expand to fill available space */
+  .recharts-wrapper {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none !important;
+    max-height: none !important;
+  }
+  
+  /* Ensure SVGs expand properly */
+  svg.recharts-surface {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none !important;
+    max-height: none !important;
+  }
+  
+  /* Make sure axes expand properly */
+  .recharts-cartesian-axis {
+    transform: none !important;
+  }
+  
+  /* Make Y-axis expand to full height */
+  .recharts-yAxis {
+    height: 100% !important;
+  }
+  
+  /* Ensure grid lines fill the entire chart area */
+  .recharts-cartesian-grid {
+    width: 100% !important;
+    height: 100% !important;
+  }
+  
+  /* Make labels more readable when printed */
+  .recharts-cartesian-axis-tick text {
+    font-weight: 600 !important;
+    font-size: 11px !important;
+  }
+}

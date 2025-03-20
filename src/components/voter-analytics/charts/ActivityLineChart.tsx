@@ -52,7 +52,7 @@ export const ActivityLineChart: React.FC<ActivityLineChartProps> = ({ data, onPr
   }, 0);
 
   return (
-    <div className="mt-8 h-80 bg-white rounded-lg border border-gray-200 relative">
+    <div id="activity-line-chart" className="mt-8 h-80 bg-white rounded-lg border border-gray-200 relative">
       <h3 className="text-sm font-bold p-2 text-center">Activity Over Time</h3>
       <ResponsiveContainer width="100%" height="90%">
         <LineChart
@@ -66,14 +66,19 @@ export const ActivityLineChart: React.FC<ActivityLineChartProps> = ({ data, onPr
             angle={-45}
             textAnchor="end"
             height={60}
-            tick={{ fontSize: 8 }}
+            tick={{ fontSize: 9 }}
+            tickLine={{ strokeWidth: 1.5 }}
+            axisLine={{ strokeWidth: 1.5 }}
           />
           <YAxis 
             domain={[0, Math.ceil(maxValue * 1.1)]} // Add 10% padding to the top
-            tick={{ fontSize: 10 }}
+            tick={{ fontSize: 11 }}
+            tickLine={{ strokeWidth: 1.5 }}
+            axisLine={{ strokeWidth: 1.5 }}
+            width={50} // Ensure Y-axis has enough width for labels
           />
           <Tooltip />
-          <Legend />
+          <Legend verticalAlign="top" height={36} />
           <Line
             type="monotone"
             dataKey="attempts"

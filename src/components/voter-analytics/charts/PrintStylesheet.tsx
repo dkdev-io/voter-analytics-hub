@@ -59,7 +59,7 @@ export const PrintStylesheet: React.FC<PrintStylesheetProps> = ({ onCleanup, use
           justify-content: space-between !important;
           width: 100% !important;
           margin-bottom: 5px !important;
-          transform: scale(0.85) !important;
+          transform: scale(0.9) !important;
           transform-origin: top center !important;
         }
         
@@ -70,25 +70,68 @@ export const PrintStylesheet: React.FC<PrintStylesheetProps> = ({ onCleanup, use
           margin: 0 !important;
         }
         
-        /* Reduce heights of charts to fit on one page */
-        .h-72 {
-          height: 180px !important;
-          max-height: 180px !important;
-        }
-        
-        /* Make line charts smaller */
+        /* Enhance line charts to fill horizontal space */
         #line-chart-container,
         #cumulative-line-chart-container {
           width: 100% !important;
           margin-top: 5px !important;
-          transform: scale(0.85) !important;
-          transform-origin: top center !important;
           height: auto !important;
         }
         
-        .h-80 {
-          height: 180px !important;
-          max-height: 180px !important;
+        /* Make all charts fill available width */
+        .recharts-wrapper {
+          width: 100% !important;
+          max-width: none !important;
+        }
+        
+        /* Ensure SVGs expand properly */
+        svg.recharts-surface {
+          width: 100% !important;
+          height: 100% !important;
+          max-width: none !important;
+          max-height: none !important;
+        }
+        
+        /* Make sure axes expand properly */
+        .recharts-cartesian-axis {
+          transform: none !important;
+        }
+        
+        /* Ensure chart height is sufficient */
+        .h-72, .h-80 {
+          height: 250px !important;
+          max-height: 250px !important;
+          min-height: 250px !important;
+        }
+        
+        /* Make Y-axis expand to full height */
+        .recharts-yAxis {
+          height: 100% !important;
+        }
+        
+        /* Enhance visibility of chart elements */
+        .recharts-cartesian-axis-line,
+        .recharts-cartesian-axis-tick-line,
+        .recharts-cartesian-axis-domain {
+          stroke-width: 1.5px !important;
+          stroke: #333 !important;
+        }
+        
+        .recharts-cartesian-grid-horizontal line,
+        .recharts-cartesian-grid-vertical line {
+          stroke-width: 1px !important;
+          stroke: #e0e0e0 !important;
+        }
+        
+        /* Ensure curves and lines are prominent */
+        .recharts-curve,
+        .recharts-line {
+          stroke-width: 2.5px !important;
+        }
+        
+        /* Make dots more visible */
+        .recharts-dot {
+          r: 5 !important;
         }
         
         /* Reduce spacing */

@@ -75,7 +75,7 @@ export const CumulativeLineChart: React.FC<CumulativeLineChartProps> = ({ data, 
     : 0;
 
   return (
-    <div className="mt-8 h-80 bg-white rounded-lg border border-gray-200 relative">
+    <div id="cumulative-line-chart" className="mt-8 h-80 bg-white rounded-lg border border-gray-200 relative">
       <h3 className="text-sm font-bold p-2 text-center">Cumulative Progress</h3>
       <ResponsiveContainer width="100%" height="90%">
         <LineChart
@@ -89,15 +89,20 @@ export const CumulativeLineChart: React.FC<CumulativeLineChartProps> = ({ data, 
             angle={-45}
             textAnchor="end"
             height={60}
-            tick={{ fontSize: 8 }}
+            tick={{ fontSize: 9 }}
+            tickLine={{ strokeWidth: 1.5 }}
+            axisLine={{ strokeWidth: 1.5 }}
           />
           <YAxis 
             tickFormatter={formatNumber} 
             domain={[0, Math.ceil(maxCumulativeValue * 1.1)]} // Add 10% padding to the top
-            tick={{ fontSize: 10 }}
+            tick={{ fontSize: 11 }}
+            tickLine={{ strokeWidth: 1.5 }}
+            axisLine={{ strokeWidth: 1.5 }}
+            width={60} // Ensure Y-axis has enough width for labels
           />
           <Tooltip formatter={(value) => [formatNumber(value as number), '']} />
-          <Legend />
+          <Legend verticalAlign="top" height={36} />
           <Line
             type="monotone"
             dataKey="cumulativeAttempts"
