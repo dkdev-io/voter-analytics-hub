@@ -44,7 +44,7 @@ export const PrintChart: React.FC<PrintChartProps> = ({
     const titleElement = document.createElement('div');
     titleElement.id = 'print-title';
     titleElement.style.textAlign = 'center';
-    titleElement.style.margin = '20px 0';
+    titleElement.style.margin = '10px 0';
     titleElement.innerHTML = `
       <h1 style="font-size: 24px; font-weight: bold;">VoterContact.io Report</h1>
       <h2 style="font-size: 20px; font-weight: bold;">${chartTitle}</h2>
@@ -55,9 +55,9 @@ export const PrintChart: React.FC<PrintChartProps> = ({
     // Clone the chart and add to print container
     const chartClone = originalChart.cloneNode(true) as HTMLElement;
     chartClone.id = 'print-chart-clone';
-    chartClone.style.height = '500px';
+    chartClone.style.height = '700px'; // Increased height for more detail
     chartClone.style.width = '100%';
-    chartClone.style.margin = '20px 0';
+    chartClone.style.margin = '10px 0';
     chartClone.style.display = 'block';
     printContainer.appendChild(chartClone);
 
@@ -66,7 +66,7 @@ export const PrintChart: React.FC<PrintChartProps> = ({
     footerElement.id = 'print-footer';
     footerElement.style.borderTop = '1px solid #eee';
     footerElement.style.padding = '10px 0';
-    footerElement.style.margin = '20px 0';
+    footerElement.style.margin = '20px 0 10px';
     footerElement.style.textAlign = 'center';
     footerElement.style.fontSize = '12px';
     footerElement.style.color = '#666';
@@ -93,7 +93,7 @@ export const PrintChart: React.FC<PrintChartProps> = ({
           left: 0 !important;
           top: 0 !important;
           width: 100% !important;
-          padding: 20px !important;
+          padding: 10px !important;
           margin: 0 !important;
           visibility: visible !important;
           background-color: white !important;
@@ -103,14 +103,32 @@ export const PrintChart: React.FC<PrintChartProps> = ({
           display: block !important;
         }
         #print-chart-clone {
-          height: 500px !important;
+          height: 650px !important;
           width: 100% !important;
           max-width: 100% !important;
-          margin: 20px 0 !important;
+          margin: 10px 0 !important;
+        }
+        #print-title {
+          margin-bottom: 5px !important;
+        }
+        #print-title h1 {
+          margin: 0 !important;
+          padding: 0 !important;
+        }
+        #print-title h2 {
+          margin: 5px 0 !important;
+          padding: 0 !important;
+        }
+        #print-title p {
+          margin: 5px 0 !important;
+          padding: 0 !important;
+        }
+        #print-footer {
+          margin-top: 10px !important;
         }
         @page {
           size: landscape;
-          margin: 0.5cm;
+          margin: 0.3cm;
         }
       }
     `;
