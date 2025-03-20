@@ -1,6 +1,8 @@
 
 import { SearchField } from '../SearchField';
 import { QueryParams } from '@/types/analytics';
+import { Button } from '@/components/ui/button';
+import { Search } from 'lucide-react';
 
 interface SearchSectionProps {
   searchQuery: string;
@@ -30,6 +32,17 @@ export function SearchSection({
         onSubmit={onSubmit}
         setQuery={setQuery}
       />
+      
+      <Button 
+        onClick={onSubmit}
+        disabled={isLoading}
+        variant="default"
+        className="w-full mt-2"
+        size="sm"
+      >
+        <Search className="mr-2 h-4 w-4" />
+        Search
+      </Button>
     </div>
   );
 }
