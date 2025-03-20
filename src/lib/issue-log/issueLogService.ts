@@ -196,3 +196,60 @@ export const logPrintingIssue = async (): Promise<Issue | null> => {
     return null;
   }
 };
+
+// Function to log the Not Reached pie chart issue
+export const logNotReachedPieChartIssue = async (): Promise<Issue | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('issue_log')
+      .insert({
+        title: "Not Reached Pie Chart Data Calculation Issues",
+        description: "The Not Reached pie chart is not calculating or displaying the correct totals. The dataset shows 2069 total not reached, with 561 refusals, 579 not home, and 929 bad data, but the chart shows incorrect values.",
+        expected_behavior: "The pie chart should show the correct total (2069) and correctly display the breakdown of not reached contacts: 579 not home, 561 refusals, and 929 bad data.",
+        actual_behavior: "The pie chart shows incorrect totals and breakdown. Even after code changes to fix calculation issues in NotReachedPieChart.tsx and calculationService.ts, the chart still displays incorrect values.",
+        console_logs: "NotReachedPieChart data: [{name: 'Not Home', value: incorrectValue, color: '#9333EA'}, {name: 'Refusal', value: incorrectValue, color: '#F97316'}, {name: 'Bad Data', value: incorrectValue, color: '#6B7280'}]\nNotReachedPieChart calculated total: incorrectValue\nNotReachedPieChart passed total: incorrectValue\nNot Reached aggregation details: {notHome: incorrectValue, refusal: incorrectValue, badData: incorrectValue}",
+        theories: "1. Data conversion issues: The 'not_home', 'refusal', and 'bad_data' values might not be properly converted to numbers during aggregation.\n2. Double-counting: The metrics might be getting reset or double-counted during data processing.\n3. Data type mismatch: Values might be treated as strings during addition operations.\n4. Total calculation: The pie chart component might not be correctly calculating its own total from the data points.\n5. Data source issue: The metrics structure might not be properly initialized.",
+        component: "NotReachedPieChart.tsx, calculationService.ts, DataLoader.tsx",
+        reference_links: null,
+        status: "open"
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error adding Not Reached pie chart issue:', error);
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error in logNotReachedPieChartIssue:', error);
+    return null;
+  }
+};
+
+// Function to log the attempted solution for the Not Reached pie chart issue
+export const logNotReachedPieChartSolution = async (issueId: number): Promise<SolutionAttempt | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('solution_attempts')
+      .insert({
+        issue_id: issueId,
+        description: "Made the following changes to fix the Not Reached pie chart:\n1. Updated NotReachedPieChart.tsx to use the calculated total from data with additional debug logging.\n2. Modified calculationService.ts to ensure explicit Number conversion for not_home, refusal, and bad_data values.\n3. Updated DataLoader.tsx to calculate the total not reached value with null checks and added more detailed logging.",
+        result: "The changes did not fix the issue. The pie chart still displays incorrect totals and breakdown values. Debug logs showed that the calculation logic was updated, but the displayed values remained incorrect.",
+        successful: false
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error adding Not Reached pie chart solution attempt:', error);
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error in logNotReachedPieChartSolution:', error);
+    return null;
+  }
+};
