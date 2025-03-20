@@ -12,6 +12,8 @@ export const OpenAIChat = () => {
   const [prompt, setPrompt] = useState('');
   const [response, setResponse] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [rawResponse, setRawResponse] = useState<any>(null);
+  const [showRawResponse, setShowRawResponse] = useState(false);
   const { toast } = useToast();
   const { logError } = useErrorLogger();
 
@@ -29,8 +31,11 @@ export const OpenAIChat = () => {
 
     setIsLoading(true);
     setResponse(null);
+    setRawResponse(null);
 
     try {
+      console.log("Sending prompt to OpenAI:", prompt.trim());
+      
       // Use the updated API endpoint
       const { data, error } = await supabase.functions.invoke('openai-chat', {
         body: { 
@@ -38,11 +43,12 @@ export const OpenAIChat = () => {
           useAdvancedModel: true,  // Always use advanced model for better results
           includeData: true,       // Include relevant data for analysis
           queryParams: {           // Add empty query params to ensure validation works properly
-            tactic: null,
-            person: null,
+            tactic: prompt.toLowerCase().includes('phone') ? 'Phone' : null,
+            person: prompt.toLowerCase().includes('dan kelly') ? 'Dan Kelly' : null,
             date: null,
-            resultType: null
-          }
+            resultType: 'attempts'
+          },
+          debug: true  // Request debug information
         }
       });
 
@@ -56,6 +62,8 @@ export const OpenAIChat = () => {
         throw new Error(data.error);
       }
 
+      console.log("Full response received:", data);
+      setRawResponse(data);
       setResponse(data.answer);
       
       toast({
@@ -74,6 +82,10 @@ export const OpenAIChat = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const toggleRawResponse = () => {
+    setShowRawResponse(!showRawResponse);
   };
 
   return (
@@ -115,6 +127,23 @@ export const OpenAIChat = () => {
           <div className="mt-6 p-4 bg-gray-50 rounded-md">
             <h3 className="font-medium mb-2">Response:</h3>
             <div className="whitespace-pre-wrap">{response}</div>
+            
+            {rawResponse && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={toggleRawResponse} 
+                className="mt-4"
+              >
+                {showRawResponse ? "Hide" : "Show"} Diagnostic Info
+              </Button>
+            )}
+            
+            {showRawResponse && rawResponse && (
+              <div className="mt-4 p-3 bg-gray-100 rounded text-xs overflow-auto max-h-[300px]">
+                <pre>{JSON.stringify(rawResponse, null, 2)}</pre>
+              </div>
+            )}
           </div>
         )}
       </CardContent>
