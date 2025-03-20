@@ -31,6 +31,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [userMetadata, setUserMetadata] = useState<UserMetadata | null>(null);
   const [loading, setLoading] = useState(true);
   const initialCheckDone = useRef(false);
+  const authTimeout = useRef<NodeJS.Timeout | null>(null);
+  
+  // Set up a failsafe to prevent infinite loading
+  useEffect(() => {
+    // Set a 5-second maximum for auth loading
+    authTimeout.current = setTimeout(() => {
+      if (loading) {
+        console.warn('Auth loading timeout exceeded - forcing completion');
+        setLoading(false);
+      }
+    }, 5000);
+    
+    return () => {
+      if (authTimeout.current) {
+        clearTimeout(authTimeout.current);
+      }
+    };
+  }, []);
   
   // Use a memoized function to refresh metadata to avoid creating a new function on every render
   const refreshUserMetadata = useCallback(async () => {
@@ -58,7 +76,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     
     const checkSession = async () => {
       try {
+        console.log('Checking initial auth session...');
         const { data } = await supabase.auth.getSession();
+        console.log('Session check complete:', !!data.session);
+        
         if (data.session) {
           setUser(data.session.user);
           setUserMetadata(data.session.user.user_metadata as UserMetadata || null);
@@ -71,6 +92,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       } finally {
         setLoading(false);
         initialCheckDone.current = true;
+        
+        // Clear the timeout since we've completed loading
+        if (authTimeout.current) {
+          clearTimeout(authTimeout.current);
+        }
       }
     };
 
@@ -79,7 +105,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Auth state change listener
   useEffect(() => {
+    console.log('Setting up auth state change listener...');
+    
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      console.log('Auth state changed, event:', _event);
+      
       if (session) {
         setUser(session.user);
         setUserMetadata(session.user.user_metadata as UserMetadata || null);
@@ -87,7 +117,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(null);
         setUserMetadata(null);
       }
+      
+      // Always update loading state to false when auth state changes
       setLoading(false);
+      
+      // Clear the timeout since we've completed loading
+      if (authTimeout.current) {
+        clearTimeout(authTimeout.current);
+      }
     });
 
     return () => {

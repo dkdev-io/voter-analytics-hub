@@ -2,7 +2,7 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useErrorLogger } from '@/hooks/useErrorLogger';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -13,9 +13,21 @@ export const AuthGuard = ({ children }: AuthGuardProps) => {
   const location = useLocation();
   const { logAuthFlowIssue } = useErrorLogger();
   const loggedRef = useRef(false);
+  const [loadingTimeout, setLoadingTimeout] = useState(false);
   
   // Always check localStorage directly to avoid stale closures
   const skipAuth = localStorage.getItem('skipAuth') === 'true';
+
+  // Set a maximum loading time of 3 seconds to prevent infinite loading
+  useEffect(() => {
+    if (loading) {
+      const timer = setTimeout(() => {
+        setLoadingTimeout(true);
+      }, 3000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [loading]);
 
   // Only log auth guard activity on first render or when status changes
   useEffect(() => {
@@ -29,7 +41,8 @@ export const AuthGuard = ({ children }: AuthGuardProps) => {
     }
   }, [loading, user, skipAuth, location.pathname, logAuthFlowIssue]);
 
-  if (loading) {
+  // If loading has timed out or finished, proceed with auth check
+  if (loading && !loadingTimeout) {
     return <div className="flex justify-center items-center h-screen">Loading...</div>;
   }
 
@@ -48,9 +61,21 @@ export const UnauthGuard = ({ children }: AuthGuardProps) => {
   const location = useLocation();
   const { logAuthFlowIssue } = useErrorLogger();
   const loggedRef = useRef(false);
+  const [loadingTimeout, setLoadingTimeout] = useState(false);
   
   // Always check localStorage directly to avoid stale closures
   const skipAuth = localStorage.getItem('skipAuth') === 'true';
+  
+  // Set a maximum loading time of 3 seconds to prevent infinite loading
+  useEffect(() => {
+    if (loading) {
+      const timer = setTimeout(() => {
+        setLoadingTimeout(true);
+      }, 3000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [loading]);
   
   // Only log unauth guard activity on first render or when status changes
   useEffect(() => {
@@ -64,7 +89,8 @@ export const UnauthGuard = ({ children }: AuthGuardProps) => {
     }
   }, [loading, user, skipAuth, location.pathname, logAuthFlowIssue]);
   
-  if (loading) {
+  // If loading has timed out or finished, proceed with auth check
+  if (loading && !loadingTimeout) {
     return <div className="flex justify-center items-center h-screen">Loading...</div>;
   }
 

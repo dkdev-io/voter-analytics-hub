@@ -1,7 +1,8 @@
 import { supabase } from '@/integrations/supabase/client';
 import { useLocation } from 'react-router-dom';
+import { useRef } from 'react';
 
-// Simple debounce function to prevent rapid consecutive calls
+// More aggressive debouncing for auth flow logging
 const debounce = (func: Function, wait = 1000) => {
   let timeout: number | null = null;
   return (...args: any[]) => {
@@ -12,8 +13,12 @@ const debounce = (func: Function, wait = 1000) => {
   };
 };
 
+// Cache to prevent duplicate auth logs
+const recentAuthLogs: Record<string, number> = {};
+
 export function useErrorLogger() {
   const location = useLocation();
+  const pendingLogs = useRef<any[]>([]);
   
   const logError = async (error: Error | string, source: string, metadata?: Record<string, any>) => {
     const errorMessage = typeof error === 'string' ? error : error.message;
@@ -40,13 +45,43 @@ export function useErrorLogger() {
     }
   };
   
-  // Debounced version for auth flow to prevent excessive logging
+  // Highly optimized version for auth flow logging
   const logAuthFlowIssue = debounce(async (source: string, metadata: Record<string, any>) => {
-    // Only log critical auth issues or errors, not routine state
+    // Skip routine auth logs that don't indicate problems
     if (!metadata.error && !source.includes("Error") && !source.includes("Failed")) {
-      // Skip logging for routine auth state changes
+      // For auth guards, only log when there's an authentication failure
+      if (source === 'AuthGuard' || source === 'UnauthGuard') {
+        if (!metadata.isAuthenticated && !metadata.skipAuth && metadata.path !== '/auth') {
+          // This is an authentication failure, log it
+          console.warn(`[AUTH FLOW] ${source}: Auth check failed`, metadata);
+        } else {
+          // Skip logging successful auth checks
+          return;
+        }
+      } else {
+        // Skip other routine logs
+        return;
+      }
+    }
+    
+    // Create a cache key from the source and relevant metadata
+    const cacheKey = `${source}-${JSON.stringify(metadata)}`;
+    const now = Date.now();
+    
+    // Check if we've logged this exact issue recently (last 10 seconds)
+    if (recentAuthLogs[cacheKey] && (now - recentAuthLogs[cacheKey] < 10000)) {
       return;
     }
+    
+    // Update the cache
+    recentAuthLogs[cacheKey] = now;
+    
+    // Cleanup old cache entries
+    Object.keys(recentAuthLogs).forEach(key => {
+      if (now - recentAuthLogs[key] > 60000) {  // Remove entries older than 1 minute
+        delete recentAuthLogs[key];
+      }
+    });
     
     console.warn(`[AUTH FLOW] ${source}:`, metadata);
     
@@ -68,7 +103,7 @@ export function useErrorLogger() {
     } catch (loggingError) {
       console.error('Error while sending auth flow log:', loggingError);
     }
-  }, 2000);
+  }, 5000);  // Increased debounce time to 5 seconds for auth logs
   
   // Keep existing functions for data issues and error wrapping
   const logDataIssue = async (source: string, metadata: Record<string, any>) => {
