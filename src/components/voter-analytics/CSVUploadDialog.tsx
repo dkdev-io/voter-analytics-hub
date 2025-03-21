@@ -8,11 +8,11 @@ import { useCSVUpload } from '@/hooks/useCSVUpload';
 
 interface CSVUploadDialogProps {
   open: boolean;
-  onClose: () => void;
+  onOpenChange: (open: boolean) => void;
   onSuccess: () => void;
 }
 
-export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogProps) {
+export function CSVUploadDialog({ open, onOpenChange, onSuccess }: CSVUploadDialogProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const {
     file,
@@ -29,7 +29,7 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
   const handleClose = () => {
     if (!isUploading) {
       resetUpload();
-      onClose();
+      onOpenChange(false);
     }
   };
 
@@ -62,7 +62,7 @@ export function CSVUploadDialog({ open, onClose, onSuccess }: CSVUploadDialogPro
 
         {step === 'upload' && (
           <DialogFooter>
-            <Button variant="outline" onClick={onClose}>
+            <Button variant="outline" onClick={handleClose}>
               Cancel
             </Button>
             {!file ? (
