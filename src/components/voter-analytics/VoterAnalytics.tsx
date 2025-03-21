@@ -6,7 +6,7 @@ import { QuerySection } from './dashboard/QuerySection';
 import { ResultsSection } from './dashboard/ResultsSection';
 import { SearchSection } from './dashboard/SearchSection';
 import { DashboardCharts } from './DashboardCharts';
-import { ErrorBoundary } from '@/components/ErrorBoundary';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 export const VoterAnalytics: React.FC = () => {
   const [showSearchPanel, setShowSearchPanel] = useState(true);
@@ -41,6 +41,11 @@ export const VoterAnalytics: React.FC = () => {
     setShowSearchPanel(!showSearchPanel);
   };
 
+  // Wrapper function for refreshData to ensure it returns void
+  const handleRefreshData = async () => {
+    await refreshData();
+  };
+
   return (
     <ErrorBoundary>
       <div className="container mx-auto px-4 py-6">
@@ -50,7 +55,7 @@ export const VoterAnalytics: React.FC = () => {
           lastUpdated={dataLastUpdated}
           isDataMigrated={isDataMigrated}
           dataStats={dataStats}
-          refreshData={refreshData}
+          refreshData={handleRefreshData}
           importNewData={importNewData}
           handleCsvUploadSuccess={handleCsvUploadSuccess}
         />
@@ -75,7 +80,7 @@ export const VoterAnalytics: React.FC = () => {
                     setError={setError}
                     isLoading={isLoading}
                     isDataMigrated={isDataMigrated}
-                    onCalculateResult={calculateResult}
+                    onSubmit={calculateResult}
                   />
                 </div>
               </div>
@@ -87,7 +92,6 @@ export const VoterAnalytics: React.FC = () => {
             <ResultsSection 
               error={error}
               result={result}
-              isLoading={isLoading}
               query={query}
             />
             
