@@ -1,4 +1,3 @@
-
 import { type QueryParams } from '@/types/analytics';
 import { 
   migrateTestDataToSupabase, 
@@ -12,11 +11,33 @@ import { supabase } from '@/integrations/supabase/client';
 export const initializeSupabaseConnection = async () => {
   console.log("Initializing Supabase connection...");
   
-  // First, check Supabase connection
-  const migrateResult = await migrateTestDataToSupabase();
-  
-  // Return the result of the migration
-  return migrateResult;
+  try {
+    // First, check Supabase connection with a quick ping
+    const { error: pingError } = await supabase
+      .from('voter_contacts')
+      .select('id', { count: 'exact', head: true });
+      
+    if (pingError) {
+      console.error("Supabase ping failed:", pingError);
+      return { 
+        success: false, 
+        message: `Cannot connect to Supabase: ${pingError.message}` 
+      };
+    }
+    
+    // If ping succeeded, continue with migration check
+    const migrateResult = await migrateTestDataToSupabase();
+    
+    // Return the result of the migration
+    return migrateResult;
+  } catch (error) {
+    console.error("Error in initializeSupabaseConnection:", error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return { 
+      success: false, 
+      message: `Connection error: ${errorMessage}` 
+    };
+  }
 };
 
 /**
