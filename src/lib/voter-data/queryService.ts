@@ -51,12 +51,15 @@ export const calculateResultFromSupabase = async (query: Partial<QueryParams>) =
     
     // Log filtered data for debugging
     console.log(`Filtered data count: ${filteredData.length}`);
-    console.log("Filtered data sample:", filteredData.slice(0, 5).map(d => ({
-      name: `${d.first_name} ${d.last_name}`,
-      date: d.date,
-      tactic: d.tactic,
-      attempts: d.attempts
-    })));
+    
+    if (filteredData.length > 0) {
+      console.log("Filtered data sample:", filteredData.slice(0, 5).map(d => ({
+        name: `${d.first_name} ${d.last_name}`,
+        date: d.date,
+        tactic: d.tactic,
+        attempts: d.attempts
+      })));
+    }
     
     if (query.person) {
       console.log(`Filtered records for ${query.person}:`, filteredData.length);
@@ -107,13 +110,56 @@ export const searchVoterData = async (searchQuery: string) => {
  */
 export const fetchVoterMetrics = async (query?: Partial<QueryParams>): Promise<VoterMetrics> => {
   try {
+    console.log("Fetching voter metrics with query:", query);
     const data = await getTestData();
     
     // If query provided, filter the data
-    const filteredData = query ? filterVoterData(data, query) : data;
+    let filteredData = data;
+    if (query) {
+      // Enhanced name parsing - properly handle first and last name separation
+      if (query.person) {
+        const personParts = query.person.trim().split(' ');
+        if (personParts.length > 1) {
+          const firstName = personParts[0];
+          const lastName = personParts.slice(1).join(' ');
+          console.log(`Person query detected in fetchVoterMetrics: "${query.person}" - will look for first_name="${firstName}" AND last_name="${lastName}"`);
+          
+          // Add dedicated first and last name properties to help with filtering
+          query.firstName = firstName;
+          query.lastName = lastName;
+        }
+      }
+      
+      filteredData = filterVoterData(data, query);
+      console.log(`Filtered data for metrics: ${filteredData.length} records (from ${data.length} total)`);
+      
+      if (query.person && filteredData.length > 0) {
+        console.log("Sample filtered data for person:", filteredData.slice(0, 3).map(d => ({
+          name: `${d.first_name} ${d.last_name}`,
+          tactic: d.tactic,
+          attempts: d.attempts,
+          date: d.date
+        })));
+      }
+    }
     
     // Aggregate metrics
-    return aggregateVoterMetrics(filteredData);
+    const metrics = aggregateVoterMetrics(filteredData);
+    
+    // Log summary of metrics for debugging
+    console.log("Metrics summary:", {
+      tactics: metrics.tactics,
+      contacts: metrics.contacts,
+      notReached: {
+        ...metrics.notReached,
+        total: (metrics.notReached.notHome || 0) + 
+               (metrics.notReached.refusal || 0) + 
+               (metrics.notReached.badData || 0)
+      },
+      byDateCount: metrics.byDate.length
+    });
+    
+    return metrics;
   } catch (error) {
     console.error("Error fetching voter metrics:", error);
     // Return empty metrics if there's an error

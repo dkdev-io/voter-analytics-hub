@@ -25,13 +25,22 @@ export const useDataLoader = ({ query, showFilteredData }: UseDataLoaderProps) =
       try {
         setLoading(true);
         
-        // Always use the query to filter data when it exists
-        // This ensures AI search results correctly filter line charts
-        const shouldFilter = showFilteredData || (query.person || query.tactic);
+        // Always use the query to filter data when showFilteredData is true
+        // or when there are specific filtering conditions in the query
+        const shouldFilter = showFilteredData || Boolean(query.person || query.tactic || query.team || query.date);
+        
         console.log(`Loading chart data with filtering: ${shouldFilter}`, query);
         
         // Fetch aggregated metrics from our service - either overall or filtered
         const metrics = await fetchVoterMetrics(shouldFilter ? query : undefined);
+        
+        // Log metrics for debugging
+        console.log("Fetched metrics:", {
+          tactics: metrics.tactics,
+          contacts: metrics.contacts,
+          notReached: metrics.notReached,
+          byDateSampleSize: metrics.byDate?.length || 0
+        });
         
         // Chart 1: Tactics breakdown (SMS, Phone, Canvas)
         const tacticsChartData = [
@@ -80,7 +89,7 @@ export const useDataLoader = ({ query, showFilteredData }: UseDataLoaderProps) =
         const totalContactsValue = contactsChartData.reduce((sum, item) => sum + item.value, 0);
         
         // Determine dataset name based on user's query or default
-        const datasetNameValue = query.team 
+        const datasetNameValue = query.team && query.team !== 'All'
           ? `${query.team} Team Dataset`
           : query.person
             ? `${query.person}'s Dataset`

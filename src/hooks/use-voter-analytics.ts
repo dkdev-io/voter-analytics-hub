@@ -66,6 +66,7 @@ export const useVoterAnalytics = () => {
     searchQuery,
     setSearchQuery,
     showFilteredData,
+    setShowFilteredData,
     
     // Loading state
     isLoading,

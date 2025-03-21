@@ -13,6 +13,7 @@ interface SearchFieldProps {
   isLoading: boolean;
   onSubmit: () => void;
   setQuery?: (query: Partial<QueryParams>) => void;
+  setShowFilteredData?: (show: boolean) => void;
 }
 
 export const SearchField: React.FC<SearchFieldProps> = ({ 
@@ -20,7 +21,8 @@ export const SearchField: React.FC<SearchFieldProps> = ({
   onChange, 
   isLoading,
   onSubmit,
-  setQuery
+  setQuery,
+  setShowFilteredData
 }) => {
   const [inputValue, setInputValue] = useState(value);
   const [currentQuery, setCurrentQuery] = useState<Partial<QueryParams>>({});
@@ -58,6 +60,12 @@ export const SearchField: React.FC<SearchFieldProps> = ({
           
           // Store the current query for future reference
           setCurrentQuery(fullParams);
+          
+          // Explicitly set showFilteredData to true
+          if (setShowFilteredData) {
+            console.log("Setting showFilteredData to true for AI search");
+            setShowFilteredData(true);
+          }
           
           // Apply the query parameters immediately to update charts
           setQuery(fullParams);
