@@ -25,7 +25,6 @@ export interface SolutionAttempt {
   successful: boolean;
 }
 
-// Function to fetch all issues
 export const fetchIssues = async (): Promise<Issue[]> => {
   try {
     const { data, error } = await supabase
@@ -45,7 +44,6 @@ export const fetchIssues = async (): Promise<Issue[]> => {
   }
 };
 
-// Function to fetch a single issue with its solution attempts
 export const fetchIssueWithSolutions = async (issueId: number): Promise<{ issue: Issue | null, solutions: SolutionAttempt[] }> => {
   try {
     const issueResponse = await supabase
@@ -80,7 +78,6 @@ export const fetchIssueWithSolutions = async (issueId: number): Promise<{ issue:
   }
 };
 
-// Function to add a new issue
 export const addIssue = async (issue: Omit<Issue, 'id' | 'date_reported' | 'status' | 'last_updated'>): Promise<Issue | null> => {
   try {
     const { data, error } = await supabase
@@ -111,7 +108,6 @@ export const addIssue = async (issue: Omit<Issue, 'id' | 'date_reported' | 'stat
   }
 };
 
-// Function to add a solution attempt
 export const addSolutionAttempt = async (solution: Omit<SolutionAttempt, 'id' | 'attempt_date'>): Promise<SolutionAttempt | null> => {
   try {
     const { data, error } = await supabase
@@ -130,7 +126,6 @@ export const addSolutionAttempt = async (solution: Omit<SolutionAttempt, 'id' | 
       throw error;
     }
 
-    // If solution was successful, update the issue status
     if (solution.successful) {
       await updateIssueStatus(solution.issue_id, 'resolved');
     }
@@ -142,7 +137,6 @@ export const addSolutionAttempt = async (solution: Omit<SolutionAttempt, 'id' | 
   }
 };
 
-// Function to update issue status
 export const updateIssueStatus = async (issueId: number, status: string, resolution?: string): Promise<boolean> => {
   try {
     const { error } = await supabase
@@ -166,7 +160,6 @@ export const updateIssueStatus = async (issueId: number, status: string, resolut
   }
 };
 
-// Function to log the report printing issue
 export const logPrintingIssue = async (): Promise<Issue | null> => {
   try {
     const { data, error } = await supabase
@@ -197,7 +190,6 @@ export const logPrintingIssue = async (): Promise<Issue | null> => {
   }
 };
 
-// Function to log the Not Reached pie chart issue
 export const logNotReachedPieChartIssue = async (): Promise<Issue | null> => {
   try {
     const { data, error } = await supabase
@@ -228,7 +220,6 @@ export const logNotReachedPieChartIssue = async (): Promise<Issue | null> => {
   }
 };
 
-// Function to log the attempted solution for the Not Reached pie chart issue
 export const logNotReachedPieChartSolution = async (issueId: number): Promise<SolutionAttempt | null> => {
   try {
     const { data, error } = await supabase
@@ -254,7 +245,6 @@ export const logNotReachedPieChartSolution = async (issueId: number): Promise<So
   }
 };
 
-// Function to log the Y-axis stretch issue for chart printing
 export const logYAxisStretchIssue = async (): Promise<Issue | null> => {
   try {
     const { data, error } = await supabase
@@ -285,7 +275,6 @@ export const logYAxisStretchIssue = async (): Promise<Issue | null> => {
   }
 };
 
-// Function to log the attempted solution for the Y-axis stretch issue
 export const logYAxisStretchSolution = async (issueId: number): Promise<SolutionAttempt | null> => {
   try {
     const { data, error } = await supabase
@@ -307,6 +296,61 @@ export const logYAxisStretchSolution = async (issueId: number): Promise<Solution
     return data;
   } catch (error) {
     console.error('Error in logYAxisStretchSolution:', error);
+    return null;
+  }
+};
+
+export const logCSVUploadDialogIssue = async (): Promise<Issue | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('issue_log')
+      .insert({
+        title: "CSV Upload Dialog Prop Interface Mismatch",
+        description: "The CSVUploadDialog component has a prop interface mismatch causing TypeScript errors. DashboardHeader.tsx expects an 'onOpenChange' prop, but the component defines an 'onClose' prop.",
+        expected_behavior: "The CSVUploadDialog component should accept an 'onOpenChange' prop of type '(open: boolean) => void' to match how it's being used in DashboardHeader.tsx.",
+        actual_behavior: "TypeScript error: 'Property 'onOpenChange' does not exist on type 'IntrinsicAttributes & CSVUploadDialogProps'. This occurs despite updating the interface in CSVUploadDialog.tsx.",
+        console_logs: "src/components/voter-analytics/dashboard/DashboardHeader.tsx(99,9): error TS2322: Type '{ open: boolean; onOpenChange: Dispatch<SetStateAction<boolean>>; onSuccess: () => Promise<void>; }' is not assignable to type 'IntrinsicAttributes & CSVUploadDialogProps'.",
+        theories: "1. Possible circular imports causing TypeScript to use stale definitions.\n2. Build system caching old type definitions.\n3. Wrong file being modified (multiple CSVUploadDialog components).\n4. Import resolution issues between components.\n5. Mismatch between what's being imported and what's being modified.",
+        component: "CSVUploadDialog.tsx, DashboardHeader.tsx",
+        reference_links: null,
+        status: "open"
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error adding CSV Upload Dialog issue:', error);
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error in logCSVUploadDialogIssue:', error);
+    return null;
+  }
+};
+
+export const logCSVUploadDialogSolution = async (issueId: number): Promise<SolutionAttempt | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('solution_attempts')
+      .insert({
+        issue_id: issueId,
+        description: "Made the following changes to fix the CSVUploadDialog interface:\n1. Updated CSVUploadDialogProps interface to change 'onClose: () => void' to 'onOpenChange: (open: boolean) => void'\n2. Updated component parameter destructuring to use 'onOpenChange' instead of 'onClose'\n3. Modified the handleClose function to call 'onOpenChange(false)' instead of 'onClose()'\n4. Updated the Cancel button's onClick to use handleClose instead of directly calling onClose",
+        result: "The changes did not resolve the issue. TypeScript error still persists suggesting either build caching issues, incorrect file modification, or import resolution problems. The interface update was made to src/components/voter-analytics/CSVUploadDialog.tsx but may not be affecting the component that's actually being imported by DashboardHeader.tsx.",
+        successful: false
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error adding CSV Upload Dialog solution attempt:', error);
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error in logCSVUploadDialogSolution:', error);
     return null;
   }
 };

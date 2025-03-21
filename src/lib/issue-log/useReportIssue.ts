@@ -5,6 +5,8 @@ import {
   logNotReachedPieChartSolution,
   logYAxisStretchIssue,
   logYAxisStretchSolution,
+  logCSVUploadDialogIssue,
+  logCSVUploadDialogSolution,
   type Issue
 } from './issueLogService';
 
@@ -97,11 +99,34 @@ Actual: ${JSON.stringify(actualValues)}`;
     }
   };
 
+  const reportCSVUploadDialogIssue = async () => {
+    try {
+      setIsReporting(true);
+      
+      // Log the issue
+      const issue = await logCSVUploadDialogIssue();
+      setReportedIssue(issue);
+      
+      // Log the attempted solution if we have an issue ID
+      if (issue?.id) {
+        await logCSVUploadDialogSolution(issue.id);
+      }
+      
+      return issue;
+    } catch (error) {
+      logError(error as Error, 'useReportIssue.reportCSVUploadDialogIssue');
+      return null;
+    } finally {
+      setIsReporting(false);
+    }
+  };
+
   return {
     isReporting,
     reportedIssue,
     reportNotReachedPieChartIssue,
     reportPieChartCalculationIssue,
-    reportYAxisStretchIssue
+    reportYAxisStretchIssue,
+    reportCSVUploadDialogIssue
   };
 };
