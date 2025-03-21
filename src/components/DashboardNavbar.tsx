@@ -1,12 +1,11 @@
 
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { LogOut, MessageSquare } from 'lucide-react';
+import { LogOut, Menu, X } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useMobile } from '@/hooks/useMobile';
 import { useState } from 'react';
-import { Menu, X } from 'lucide-react';
 
 export const DashboardNavbar = () => {
   const { user, signOut } = useAuth();
@@ -46,7 +45,6 @@ export const DashboardNavbar = () => {
                     <>
                       <Link to="/dashboard" className="py-2" onClick={toggleMenu}>Dashboard</Link>
                       <Link to="/connect-data" className="py-2" onClick={toggleMenu}>Connect Data</Link>
-                      <Link to="/ai-chat" className="py-2" onClick={toggleMenu}>AI Chat</Link>
                       <Button 
                         onClick={handleSignOut} 
                         variant="outline" 
@@ -82,12 +80,6 @@ export const DashboardNavbar = () => {
                   <nav className="flex items-center gap-6">
                     <Link to="/dashboard" className="text-sm font-medium hover:text-primary transition-colors">Dashboard</Link>
                     <Link to="/connect-data" className="text-sm font-medium hover:text-primary transition-colors">Connect Data</Link>
-                    <Link to="/ai-chat" className="text-sm font-medium hover:text-primary transition-colors">
-                      <div className="flex items-center">
-                        <MessageSquare className="mr-1 h-4 w-4" />
-                        AI Chat
-                      </div>
-                    </Link>
                   </nav>
                   <ThemeToggle />
                   <Button onClick={handleSignOut} variant="outline" size="sm">
