@@ -43,8 +43,6 @@ export const DashboardNavbar = () => {
                 <div className="absolute top-16 left-0 right-0 bg-background shadow-lg p-4 flex flex-col gap-4">
                   {user && (
                     <>
-                      <Link to="/dashboard" className="py-2" onClick={toggleMenu}>Dashboard</Link>
-                      <Link to="/connect-data" className="py-2" onClick={toggleMenu}>Connect Data</Link>
                       <Button 
                         onClick={handleSignOut} 
                         variant="outline" 
@@ -77,10 +75,6 @@ export const DashboardNavbar = () => {
             <div className="flex items-center gap-6">
               {user ? (
                 <>
-                  <nav className="flex items-center gap-6">
-                    <Link to="/dashboard" className="text-sm font-medium hover:text-primary transition-colors">Dashboard</Link>
-                    <Link to="/connect-data" className="text-sm font-medium hover:text-primary transition-colors">Connect Data</Link>
-                  </nav>
                   <ThemeToggle />
                   <Button onClick={handleSignOut} variant="outline" size="sm">
                     <LogOut className="mr-2 h-4 w-4" />
