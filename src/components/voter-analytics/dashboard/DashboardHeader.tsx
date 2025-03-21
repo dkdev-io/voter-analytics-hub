@@ -2,6 +2,9 @@
 import { useState } from 'react';
 import { DataMigrationAlert } from "../DataMigrationAlert";
 import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { RefreshCw, Upload } from "lucide-react";
+import { CSVUploadDialog } from "../CSVUploadDialog";
 
 interface DashboardHeaderProps {
   lastUpdated: Date;
@@ -24,20 +27,18 @@ export function DashboardHeader({
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
   
   const handleRefresh = async () => {
-    if (refreshData) {
-      try {
-        await refreshData();
-        toast({
-          title: "Data refreshed",
-          description: "Your data has been refreshed successfully.",
-        });
-      } catch (error) {
-        toast({
-          title: "Refresh failed",
-          description: "There was an error refreshing your data.",
-          variant: "destructive",
-        });
-      }
+    try {
+      await refreshData();
+      toast({
+        title: "Data refreshed",
+        description: "Your data has been refreshed successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Refresh failed",
+        description: "There was an error refreshing your data.",
+        variant: "destructive",
+      });
     }
   };
   
@@ -54,9 +55,50 @@ export function DashboardHeader({
   
   return (
     <div className="space-y-6 mt-4 mb-8">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">Voter Analytics Dashboard</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            {lastUpdated ? (
+              <>Last updated: {lastUpdated.toLocaleString()}</>
+            ) : (
+              <>No data loaded yet</>
+            )}
+          </p>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            className="gap-1"
+            onClick={handleRefresh}
+          >
+            <RefreshCw className="h-4 w-4" />
+            Refresh Data
+          </Button>
+          
+          <Button
+            size="sm"
+            variant="outline"
+            className="gap-1"
+            onClick={() => setIsUploadDialogOpen(true)}
+          >
+            <Upload className="h-4 w-4" />
+            Upload CSV
+          </Button>
+        </div>
+      </div>
+      
       {!isDataMigrated && (
         <DataMigrationAlert isDataMigrated={isDataMigrated} />
       )}
+      
+      <CSVUploadDialog
+        open={isUploadDialogOpen}
+        onOpenChange={setIsUploadDialogOpen}
+        onSuccess={handleCSVUploadSuccess}
+      />
     </div>
   );
 }
