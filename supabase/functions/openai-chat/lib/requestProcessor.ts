@@ -49,13 +49,21 @@ export async function processRequest(req: Request) {
         console.log(`Retrieved ${sampleData.length} data records for validation`);
       }
       
+      // Determine if this should be a direct factual answer
+      const wantsDirectAnswer = 
+        conciseResponse || 
+        prompt.toLowerCase().includes("how many") ||
+        prompt.toLowerCase().includes("what is the number") ||
+        prompt.toLowerCase().includes("count of") ||
+        prompt.toLowerCase().includes("total of");
+      
       // Call OpenAI API
       const aiResponse = await callOpenAI({
         prompt,
         dataContext,
         isParameterExtraction,
         useAdvancedModel,
-        conciseResponse,
+        conciseResponse: wantsDirectAnswer,
         openAIApiKey,
         queryParams
       });
@@ -66,7 +74,8 @@ export async function processRequest(req: Request) {
         aiResponse, 
         sampleData, 
         prompt, 
-        queryParams
+        queryParams,
+        wantsDirectAnswer
       );
       
       // Return the final response

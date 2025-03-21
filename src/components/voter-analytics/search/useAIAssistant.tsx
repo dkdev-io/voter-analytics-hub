@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from 'react';
 import { useErrorLogger } from '@/hooks/useErrorLogger';
 import { supabase } from '@/integrations/supabase/client';
@@ -13,7 +14,8 @@ export const useAIAssistant = () => {
   const getAIAssistance = useCallback(async (
     inputValue: string, 
     queryParams?: Partial<QueryParams>, 
-    useAdvancedModel: boolean = true
+    useAdvancedModel: boolean = true,
+    conciseResponse: boolean = false
   ) => {
     if (!inputValue.trim()) {
       return;
@@ -28,6 +30,7 @@ export const useAIAssistant = () => {
       console.log("Getting AI assistance for:", inputValue);
       console.log("With query parameters:", queryParams);
       console.log("Using advanced model:", useAdvancedModel);
+      console.log("Using concise response format:", conciseResponse);
       
       // Make sure queryParams has defined values for all fields to help the validator
       const enhancedQueryParams = {
@@ -40,10 +43,15 @@ export const useAIAssistant = () => {
         ...queryParams
       };
       
+      // If concise response is requested, add special instructions
+      const enhancedPrompt = conciseResponse 
+        ? `${inputValue}\n\nIMPORTANT: Provide a direct, factual ONE SENTENCE answer based ONLY on the data. Start with the actual number or result. Then add "This result has been added to the dashboard." at the end.`
+        : inputValue;
+      
       // Prepare request with explicit instructions to use the provided data
       const { data, error } = await supabase.functions.invoke('openai-chat', {
         body: { 
-          prompt: inputValue,
+          prompt: enhancedPrompt,
           includeData: true, 
           queryParams: enhancedQueryParams, // Pass the enhanced parameters to filter relevant data
           conciseResponse: true,
@@ -97,7 +105,21 @@ export const useAIAssistant = () => {
         });
       }
       
-      setAiResponse(data.answer);
+      // If we requested a concise response but didn't get a clean answer, 
+      // try to extract just the first sentence
+      let finalResponse = data.answer;
+      if (conciseResponse) {
+        const firstSentence = data.answer.split(/[.!?](\s|$)/)[0] + ".";
+        if (firstSentence.length < data.answer.length * 0.7) {
+          finalResponse = firstSentence;
+          // Add the dashboard message if not present
+          if (!finalResponse.toLowerCase().includes("dashboard")) {
+            finalResponse += " This result has been added to the dashboard.";
+          }
+        }
+      }
+      
+      setAiResponse(finalResponse);
       
       // Set truncation flag if the response was cut off
       if (data.truncated) {

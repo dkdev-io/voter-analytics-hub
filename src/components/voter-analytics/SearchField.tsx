@@ -61,8 +61,8 @@ export const SearchField: React.FC<SearchFieldProps> = ({
           
           console.log("Sending query with full parameters:", fullParams);
           
-          // Always use advanced model for better results
-          await getAIAssistance(inputValue, fullParams, true);
+          // Request a concise, one-sentence answer format
+          await getAIAssistance(inputValue, fullParams, true, true);
           
           // Trigger the main search action if needed
           onSubmit();

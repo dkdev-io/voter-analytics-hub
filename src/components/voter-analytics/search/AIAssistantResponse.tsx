@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertCircle, AlertTriangle, Calendar, Database } from 'lucide-react';
+import { AlertCircle, AlertTriangle, Calendar, Database, Check } from 'lucide-react';
 
 interface AIAssistantResponseProps {
   response: string | null;
@@ -17,39 +17,14 @@ export const AIAssistantResponse: React.FC<AIAssistantResponseProps> = ({
   isTruncated = false,
   model = null
 }) => {
-  // Comprehensive list of error patterns to catch all variations of "no access" messages
+  // REDUCED list of error patterns to avoid false positives
   const isErrorResponse = response && (
-    response.toLowerCase().includes("don't have access") || 
-    response.toLowerCase().includes("i don't have information") ||
-    response.toLowerCase().includes("don't have specific personal data") ||
-    response.toLowerCase().includes("i don't have specific") ||
-    response.toLowerCase().includes("beyond my knowledge cutoff") ||
-    response.toLowerCase().includes("after my last update") ||
-    response.toLowerCase().includes("i don't have data") ||
-    response.toLowerCase().includes("i don't have access to data") ||
-    response.toLowerCase().includes("cannot provide information about") ||
-    response.toLowerCase().includes("can't access") ||
-    response.toLowerCase().includes("i'm unable to provide specific information") ||
-    response.toLowerCase().includes("i'm sorry, but i don't") ||
-    response.toLowerCase().includes("not privy to") ||
-    response.toLowerCase().includes("as an ai") ||
-    response.toLowerCase().includes("my training data") ||
-    response.toLowerCase().includes("my knowledge") ||
-    response.toLowerCase().includes("i apologize") ||
-    response.toLowerCase().includes("i cannot access") ||
-    response.toLowerCase().includes("i do not have access") ||
-    response.toLowerCase().includes("i do not have the data") ||
-    response.toLowerCase().includes("i do not have direct access") ||
-    response.toLowerCase().includes("i don't have the ability to access") ||
-    response.toLowerCase().includes("without access to") ||
-    response.toLowerCase().includes("i would need access to") ||
-    response.toLowerCase().includes("i'm not able to access") ||
-    response.toLowerCase().includes("i cannot provide specific") ||
-    response.toLowerCase().includes("i can't provide specific") ||
-    response.toLowerCase().includes("i need more context") || 
-    response.toLowerCase().includes("could you please clarify") || 
-    response.toLowerCase().includes("please provide more information") || 
-    response.toLowerCase().includes("i need more information")
+    (response.toLowerCase().includes("don't have access") && 
+     response.toLowerCase().includes("to personal")) ||
+    (response.toLowerCase().includes("i don't have information") &&
+     response.toLowerCase().includes("specific people")) ||
+    (response.toLowerCase().includes("beyond my knowledge cutoff") &&
+     !response.toLowerCase().includes("based on the data"))
   );
   
   // Detect date validation errors
@@ -61,7 +36,9 @@ export const AIAssistantResponse: React.FC<AIAssistantResponseProps> = ({
   );
   
   // Detect direct data answers from our fallback system
-  const isDirectDataAnswer = response && response.toLowerCase().startsWith("based on the data provided");
+  const isDirectDataAnswer = response && 
+    (response.toLowerCase().startsWith("based on the data provided") ||
+     response.toLowerCase().includes("according to the data"));
 
   // Get the first sentence of the response for the bold summary
   const getFirstSentence = (text: string): string => {
@@ -95,13 +72,12 @@ export const AIAssistantResponse: React.FC<AIAssistantResponseProps> = ({
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium flex items-center text-red-500">
             <AlertCircle className="h-4 w-4 mr-2" />
-            Error in AI Response
+            Error Processing Query
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-sm">
-            <p>The AI has incorrectly stated it doesn't have access to data or needs more context. This is a system error.</p>
-            <p className="text-xs text-gray-500 mt-2">Please try again with a different question or contact support if this persists.</p>
+            <p>We couldn't process this specific query. Please try a different question about your data.</p>
           </div>
         </CardContent>
       </Card>
@@ -135,11 +111,11 @@ export const AIAssistantResponse: React.FC<AIAssistantResponseProps> = ({
       <Card className="mt-4 border-blue-100">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium flex items-center">
-            <Database className="h-4 w-4 mr-2 text-blue-500" />
-            Data Analysis
+            <Check className="h-4 w-4 mr-2 text-green-500" />
+            Result
             {model && (
               <span className="text-xs bg-gray-100 rounded-full px-2 py-0.5 ml-2">
-                Data-driven
+                {model}
               </span>
             )}
           </CardTitle>
@@ -147,8 +123,8 @@ export const AIAssistantResponse: React.FC<AIAssistantResponseProps> = ({
         <CardContent>
           <div className="text-sm">
             <p className="font-bold mb-2">{getFirstSentence(response)}</p>
-            <div className="text-xs text-gray-700 mt-4 whitespace-pre-wrap prose prose-sm max-w-none">
-              {response}
+            <div className="text-xs text-gray-500 mt-4">
+              <p>Results have been added to the dashboard below.</p>
             </div>
           </div>
         </CardContent>
@@ -160,10 +136,12 @@ export const AIAssistantResponse: React.FC<AIAssistantResponseProps> = ({
     <Card className={`mt-4 ${isTruncated ? 'border-amber-200' : ''}`}>
       <CardHeader className="pb-2">
         <CardTitle className="text-sm font-medium flex items-center">
-          {isTruncated && (
+          {isTruncated ? (
             <AlertTriangle className="h-4 w-4 mr-2 text-amber-500" />
+          ) : (
+            <Check className="h-4 w-4 mr-2 text-green-500" />
           )}
-          Insight
+          Result
           {model && (
             <span className="text-xs bg-gray-100 rounded-full px-2 py-0.5 ml-2">
               {model}
@@ -174,8 +152,8 @@ export const AIAssistantResponse: React.FC<AIAssistantResponseProps> = ({
       <CardContent>
         <div className="text-sm">
           <p className="font-bold mb-2">{getFirstSentence(response)}</p>
-          <div className="text-xs text-gray-500 mt-4 whitespace-pre-wrap prose prose-sm max-w-none">
-            {response}
+          <div className="text-xs text-gray-500 mt-4">
+            <p>Results have been added to the dashboard below.</p>
           </div>
         </div>
       </CardContent>

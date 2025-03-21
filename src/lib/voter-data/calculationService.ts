@@ -55,9 +55,9 @@ export const aggregateVoterMetrics = (filteredData: any[]): VoterMetrics => {
       undecided: 0
     },
     notReached: {
-      notHome: 868, // Corrected value
-      refusal: 561, // Correct value
-      badData: 579  // Corrected value
+      notHome: 0,
+      refusal: 0,
+      badData: 0  
     },
     teamAttempts: {},
     byDate: []
@@ -101,18 +101,11 @@ export const aggregateVoterMetrics = (filteredData: any[]): VoterMetrics => {
     metrics.contacts.oppose += Number(item.oppose) || 0;
     metrics.contacts.undecided += Number(item.undecided) || 0;
     
-    // We're using the fixed values for notReached metrics instead of aggregating
-    // This is a temporary fix until the data import issue is resolved
-    // The original aggregation is commented out below:
-    /*
-    const notHome = Number(item.not_home) || 0;
-    const refusal = Number(item.refusal) || 0;
-    const badData = Number(item.bad_data) || 0;
-    
-    metrics.notReached.notHome += notHome;
-    metrics.notReached.refusal += refusal;
-    metrics.notReached.badData += badData;
-    */
+    // Actually sum the not reached metrics from filtered data
+    // instead of using hardcoded values
+    metrics.notReached.notHome += Number(item.not_home) || 0;
+    metrics.notReached.refusal += Number(item.refusal) || 0;
+    metrics.notReached.badData += Number(item.bad_data) || 0;
   });
   
   // Log the not reached metrics for debugging with detailed breakdown
@@ -120,13 +113,7 @@ export const aggregateVoterMetrics = (filteredData: any[]): VoterMetrics => {
     notHome: metrics.notReached.notHome,
     refusal: metrics.notReached.refusal,
     badData: metrics.notReached.badData,
-    total: metrics.notReached.notHome + metrics.notReached.refusal + metrics.notReached.badData,
-    expectedTotal: {
-      notHome: 868,
-      refusal: 561,
-      badData: 579,
-      totalExpected: 2008
-    }
+    total: metrics.notReached.notHome + metrics.notReached.refusal + metrics.notReached.badData
   });
   
   return metrics;

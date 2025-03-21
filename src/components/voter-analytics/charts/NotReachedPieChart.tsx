@@ -35,48 +35,34 @@ export const NotReachedPieChart: React.FC<NotReachedPieChartProps> = ({ data, to
   console.log('NotReachedPieChart calculated total:', calculatedTotal);
   console.log('NotReachedPieChart passed total:', total);
   
-  // Use the expected total of 2008 as a fallback if the passed data doesn't match expected values
-  const expectedTotal = 2008; // Not Home (868) + Refusal (561) + Bad Data (579)
-  const useExpectedTotal = calculatedTotal < 1000; // If calculated total is too low, use expected
-  
-  // Use the expected total or calculated total based on data validity
-  const actualTotal = useExpectedTotal ? expectedTotal : calculatedTotal;
+  // Use whatever total the data actually has - no fallbacks
+  const actualTotal = calculatedTotal;
   
   // Add total to each data point for percentage calculation
   const dataWithTotal = data.map(item => {
-    // Ensure no zero values in pie chart segments
-    const value = item.name === "Not Home" && item.value === 0 ? 868 :
-                  item.name === "Bad Data" && item.value === 0 ? 579 :
-                  Number(item.value) || 0;
+    const value = Number(item.value) || 0;
                   
     return {
       ...item,
-      value, // Use corrected value
+      value,
       total: actualTotal,
       percent: actualTotal > 0 ? ((value / actualTotal) * 100).toFixed(1) : '0.0'
     };
   });
 
-  // Report issue if there's a data consistency problem
+  // Only report issues if there's a significant discrepancy
   useEffect(() => {
-    // Check for any data issues
-    if (calculatedTotal < 1000 || data.some(item => (item.name === "Not Home" || item.name === "Bad Data") && item.value === 0)) {
+    if (Math.abs(calculatedTotal - total) > 100) {
       // Log the data issue for debugging
       logDataIssue("NotReachedPieChart data issue", {
         receivedData: data,
         calculatedTotal: calculatedTotal,
-        passedTotal: total,
-        expectedValues: {
-          notHome: 868,
-          refusal: 561,
-          badData: 579,
-          total: 2008
-        }
+        passedTotal: total
       });
       
       // Report the issue to the issue log
       reportPieChartCalculationIssue("Not Reached", 
-        { "Not Home": 868, "Refusal": 561, "Bad Data": 579 }, // expected values
+        data.reduce((acc, item) => ({ ...acc, [item.name]: item.value }), {}), // expected values
         data.reduce((acc, item) => ({ ...acc, [item.name]: item.value }), {}) // actual values
       );
     }
