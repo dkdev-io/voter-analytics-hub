@@ -59,12 +59,15 @@ export const SearchField: React.FC<SearchFieldProps> = ({
           // Store the current query for future reference
           setCurrentQuery(fullParams);
           
+          // Apply the query parameters immediately to update charts
+          setQuery(fullParams);
+          
           console.log("Sending query with full parameters:", fullParams);
           
           // Request a concise, one-sentence answer format
           await getAIAssistance(inputValue, fullParams, true, true);
           
-          // Trigger the main search action if needed
+          // Trigger the main search action to update results and charts
           onSubmit();
         }
       } catch (error) {

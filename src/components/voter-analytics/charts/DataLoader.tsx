@@ -25,8 +25,13 @@ export const useDataLoader = ({ query, showFilteredData }: UseDataLoaderProps) =
       try {
         setLoading(true);
         
+        // Always use the query to filter data when it exists
+        // This ensures AI search results correctly filter line charts
+        const shouldFilter = showFilteredData || (query.person || query.tactic);
+        console.log(`Loading chart data with filtering: ${shouldFilter}`, query);
+        
         // Fetch aggregated metrics from our service - either overall or filtered
-        const metrics = await fetchVoterMetrics(showFilteredData ? query : undefined);
+        const metrics = await fetchVoterMetrics(shouldFilter ? query : undefined);
         
         // Chart 1: Tactics breakdown (SMS, Phone, Canvas)
         const tacticsChartData = [
@@ -82,7 +87,8 @@ export const useDataLoader = ({ query, showFilteredData }: UseDataLoaderProps) =
             : "Voter Contacts Dataset";
         
         // Log line chart data for debugging
-        console.log(`Line chart data (${validatedLineData.length} days):`, validatedLineData.map(d => d.date));
+        console.log(`Line chart data (${validatedLineData.length} days), filtered by: `, query);
+        console.log("Line chart data sample:", validatedLineData.slice(0, 3));
         
         setTacticsData(tacticsChartData);
         setContactsData(contactsChartData);

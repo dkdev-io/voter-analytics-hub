@@ -47,6 +47,17 @@ export async function processRequest(req: Request) {
         sampleData = dataResult.sampleData;
         
         console.log(`Retrieved ${sampleData.length} data records for validation`);
+        
+        // Log sample data for debugging
+        if (sampleData.length > 0 && queryParams?.person) {
+          console.log(`Data sample for ${queryParams.person}:`, 
+            sampleData.slice(0, 3).map(d => ({
+              name: `${d.first_name} ${d.last_name}`,
+              tactic: d.tactic,
+              attempts: d.attempts
+            }))
+          );
+        }
       }
       
       // Determine if this should be a direct factual answer
@@ -80,9 +91,23 @@ export async function processRequest(req: Request) {
         wantsDirectAnswer
       );
       
+      // Standard answer formats for concise responses
+      let finalAnswer = answer;
+      if (wantsDirectAnswer && !isParameterExtraction) {
+        // If this is a natural language query and we want a concise answer
+        // append the standard dashboard notification if it's not already there
+        if (!finalAnswer.toLowerCase().includes("dashboard")) {
+          finalAnswer = finalAnswer.trim();
+          if (!finalAnswer.endsWith(".")) {
+            finalAnswer += ".";
+          }
+          finalAnswer += " This result has been added to the dashboard.";
+        }
+      }
+      
       // Return the final response
       return createSuccessResponse({ 
-        answer,
+        answer: finalAnswer,
         truncated: finishReason === 'length',
         model: useAdvancedModel ? 'gpt-4o' : 'gpt-4o-mini',
         visualizeData: true // Always enable data visualization

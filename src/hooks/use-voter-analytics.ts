@@ -27,6 +27,15 @@ export const useVoterAnalytics = () => {
     setDataStats
   } = useDataState();
 
+  // Set up a wrapper for setQuery that automatically updates showFilteredData
+  const enhancedSetQuery = (newQuery: Partial<QueryParams>) => {
+    // If we're setting a specific person or tactic query, automatically show filtered data
+    if (newQuery.person || newQuery.tactic) {
+      setShowFilteredData(true);
+    }
+    setQuery(newQuery);
+  };
+
   // Actions for data operations
   const {
     calculateResult,
@@ -35,7 +44,7 @@ export const useVoterAnalytics = () => {
     handleCsvUploadSuccess
   } = useAnalyticsActions({
     query,
-    setQuery,
+    setQuery: enhancedSetQuery,
     error,
     setError,
     result,
@@ -49,7 +58,7 @@ export const useVoterAnalytics = () => {
   return {
     // Query state
     query,
-    setQuery,
+    setQuery: enhancedSetQuery,
     error,
     setError,
     result,

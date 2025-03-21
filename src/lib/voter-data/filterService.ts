@@ -1,4 +1,3 @@
-
 import type { QueryParams } from '@/types/analytics';
 
 /**
@@ -161,9 +160,25 @@ function isValidDate(dateString: string): boolean {
 export const filterVoterData = (data: any[], query: Partial<QueryParams>) => {
   console.log("Filter voter data called with query:", query);
   
+  // Debug log for person filter
+  if (query.person) {
+    console.log(`Looking for person: "${query.person}"`);
+    
+    // Log all matching names in the dataset to help debug
+    const matchingNames = data
+      .filter(item => {
+        const fullName = `${item.first_name || ''} ${item.last_name || ''}`.toLowerCase();
+        const queryName = query.person?.toLowerCase() || '';
+        return fullName.includes(queryName);
+      })
+      .map(item => `${item.first_name} ${item.last_name}`);
+    
+    console.log(`Potential name matches in dataset: ${matchingNames.slice(0, 10).join(', ')}${matchingNames.length > 10 ? '...' : ''}`);
+  }
+  
   // Regular filtering for all queries
   const filteredData = data.filter(item => {
-    // For extensive debugging
+    // For debugging
     let includeRecord = true;
     let filterLog = `Record ID ${item.id} (${item.first_name} ${item.last_name}, ${item.date}, ${item.tactic}): `;
     
@@ -203,28 +218,24 @@ export const filterVoterData = (data: any[], query: Partial<QueryParams>) => {
       includeRecord = false;
     }
     
-    // Apply person filter with improved name matching
+    // Apply person filter with case-insensitive matching
     if (includeRecord && query.person && query.person !== 'All') {
-      // Split the query person into first and last name
-      const queryNames = query.person.split(' ');
+      // Use standardized case-insensitive comparison for names
+      const queryFirstName = query.firstName?.toLowerCase() || '';
+      const queryLastName = query.lastName?.toLowerCase() || '';
       
-      if (queryNames.length >= 2) {
-        const queryFirstName = queryNames[0].toLowerCase();
-        const queryLastName = queryNames.slice(1).join(' ').toLowerCase();
-        
-        const itemFirstName = (item.first_name || '').toLowerCase();
-        const itemLastName = (item.last_name || '').toLowerCase();
-        
-        // More detailed logging for person matching
-        console.log(`Comparing names: Query "${queryFirstName} ${queryLastName}" vs Item "${itemFirstName} ${itemLastName}"`);
-        
-        // Check for exact match by default
+      const itemFirstName = (item.first_name || '').toLowerCase();
+      const itemLastName = (item.last_name || '').toLowerCase();
+      
+      // For names with both first and last name specified
+      if (queryFirstName && queryLastName) {
+        // Apply exact match for both first and last name
         if (itemFirstName !== queryFirstName || itemLastName !== queryLastName) {
-          filterLog += `Failed person filter: query=${query.person}, item=${item.first_name} ${item.last_name}`;
+          filterLog += `Failed person filter: query=${queryFirstName} ${queryLastName}, item=${itemFirstName} ${itemLastName}`;
           includeRecord = false;
         }
       } else {
-        // Single name matching (less precise)
+        // For single name queries, do partial matching
         const fullName = `${item.first_name || ''} ${item.last_name || ''}`.toLowerCase();
         if (!fullName.includes(query.person.toLowerCase())) {
           filterLog += `Failed person filter (single name): query=${query.person}, item=${fullName}`;
@@ -248,11 +259,9 @@ export const filterVoterData = (data: any[], query: Partial<QueryParams>) => {
       }
     }
     
-    // Enhanced debug logging for all records
-    if (query.person) {
-      console.log(includeRecord ? 
-        `INCLUDED: ${item.first_name} ${item.last_name}, ${item.date}, ${item.tactic}, attempts=${item.attempts}` : 
-        `EXCLUDED: ${item.first_name} ${item.last_name}, ${item.date}, ${item.tactic}, reason: ${filterLog}`);
+    // Debug logging for all records
+    if (query.person && includeRecord) {
+      console.log(`INCLUDED: ${item.first_name} ${item.last_name}, ${item.date}, ${item.tactic}, attempts=${item.attempts}`);
     }
     
     return includeRecord;
@@ -260,10 +269,10 @@ export const filterVoterData = (data: any[], query: Partial<QueryParams>) => {
   
   console.log(`Filtered data count: ${filteredData.length} (from ${data.length})`);
   
+  // If person filter returns no results, try fallback matching
   if (filteredData.length === 0 && query.person) {
     console.warn(`No records found for person: ${query.person}. Trying case-insensitive search...`);
     
-    // Fallback to case-insensitive search if exact match fails
     return data.filter(item => {
       if (!query.person) return false;
       
