@@ -21,11 +21,6 @@ export const PieChartsRow: React.FC<PieChartsRowProps> = ({
   totalContacts,
   totalNotReached
 }) => {
-  // Ensure we have data for each chart
-  const hasTacticsData = tacticsData && tacticsData.length > 0 && totalAttempts > 0;
-  const hasContactsData = contactsData && contactsData.length > 0 && totalContacts > 0;
-  const hasNotReachedData = notReachedData && notReachedData.length > 0 && totalNotReached > 0;
-  
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
       <TacticsPieChart 

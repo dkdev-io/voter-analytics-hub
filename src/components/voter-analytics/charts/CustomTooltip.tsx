@@ -8,11 +8,17 @@ interface CustomTooltipProps {
 }
 
 export const CustomPieTooltip: React.FC<CustomTooltipProps> = ({ active, payload }) => {
-  if (!active || !payload || payload.length === 0) {
+  if (!active || !payload || payload.length === 0 || !payload[0]?.payload) {
     return null;
   }
   
   const data = payload[0].payload;
+  
+  // Check if all required properties exist
+  if (data.value === undefined || !data.name) {
+    return null;
+  }
+  
   const total = data.total || 1; // Avoid division by zero
   const percentage = ((data.value / total) * 100).toFixed(1);
   
