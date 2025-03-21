@@ -3,12 +3,8 @@ import { useQueryState } from './voter-analytics/use-query-state';
 import { useDataState } from './voter-analytics/use-data-state';
 import { useAnalyticsActions } from './voter-analytics/use-analytics-actions';
 import { type QueryParams } from '@/types/analytics';
-import { useErrorLogger } from './useErrorLogger';
-import { useEffect } from 'react';
 
 export const useVoterAnalytics = () => {
-  const { logError } = useErrorLogger();
-
   // Query and result state management
   const {
     query, 
@@ -29,20 +25,8 @@ export const useVoterAnalytics = () => {
     dataStats,
     dataLastUpdated,
     setDataLastUpdated,
-    setDataStats,
-    connectionError,
-    retryConnection
+    setDataStats
   } = useDataState();
-
-  // Log any connection errors to help with debugging
-  useEffect(() => {
-    if (connectionError) {
-      logError(connectionError, 'Supabase Connection', {
-        lastAttempt: dataLastUpdated ? dataLastUpdated.toISOString() : 'never',
-        dashboard: 'voter-analytics'
-      });
-    }
-  }, [connectionError, dataLastUpdated, logError]);
 
   // Set up a wrapper for setQuery that automatically updates showFilteredData
   const enhancedSetQuery = (newQuery: Partial<QueryParams>) => {
@@ -91,10 +75,6 @@ export const useVoterAnalytics = () => {
     // Data state
     dataStats,
     dataLastUpdated,
-    
-    // Supabase connection state
-    connectionError,
-    retryConnection,
     
     // Actions
     calculateResult,
