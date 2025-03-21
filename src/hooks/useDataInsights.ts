@@ -52,8 +52,11 @@ export const useDataInsights = () => {
   }, [toast, logError]);
 
   // Generate AI insight based on data summary
-  const generateInsight = useCallback(async (question?: string) => {
-    if (!dataSummary) {
+  const generateInsight = useCallback(async (
+    question?: string, 
+    useSummary: boolean = true
+  ) => {
+    if (!dataSummary && useSummary) {
       // Try to analyze data first if we don't have a summary
       const summary = await analyzeUserData();
       if (!summary) {
@@ -69,19 +72,25 @@ export const useDataInsights = () => {
     setIsGeneratingInsight(true);
     
     try {
-      console.log("Generating insight for data summary:", dataSummary);
+      console.log("Generating insight with options:", {
+        question,
+        useSummary,
+        hasSummary: !!dataSummary
+      });
       
       // Default prompt if no specific question
       const defaultPrompt = "What are the most important insights from this data? Focus on key metrics and trends.";
       const userPrompt = question || defaultPrompt;
       
-      // Call OpenAI function with structured data
+      // Call OpenAI function with appropriate data approach
       const { data, error } = await supabase.functions.invoke('openai-chat', {
         body: { 
           prompt: userPrompt,
           includeData: true,
-          dataSummary: dataSummary, // Send the structured summary instead of raw data
-          conciseResponse: true
+          // Only include data summary if we're using the summary approach
+          dataSummary: useSummary ? dataSummary : null,
+          conciseResponse: true,
+          useAdvancedModel: true // Always use advanced model for better results
         }
       });
 

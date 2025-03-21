@@ -44,18 +44,21 @@ EXAMPLE: For "How many phone attempts did Dan Kelly make?", look for records whe
    first_name is "Dan" AND last_name is "Kelly" AND tactic="Phone"
    Then count the attempts field values in those records
 
-EXAMPLE CORRECT RESPONSES:
-- Query: "How many phone attempts did Dan Kelly make?"
-  ✓ Correct: "Based on the data provided, Dan Kelly made 15 Phone attempts."
-  ✗ Incorrect: "I don't have specific information about Dan Kelly's phone attempts."
+SPECIFIC EXAMPLES - DO THIS EXACTLY:
+- Question: "How many phone attempts did Dan Kelly make?"
+  Step 1: Search for records where first_name="Dan" AND last_name="Kelly" AND tactic="Phone"
+  Step 2: Sum the 'attempts' field in those records
+  Step 3: Answer: "Based on the data provided, Dan Kelly made 15 Phone attempts."
 
-- Query: "How many contacts did Jane Wilson make using Canvas?"
-  ✓ Correct: "Based on the data provided, Jane Wilson made 8 contacts using Canvas."
-  ✗ Incorrect: "I would need access to the database to answer this question."
+- Question: "How many contacts did Jane Wilson make using Canvas?"
+  Step 1: Search for records where first_name="Jane" AND last_name="Wilson" AND tactic="Canvas"
+  Step 2: Sum the 'contacts' field in those records
+  Step 3: Answer: "Based on the data provided, Jane Wilson made 8 contacts using Canvas."
 
-- Query: "How many voters did Team Tony contact in January?"
-  ✓ Correct: "Based on the data provided, Team Tony contacted 45 voters in January."
-  ✗ Incorrect: "I don't have access to Team Tony's contact information."
+- Question: "How many voters did Team Tony contact in January?"
+  Step 1: Search for records where team="Team Tony" AND date starts with "2025-01"
+  Step 2: Sum the 'contacts' field in those records
+  Step 3: Answer: "Based on the data provided, Team Tony contacted 45 voters in January."
 
 THE DATA BELOW CONTAINS REAL DATABASE RECORDS - YOU MUST USE THESE TO ANSWER:`;
   

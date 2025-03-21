@@ -3,10 +3,13 @@ import { useState } from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Send, Loader2 } from 'lucide-react';
+import { Send, Loader2, Database, BarChart } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useErrorLogger } from '@/hooks/useErrorLogger';
+import { useDataInsights } from '@/hooks/useDataInsights';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 export const OpenAIChat = () => {
   const [prompt, setPrompt] = useState('');
@@ -14,8 +17,10 @@ export const OpenAIChat = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [rawResponse, setRawResponse] = useState<any>(null);
   const [showRawResponse, setShowRawResponse] = useState(false);
+  const [useSummaryData, setUseSummaryData] = useState(true);
   const { toast } = useToast();
   const { logError } = useErrorLogger();
+  const { dataSummary, analyzeUserData } = useDataInsights();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,12 +45,19 @@ export const OpenAIChat = () => {
       const queryParams = extractBasicQueryParams(prompt.trim());
       console.log("Auto-extracted query parameters:", queryParams);
       
+      // Ensure we have a data summary if using that option
+      if (useSummaryData && !dataSummary) {
+        console.log("No data summary available, analyzing data first...");
+        await analyzeUserData();
+      }
+      
       // Use the updated API endpoint
       const { data, error } = await supabase.functions.invoke('openai-chat', {
         body: { 
           prompt: prompt.trim(),
           useAdvancedModel: true,  // Always use advanced model for better results
           includeData: true,       // Include relevant data for analysis
+          dataSummary: useSummaryData ? dataSummary : null, // Use data summary if requested
           queryParams,             // Add query params to help with context filtering
           debug: true              // Request debug information
         }
@@ -110,6 +122,9 @@ export const OpenAIChat = () => {
       const [fullMatch, firstName, lastName] = matches[0];
       const formattedName = `${firstName.charAt(0).toUpperCase() + firstName.slice(1)} ${lastName.charAt(0).toUpperCase() + lastName.slice(1)}`;
       params.person = formattedName;
+      // Also add first and last name separately to help with matching
+      params.firstName = firstName.charAt(0).toUpperCase() + firstName.slice(1);
+      params.lastName = lastName.charAt(0).toUpperCase() + lastName.slice(1);
     }
     
     // Basic date extraction for YYYY-MM-DD format
@@ -124,11 +139,33 @@ export const OpenAIChat = () => {
   return (
     <Card className="w-full max-w-4xl mx-auto">
       <CardHeader>
-        <CardTitle>Chat with OpenAI</CardTitle>
-        <CardDescription>Ask a question or provide a prompt to get a response from OpenAI</CardDescription>
+        <div className="flex justify-between items-center">
+          <div>
+            <CardTitle>Chat with OpenAI</CardTitle>
+            <CardDescription>Ask a question or provide a prompt to get a response from OpenAI</CardDescription>
+          </div>
+          
+          {dataSummary && (
+            <div className="flex items-center space-x-2">
+              <BarChart className="h-4 w-4 text-gray-500" />
+              <span className="text-xs text-gray-500">{dataSummary.totalRows.toLocaleString()} records</span>
+            </div>
+          )}
+        </div>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="flex items-center justify-end space-x-2 mb-2">
+            <Switch
+              id="use-summary"
+              checked={useSummaryData}
+              onCheckedChange={setUseSummaryData}
+            />
+            <Label htmlFor="use-summary" className="text-sm">
+              Use summarized data
+            </Label>
+          </div>
+          
           <Textarea
             placeholder="Type your question or prompt here..."
             value={prompt}
@@ -181,7 +218,10 @@ export const OpenAIChat = () => {
         )}
       </CardContent>
       <CardFooter className="text-sm text-gray-500">
-        Powered by OpenAI
+        <div className="flex items-center">
+          <Database className="h-4 w-4 mr-1" />
+          Powered by OpenAI with {useSummaryData ? "summarized" : "raw"} data
+        </div>
       </CardFooter>
     </Card>
   );

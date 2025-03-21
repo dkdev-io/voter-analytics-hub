@@ -32,13 +32,17 @@ export const calculateResultFromSupabase = async (query: Partial<QueryParams>) =
       console.log("Updated query after extraction:", query);
     }
     
-    // Enhanced name parsing - if person contains first and last name, split them
+    // Enhanced name parsing - properly handle first and last name separation
     if (query.person) {
       const personParts = query.person.trim().split(' ');
       if (personParts.length > 1) {
         const firstName = personParts[0];
         const lastName = personParts.slice(1).join(' ');
         console.log(`Person query detected: "${query.person}" - will look for first_name="${firstName}" AND last_name="${lastName}"`);
+        
+        // Add dedicated first and last name properties to help with filtering
+        query.firstName = firstName;
+        query.lastName = lastName;
       }
     }
     
@@ -56,6 +60,12 @@ export const calculateResultFromSupabase = async (query: Partial<QueryParams>) =
     
     if (query.person) {
       console.log(`Filtered records for ${query.person}:`, filteredData.length);
+      
+      // If no records found with the exact name, try to help debug
+      if (filteredData.length === 0) {
+        // Log a sample of names from original data to help debug name matching issues
+        console.log("Sample of names in dataset:", data.slice(0, 20).map(d => `${d.first_name} ${d.last_name}`));
+      }
     }
     
     if (filteredData.length === 0) {

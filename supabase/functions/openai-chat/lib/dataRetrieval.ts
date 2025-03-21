@@ -10,22 +10,28 @@ export async function fetchDataContext(dataSummary: any, req: Request, queryPara
   if (dataSummary) {
     console.log("Using provided data summary instead of querying database");
     
-    // More compact JSON for data summary to save tokens
-    const compactColumnStats = JSON.stringify(dataSummary.columnStats);
-    const compactSampleRows = JSON.stringify(dataSummary.sampleRows);
+    // Format the data summary for better comprehension by the AI
+    const formattedColumnStats = JSON.stringify(dataSummary.columnStats, null, 2);
+    const formattedSampleRows = JSON.stringify(dataSummary.sampleRows, null, 2);
     
     dataContext = `
-Here is a summary of the voter contact data:
+VOTER CONTACT DATABASE SUMMARY:
 
-Total rows: ${dataSummary.totalRows}
+Total records: ${dataSummary.totalRows}
 
-Column statistics:
-${compactColumnStats}
+Column information:
+${formattedColumnStats}
 
-Sample rows:
-${compactSampleRows}
+Sample records:
+${formattedSampleRows}
 
-IMPORTANT: Use this data to answer the question comprehensively. Refer to specific numbers and statistics from the provided data summary.`;
+IMPORTANT DATABASE STRUCTURE:
+- Records contain fields like: first_name, last_name, team, date, tactic, attempts, contacts, support, oppose, undecided, etc.
+- When searching for a person like "Dan Kelly", you MUST find records where first_name="Dan" AND last_name="Kelly".
+- For counting attempts, contacts, etc., always look at the appropriate numeric fields in the matching records.
+- NEVER say you "don't have access to data" or need "more context" - all the data you need is provided above.
+
+ALWAYS perform your analysis using ONLY the data provided above.`;
     
     console.log("Using structured data summary for context");
   } else {
@@ -63,20 +69,20 @@ IMPORTANT: Use this data to answer the question comprehensively. Refer to specif
     if (queryParams) {
       console.log("Applying query parameters to database query:", queryParams);
       
-      // For any person queries, use more structured name matching
+      // Enhanced person name handling
       if (queryParams.person) {
         const personName = queryParams.person.trim();
         // Split the name to check first and last name separately
         const nameParts = personName.split(' ');
         
         if (nameParts.length > 1) {
-          // Extract first and last name
+          // Extract first and last name for more precise querying
           const firstName = nameParts[0];
           const lastName = nameParts.slice(1).join(' ');
           
           console.log(`Looking for person with first_name="${firstName}" and last_name="${lastName}"`);
           
-          // Try first+last name combination - use ilike for case-insensitivity
+          // Try exact match first, then fallback to partial match
           query = query.or(`and(first_name.ilike.${firstName},last_name.ilike.${lastName}),and(first_name.ilike.%${firstName}%,last_name.ilike.%${lastName}%)`);
         } else {
           // Single name part - search in both first and last name
@@ -106,7 +112,7 @@ IMPORTANT: Use this data to answer the question comprehensively. Refer to specif
       console.log(`Total matching records: ${count || 0}`);
     }
     
-    // Get all matching records - no limits
+    // Get all matching records - no arbitrary limits
     const { data, error } = await query;
     
     if (error) {
@@ -139,18 +145,18 @@ IMPORTANT: Use this data to answer the question comprehensively. Refer to specif
           if (!tacticStats.error && tacticStats.data && 
               !teamStats.error && teamStats.data && 
               !dateStats.error && dateStats.data) {
-            // Use compact JSON formatting to save tokens
+            // Format statistics for better AI understanding
             statsContext = `
-IMPORTANT STATISTICS FOR THE ENTIRE DATASET (${count} total records):
+AGGREGATED STATISTICS FOR THE ENTIRE DATASET (${count} total records):
 
-Tactic statistics:
-${JSON.stringify(tacticStats.data)}
+Tactic statistics (attempts by tactic):
+${JSON.stringify(tacticStats.data, null, 2)}
 
-Team statistics:
-${JSON.stringify(teamStats.data)}
+Team statistics (results by team):
+${JSON.stringify(teamStats.data, null, 2)}
 
-Date statistics:
-${JSON.stringify(dateStats.data)}
+Date statistics (results by date):
+${JSON.stringify(dateStats.data, null, 2)}
 `;
           }
         } catch (statsError) {
@@ -159,25 +165,24 @@ ${JSON.stringify(dateStats.data)}
         }
       }
       
-      // Format the data for inclusion in the prompt - using VERY EXPLICIT instructions
+      // Format the data for inclusion in the prompt with explicit instructions
       dataContext = `
-THESE ARE REAL DATABASE RECORDS FROM YOUR VOTER CONTACT DATABASE:
+VOTER CONTACT DATABASE RECORDS [${data.length} records]:
 
-DATABASE RECORDS [${data.length} records]:
-${JSON.stringify(data)}
+${JSON.stringify(data, null, 2)}
 
-${statsContext || ''}
+${statsContext}
 
-EXTREMELY IMPORTANT INSTRUCTIONS FOR USING THIS DATA:
-1. The above data shows REAL voter contact records. ANSWER QUESTIONS USING ONLY THIS DATA.
-2. EACH RECORD has these fields: first_name, last_name, team, date, tactic, attempts, contacts, etc.
-3. When searching for a person like "Dan Kelly", FIND RECORDS where first_name="Dan" AND last_name="Kelly".
-4. For "How many phone attempts did Dan Kelly make?", COUNT THE attempts field values in records where first_name="Dan" AND last_name="Kelly" AND tactic="Phone".
+CRITICAL INSTRUCTIONS FOR DATA ANALYSIS:
+1. The above JSON contains REAL voter contact records from the database. USE THIS DATA to answer all questions.
+2. EACH RECORD contains fields: first_name, last_name, team, date, tactic, attempts, contacts, support, oppose, undecided, etc.
+3. When looking for a person like "Dan Kelly", FIND RECORDS where first_name="Dan" AND last_name="Kelly".
+4. For questions like "How many phone attempts did Dan Kelly make?", COUNT the attempts field in records where first_name="Dan" AND last_name="Kelly" AND tactic="Phone".
 5. ALWAYS begin responses with "Based on the data provided, ..."
-6. NEVER say "I don't have access to data" or similar phrases.
-7. DO NOT ASK for more context - all the data you need is above.
+6. NEVER say "I don't have access to data" or "I don't have information" - the complete data is provided above.
+7. DO NOT ASK for more context - all the data you need is in the JSON above.
 
-THE QUESTION IS ABOUT THIS EXACT DATA. SEARCH AND ANALYZE THESE RECORDS DIRECTLY.`;
+THE QUESTION IS ABOUT THIS EXACT DATA - ANALYZE IT DIRECTLY.`;
       
       console.log(`Retrieved ${data.length} records for context`);
     } else {

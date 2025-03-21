@@ -3,12 +3,13 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, BarChart, Search, RefreshCw } from 'lucide-react';
+import { Loader2, BarChart, Search, RefreshCw, ListFilter } from 'lucide-react';
 import { useDataInsights } from '@/hooks/useDataInsights';
 import { AIAssistantResponse } from '../search/AIAssistantResponse';
 
 export const DataInsightsPanel = () => {
   const [question, setQuestion] = useState('');
+  const [useSummarizedData, setUseSummarizedData] = useState(true);
   const { 
     isLoading, 
     isGeneratingInsight, 
@@ -20,7 +21,7 @@ export const DataInsightsPanel = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await generateInsight(question);
+    await generateInsight(question, useSummarizedData);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -63,6 +64,17 @@ export const DataInsightsPanel = () => {
                 <span className="text-sm font-medium">
                   {dataSummary.totalRows.toLocaleString()} rows analyzed across {Object.keys(dataSummary.columnStats).length} columns
                 </span>
+              </div>
+              <div className="flex items-center justify-end mt-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setUseSummarizedData(!useSummarizedData)}
+                  className="text-xs flex items-center"
+                >
+                  <ListFilter className="h-3 w-3 mr-1" />
+                  {useSummarizedData ? "Using summarized data" : "Using full data"}
+                </Button>
               </div>
             </div>
 
