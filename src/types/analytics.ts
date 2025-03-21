@@ -1,4 +1,3 @@
-
 export interface QueryParams {
   tactic?: string;
   resultType?: string;
@@ -7,6 +6,8 @@ export interface QueryParams {
   endDate?: string;
   team?: string;
   searchQuery?: string;
+  firstName?: string; // Added to support name parsing
+  lastName?: string;  // Added to support name parsing
 }
 
 export const RESULT_TYPES = [
