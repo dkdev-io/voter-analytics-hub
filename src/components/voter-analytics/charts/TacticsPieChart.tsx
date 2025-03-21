@@ -16,16 +16,25 @@ interface TacticsPieChartProps {
 }
 
 export const TacticsPieChart: React.FC<TacticsPieChartProps> = ({ data, total }) => {
+  // Filter out zero value data points
+  const filteredData = data.filter(item => item.value > 0);
+  const calculatedTotal = filteredData.reduce((sum, item) => sum + Number(item.value || 0), 0);
+  const actualTotal = calculatedTotal > 0 ? calculatedTotal : 1; // Avoid division by zero
+  
   // Add total to each data point for percentage calculation
-  const dataWithTotal = data.map(item => ({
+  const dataWithTotal = filteredData.map(item => ({
     ...item,
-    total,
-    percent: ((item.value / total) * 100).toFixed(1)
+    total: actualTotal,
+    percent: ((item.value / actualTotal) * 100).toFixed(1)
   }));
 
   // Custom legend that includes percentages
   const renderLegend = (props: any) => {
     const { payload } = props;
+    
+    if (!payload || payload.length === 0) {
+      return <div className="text-xs text-center mt-2">No data available</div>;
+    }
     
     return (
       <ul className="text-xs flex flex-col items-start mt-2">
@@ -35,19 +44,33 @@ export const TacticsPieChart: React.FC<TacticsPieChartProps> = ({ data, total })
               className="inline-block w-3 h-3 mr-2"
               style={{ backgroundColor: entry.color }}
             />
-            <span className="whitespace-nowrap">{entry.value} - {entry.payload.value.toLocaleString()} ({((entry.payload.value / total) * 100).toFixed(1)}%)</span>
+            <span className="whitespace-nowrap">{entry.value} - {entry.payload.value.toLocaleString()} ({((entry.payload.value / actualTotal) * 100).toFixed(1)}%)</span>
           </li>
         ))}
       </ul>
     );
   };
 
+  // If there's no data, show an empty state
+  if (filteredData.length === 0) {
+    return (
+      <div className="h-72 bg-white rounded-lg border border-gray-200 flex flex-col">
+        <h3 className="text-sm font-bold p-2 text-center">Attempts</h3>
+        <div className="text-center text-sm font-medium pb-4">
+          Total: 0
+        </div>
+        <div className="flex-1 flex items-center justify-center">
+          <p className="text-gray-500">No data available</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="h-72 bg-white rounded-lg border border-gray-200 flex flex-col">
       <h3 className="text-sm font-bold p-2 text-center">Attempts</h3>
-      {/* Add more vertical spacing between total and chart */}
       <div className="text-center text-sm font-medium pb-4">
-        Total: {total.toLocaleString()}
+        Total: {actualTotal.toLocaleString()}
       </div>
       <div className="flex-1">
         <ResponsiveContainer width="100%" height="100%">
@@ -61,7 +84,7 @@ export const TacticsPieChart: React.FC<TacticsPieChartProps> = ({ data, total })
               paddingAngle={5}
               dataKey="value"
             >
-              {data.map((entry, index) => (
+              {dataWithTotal.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.color} />
               ))}
             </Pie>

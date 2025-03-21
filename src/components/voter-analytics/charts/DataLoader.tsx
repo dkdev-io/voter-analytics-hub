@@ -25,34 +25,42 @@ export const useDataLoader = ({ query, showFilteredData }: UseDataLoaderProps) =
       try {
         setLoading(true);
         
-        // Always use the query to filter data when it exists
-        // This ensures AI search results correctly filter line charts
-        const shouldFilter = showFilteredData || (query.person || query.tactic);
+        // Determine if we should filter the data
+        const shouldFilter = showFilteredData || (query.person || query.tactic || query.team);
         console.log(`Loading chart data with filtering: ${shouldFilter}`, query);
         
         // Fetch aggregated metrics from our service - either overall or filtered
         const metrics = await fetchVoterMetrics(shouldFilter ? query : undefined);
+        
+        // Ensure we have valid metrics data
+        if (!metrics) {
+          console.error("Failed to load metrics data");
+          setLoading(false);
+          return;
+        }
+        
+        console.log("Loaded metrics data:", metrics);
         
         // Chart 1: Tactics breakdown (SMS, Phone, Canvas)
         const tacticsChartData = [
           { name: 'SMS', value: metrics.tactics.sms || 0, color: CHART_COLORS.TACTIC.SMS },
           { name: 'Phone', value: metrics.tactics.phone || 0, color: CHART_COLORS.TACTIC.PHONE },
           { name: 'Canvas', value: metrics.tactics.canvas || 0, color: CHART_COLORS.TACTIC.CANVAS }
-        ];
+        ].filter(item => item.value > 0); // Only include non-zero values
         
         // Chart 2: Contacts breakdown (Support, Oppose, Undecided)
         const contactsChartData = [
           { name: 'Support', value: metrics.contacts.support || 0, color: CHART_COLORS.CONTACT.SUPPORT },
           { name: 'Oppose', value: metrics.contacts.oppose || 0, color: CHART_COLORS.CONTACT.OPPOSE },
           { name: 'Undecided', value: metrics.contacts.undecided || 0, color: CHART_COLORS.CONTACT.UNDECIDED }
-        ];
+        ].filter(item => item.value > 0); // Only include non-zero values
         
         // Chart 3: Not Reached breakdown (Not Home, Refusal, Bad Data)
         const notReachedChartData = [
           { name: 'Not Home', value: metrics.notReached.notHome || 0, color: CHART_COLORS.NOT_REACHED.NOT_HOME },
           { name: 'Refusal', value: metrics.notReached.refusal || 0, color: CHART_COLORS.NOT_REACHED.REFUSAL },
           { name: 'Bad Data', value: metrics.notReached.badData || 0, color: CHART_COLORS.NOT_REACHED.BAD_DATA }
-        ];
+        ].filter(item => item.value > 0); // Only include non-zero values
         
         // Calculate the total not reached from the metrics
         const totalNotReachedValue = 
@@ -80,7 +88,7 @@ export const useDataLoader = ({ query, showFilteredData }: UseDataLoaderProps) =
         const totalContactsValue = contactsChartData.reduce((sum, item) => sum + item.value, 0);
         
         // Determine dataset name based on user's query or default
-        const datasetNameValue = query.team 
+        const datasetNameValue = query.team && query.team !== "All"
           ? `${query.team} Team Dataset`
           : query.person
             ? `${query.person}'s Dataset`

@@ -1,26 +1,26 @@
 
 import React from 'react';
 
-export const CustomPieTooltip = ({ active, payload }: any) => {
-  if (active && payload && payload.length) {
-    const data = payload[0].payload;
-    const total = payload[0].payload.total || 
-                 (typeof data.value === 'number' ? data.value : 0);
-    
-    return (
-      <div className="bg-white p-2 border border-gray-200 shadow-md rounded text-xs">
-        <p className="font-semibold">{payload[0].name}</p>
-        <p style={{ color: payload[0].payload.color }}>
-          Value: {Number(payload[0].value).toLocaleString()}
-        </p>
-        {total > 0 && (
-          <p>
-            Percentage: {((payload[0].value / total) * 100).toFixed(1)}%
-          </p>
-        )}
-      </div>
-    );
-  }
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: any[];
+  label?: string;
+}
 
-  return null;
+export const CustomPieTooltip: React.FC<CustomTooltipProps> = ({ active, payload }) => {
+  if (!active || !payload || payload.length === 0) {
+    return null;
+  }
+  
+  const data = payload[0].payload;
+  const total = data.total || 1; // Avoid division by zero
+  const percentage = ((data.value / total) * 100).toFixed(1);
+  
+  return (
+    <div className="bg-white p-2 border border-gray-200 shadow-md rounded-md text-xs">
+      <p className="font-bold">{data.name}</p>
+      <p>Value: {data.value.toLocaleString()}</p>
+      <p>Percentage: {percentage}%</p>
+    </div>
+  );
 };
