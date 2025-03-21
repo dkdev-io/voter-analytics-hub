@@ -23,7 +23,6 @@ export const VoterAnalytics = () => {
     searchQuery,
     setSearchQuery,
     showFilteredData,
-    setShowFilteredData,
     calculateResult,
     importNewData,
     refreshData,
@@ -143,8 +142,7 @@ export const VoterAnalytics = () => {
                         setSearchQuery={setSearchQuery}
                         isLoading={isLoading}
                         onSubmit={calculateResult}
-                        setQuery={setQuery}
-                        setShowFilteredData={setShowFilteredData}
+                        setQuery={setQuery} 
                       />
                     )}
                   </div>

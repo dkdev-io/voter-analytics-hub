@@ -1,33 +1,35 @@
 
-import { SearchField } from "../SearchField";
+import { SearchField } from '../SearchField';
+import { QueryParams } from '@/types/analytics';
 
 interface SearchSectionProps {
   searchQuery: string;
-  setSearchQuery: (searchQuery: string) => void;
+  setSearchQuery: (query: string) => void;
   isLoading: boolean;
   onSubmit: () => void;
-  setQuery: any;
-  setShowFilteredData?: (show: boolean) => void;
+  setQuery?: (query: Partial<QueryParams>) => void;
 }
 
-export const SearchSection: React.FC<SearchSectionProps> = ({
+export function SearchSection({
   searchQuery,
   setSearchQuery,
   isLoading,
   onSubmit,
-  setQuery,
-  setShowFilteredData
-}) => {
+  setQuery
+}: SearchSectionProps) {
   return (
-    <div>
+    <div className="space-y-3">
+      <p className="text-xs text-gray-600 mb-2">
+        Ask a question below about your voter contact data.
+      </p>
+      
       <SearchField
         value={searchQuery}
         onChange={setSearchQuery}
         isLoading={isLoading}
         onSubmit={onSubmit}
         setQuery={setQuery}
-        setShowFilteredData={setShowFilteredData}
       />
     </div>
   );
-};
+}

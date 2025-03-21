@@ -2,7 +2,6 @@
 import { useQueryState } from './voter-analytics/use-query-state';
 import { useDataState } from './voter-analytics/use-data-state';
 import { useAnalyticsActions } from './voter-analytics/use-analytics-actions';
-import { type QueryParams } from '@/types/analytics';
 
 export const useVoterAnalytics = () => {
   // Query and result state management
@@ -66,7 +65,6 @@ export const useVoterAnalytics = () => {
     searchQuery,
     setSearchQuery,
     showFilteredData,
-    setShowFilteredData,
     
     // Loading state
     isLoading,
