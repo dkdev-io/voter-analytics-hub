@@ -55,7 +55,7 @@ export const useDataLoader = ({ query, showFilteredData }: UseDataLoaderProps) =
           (metrics.notReached.refusal || 0) + 
           (metrics.notReached.badData || 0);
         
-        // Filter out any data points with invalid dates
+        // Filter out any data points with invalid dates and ensure every day is included
         const validatedLineData = (metrics.byDate || []).filter(item => {
           // Check if date is valid
           return item.date && isValid(parseISO(item.date));
@@ -67,17 +67,22 @@ export const useDataLoader = ({ query, showFilteredData }: UseDataLoaderProps) =
           issues: item.issues || 0
         }));
         
+        // Sort dates chronologically to ensure proper display
+        validatedLineData.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        
         // Calculate totals
         const totalTactics = tacticsChartData.reduce((sum, item) => sum + item.value, 0);
         const totalContactsValue = contactsChartData.reduce((sum, item) => sum + item.value, 0);
         
         // Determine dataset name based on user's query or default
-        // In a real implementation, this might come from metadata associated with the dataset
         const datasetNameValue = query.team 
           ? `${query.team} Team Dataset`
           : query.person
             ? `${query.person}'s Dataset`
             : "Voter Contacts Dataset";
+        
+        // Log line chart data for debugging
+        console.log(`Line chart data (${validatedLineData.length} days):`, validatedLineData.map(d => d.date));
         
         setTacticsData(tacticsChartData);
         setContactsData(contactsChartData);

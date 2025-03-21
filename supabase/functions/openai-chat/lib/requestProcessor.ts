@@ -55,7 +55,9 @@ export async function processRequest(req: Request) {
         prompt.toLowerCase().includes("how many") ||
         prompt.toLowerCase().includes("what is the number") ||
         prompt.toLowerCase().includes("count of") ||
-        prompt.toLowerCase().includes("total of");
+        prompt.toLowerCase().includes("total of") ||
+        prompt.toLowerCase().includes("did") ||
+        prompt.toLowerCase().match(/^(who|what|when|where|how|why|which)/i);
       
       // Call OpenAI API
       const aiResponse = await callOpenAI({
@@ -82,7 +84,8 @@ export async function processRequest(req: Request) {
       return createSuccessResponse({ 
         answer,
         truncated: finishReason === 'length',
-        model: useAdvancedModel ? 'gpt-4o' : 'gpt-4o-mini'
+        model: useAdvancedModel ? 'gpt-4o' : 'gpt-4o-mini',
+        visualizeData: true // Always enable data visualization
       });
     } catch (openAIError) {
       console.error('Error calling OpenAI API:', openAIError);

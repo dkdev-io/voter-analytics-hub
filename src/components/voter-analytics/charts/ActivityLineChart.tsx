@@ -45,11 +45,25 @@ export const ActivityLineChart: React.FC<ActivityLineChartProps> = ({ data, onPr
     issues: item.issues || 0
   }));
 
-  // Calculate the maximum value for Y-axis scaling
+  // Calculate the maximum value for Y-axis scaling - add 10% padding
   const maxValue = formattedData.reduce((max, item) => {
     const itemMax = Math.max(item.attempts, item.contacts, item.issues);
     return itemMax > max ? itemMax : max;
   }, 0);
+  
+  // Log data for debugging
+  console.log("ActivityLineChart rendering with data points:", formattedData.length);
+  console.log("Max value for Y-axis:", maxValue);
+  
+  // If no data is available, show an empty state
+  if (formattedData.length === 0) {
+    return (
+      <div id="activity-line-chart" className="mt-8 h-80 bg-white rounded-lg border border-gray-200 relative flex items-center justify-center">
+        <h3 className="text-sm font-bold p-2 text-center absolute top-0 left-0 right-0">Activity Over Time</h3>
+        <p className="text-gray-500 text-center">No data available for the selected filters.</p>
+      </div>
+    );
+  }
 
   return (
     <div id="activity-line-chart" className="mt-8 h-80 bg-white rounded-lg border border-gray-200 relative">
