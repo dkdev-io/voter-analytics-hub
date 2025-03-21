@@ -50,8 +50,6 @@ export const VoterAnalytics: React.FC = () => {
     <ErrorBoundary>
       <div className="container mx-auto px-4 py-6">
         <DashboardHeader 
-          showSearchPanel={showSearchPanel}
-          toggleSearchPanel={toggleSearchPanel}
           lastUpdated={dataLastUpdated}
           isDataMigrated={isDataMigrated}
           dataStats={dataStats}

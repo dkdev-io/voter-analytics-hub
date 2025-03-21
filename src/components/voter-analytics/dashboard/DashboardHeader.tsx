@@ -4,31 +4,21 @@ import { DataMigrationAlert } from "../DataMigrationAlert";
 import { useToast } from "@/hooks/use-toast";
 
 interface DashboardHeaderProps {
-  query: any;
-  setQuery: (query: any) => void;
-  error: string | null;
-  setError: (error: string | null) => void;
-  searchQuery: string;
-  setSearchQuery: (query: string) => void;
-  isLoading: boolean;
+  lastUpdated: Date;
   isDataMigrated: boolean;
-  calculateResult: () => void;
+  dataStats: any;
+  refreshData: () => Promise<void>;
   importNewData: () => Promise<boolean>;
-  refreshData?: () => Promise<void>;
+  handleCsvUploadSuccess: () => Promise<void>;
 }
 
 export function DashboardHeader({
-  query,
-  setQuery,
-  error,
-  setError,
-  searchQuery,
-  setSearchQuery,
-  isLoading,
+  lastUpdated,
   isDataMigrated,
-  calculateResult,
+  dataStats,
+  refreshData,
   importNewData,
-  refreshData
+  handleCsvUploadSuccess
 }: DashboardHeaderProps) {
   const { toast } = useToast();
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
@@ -57,8 +47,8 @@ export function DashboardHeader({
       description: "Your data has been successfully imported.",
     });
     
-    if (refreshData) {
-      await refreshData();
+    if (handleCsvUploadSuccess) {
+      await handleCsvUploadSuccess();
     }
   };
   
