@@ -12,7 +12,10 @@ export const LoadingState: React.FC = () => {
               className="absolute inset-0 bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100 animate-pulse"
               style={{
                 backgroundSize: '200% 100%',
-                animation: 'shimmer 2s infinite linear'
+                animationName: 'shimmer',
+                animationDuration: '2s',
+                animationTimingFunction: 'linear',
+                animationIterationCount: 'infinite'
               }}
             />
           </div>
@@ -23,23 +26,24 @@ export const LoadingState: React.FC = () => {
           className="absolute inset-0 bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100 animate-pulse"
           style={{
             backgroundSize: '200% 100%',
-            animation: 'shimmer 2s infinite linear'
+            animationName: 'shimmer',
+            animationDuration: '2s',
+            animationTimingFunction: 'linear',
+            animationIterationCount: 'infinite'
           }}
         />
       </div>
       
-      <style>
-        {`
-          @keyframes shimmer {
-            0% {
-              background-position: -200% 0;
-            }
-            100% {
-              background-position: 200% 0;
-            }
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes shimmer {
+          0% {
+            background-position: -200% 0;
           }
-        `}
-      </style>
+          100% {
+            background-position: 200% 0;
+          }
+        }
+      `}} />
     </div>
   );
 };
