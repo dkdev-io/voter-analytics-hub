@@ -23,17 +23,13 @@ export const DateSelector = ({
     return new Date(a).getTime() - new Date(b).getTime();
   });
   
-  console.log("DateSelector rendering with:", { 
-    value, 
-    availableDatesCount: uniqueDates?.length, 
-    firstFewDates: uniqueDates?.slice(0, 3),
-    isLoading 
-  });
+  // Ensure value is a string, not undefined
+  const safeValue = value || "All";
   
   return (
     <div className="w-full">
       <Select
-        value={value || "All"}
+        value={safeValue}
         onValueChange={onChange}
         disabled={isLoading}
       >

@@ -25,8 +25,14 @@ export const useDataLoader = ({
   const [totalNotReached, setTotalNotReached] = useState(0);
   const [loading, setLoading] = useState(true);
   const [datasetName, setDatasetName] = useState<string>("");
+  
+  // Ensure query is always a valid object
+  const safeQuery = query || {};
 
   useEffect(() => {
+    // Create a flag to prevent state updates if the component unmounts
+    let isMounted = true;
+    
     const loadChartData = async () => {
       try {
         setLoading(true);
@@ -61,6 +67,7 @@ export const useDataLoader = ({
         ];
 
         // Chart 2: Contacts breakdown (Support, Oppose, Undecided)
+        const totalContactsValue = (metrics.contacts.support || 0) + (metrics.contacts.oppose || 0) + (metrics.contacts.undecided || 0);
         const contactsChartData = [
           {
             name: "Support",
@@ -80,6 +87,7 @@ export const useDataLoader = ({
         ];
 
         // Chart 3: Not Reached breakdown (Not Home, Refusal, Bad Data)
+        const totalNotReachedValue = (metrics.notReached.notHome || 0) + (metrics.notReached.refusal || 0) + (metrics.notReached.badData || 0);
         const notReachedChartData = [
           {
             name: "Not Home",
@@ -155,12 +163,19 @@ export const useDataLoader = ({
       } catch (error) {
         console.error("Error loading chart data:", error);
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     loadChartData();
-  }, [query, showFilteredData]);
+    
+    // Cleanup function to prevent updates if component unmounts during data fetch
+    return () => {
+      isMounted = false;
+    };
+  }, [safeQuery, showFilteredData]);
 
   return {
     tacticsData,

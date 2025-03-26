@@ -22,11 +22,14 @@ export const NotReachedPieChart: React.FC<NotReachedPieChartProps> = ({ data, to
   const { logDataIssue } = useErrorLogger();
   const { reportPieChartCalculationIssue } = useReportIssue();
   
-  // Calculate the total directly from the data for consistency check
-  const calculatedTotal = data.reduce((sum, item) => sum + (Number(item.value) || 0), 0);
+  // Filter out any zero value data points
+  const filteredData = data.filter(item => item.value > 0);
+  
+  // Calculate the total directly from the filtered data for consistency
+  const calculatedTotal = filteredData.reduce((sum, item) => sum + (Number(item.value) || 0), 0);
   
   // Enhanced logging to diagnose the issue
-  console.log('NotReachedPieChart data with types:', data.map(item => ({
+  console.log('NotReachedPieChart data with types:', filteredData.map(item => ({
     name: item.name,
     value: item.value,
     valueType: typeof item.value,
@@ -35,11 +38,11 @@ export const NotReachedPieChart: React.FC<NotReachedPieChartProps> = ({ data, to
   console.log('NotReachedPieChart calculated total:', calculatedTotal);
   console.log('NotReachedPieChart passed total:', total);
   
-  // Use whatever total the data actually has - no fallbacks
-  const actualTotal = calculatedTotal;
+  // Use calculated total instead of passed total to ensure consistency
+  const actualTotal = calculatedTotal > 0 ? calculatedTotal : 1; // Avoid division by zero
   
   // Add total to each data point for percentage calculation
-  const dataWithTotal = data.map(item => {
+  const dataWithTotal = filteredData.map(item => {
     const value = Number(item.value) || 0;
                   
     return {
@@ -72,6 +75,10 @@ export const NotReachedPieChart: React.FC<NotReachedPieChartProps> = ({ data, to
   const renderLegend = (props: any) => {
     const { payload } = props;
     
+    if (!payload || payload.length === 0) {
+      return <div className="text-xs text-center mt-2">No data available</div>;
+    }
+    
     return (
       <ul className="text-xs flex flex-col items-start mt-2">
         {payload.map((entry: any, index: number) => {
@@ -89,9 +96,7 @@ export const NotReachedPieChart: React.FC<NotReachedPieChartProps> = ({ data, to
                 style={{ backgroundColor: entry.color }}
               />
               <span className="whitespace-nowrap">
-                {entry.value}: {value.toLocaleString()} 
-                {/* Add space between number and percentage */}
-                ({percentage}%)
+                {entry.value}: {value.toLocaleString()} ({percentage}%)
               </span>
             </li>
           );
@@ -100,13 +105,28 @@ export const NotReachedPieChart: React.FC<NotReachedPieChartProps> = ({ data, to
     );
   };
 
+  // If there's no data, show an empty state
+  if (filteredData.length === 0) {
+    return (
+      <div className="h-72 bg-white rounded-lg border border-gray-200 flex flex-col">
+        <div className="flex justify-between items-center p-2">
+          <h3 className="text-sm font-bold w-full text-center">Not Reached</h3>
+        </div>
+        <div className="text-center text-sm font-medium pb-4">
+          Total: 0
+        </div>
+        <div className="flex-1 flex items-center justify-center">
+          <p className="text-gray-500">No data available</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="h-72 bg-white rounded-lg border border-gray-200 flex flex-col">
       <div className="flex justify-between items-center p-2">
-        {/* Center the chart title */}
         <h3 className="text-sm font-bold w-full text-center">Not Reached</h3>
       </div>
-      {/* Add more vertical spacing between total and chart */}
       <div className="text-center text-sm font-medium pb-4">
         Total: {actualTotal.toLocaleString()}
       </div>
