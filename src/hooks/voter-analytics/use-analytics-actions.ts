@@ -1,12 +1,11 @@
-
-import { useCallback } from 'react';
+import { useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { 
+import {
   calculateQueryResult,
   refreshSupabaseData,
-  importNewDataset
-} from '@/services/voter-analytics-service';
-import { type QueryParams } from '@/types/analytics';
+  importNewDataset,
+} from "@/services/voter-analytics-service";
+import { type QueryParams } from "@/types/analytics";
 
 interface UseAnalyticsActionsProps {
   query: Partial<QueryParams>;
@@ -31,10 +30,10 @@ export const useAnalyticsActions = ({
   isLoading: externalIsLoading,
   setShowFilteredData,
   setDataStats,
-  setDataLastUpdated
+  setDataLastUpdated,
 }: UseAnalyticsActionsProps) => {
   const { toast } = useToast();
-  
+
   // We need to handle loading state internally in this hook since we can't modify the parent's state directly
   let isLoading = externalIsLoading;
   const setIsLoading = (loading: boolean) => {
@@ -42,53 +41,63 @@ export const useAnalyticsActions = ({
   };
 
   const calculateResult = async () => {
-    console.log("Starting calculateResult with query:", query, "searchQuery:", searchQuery);
-    
+    // console.log("Starting calculateResult with query:", query, "searchQuery:", searchQuery);
+
     // Check if we have any query parameters to use
-    if (!query.tactic && !query.resultType && !query.person && !query.date && !query.team && !query.searchQuery) {
-      setError("Please select at least one filter criteria or enter a search term");
+    if (
+      !query.tactic &&
+      !query.resultType &&
+      !query.person &&
+      !query.date &&
+      !query.team &&
+      !query.searchQuery
+    ) {
+      setError(
+        "Please select at least one filter criteria or enter a search term",
+      );
       return;
     }
 
     try {
       setIsLoading(true);
-      
+
       // Update the query with searchQuery if provided and not already set
       const updatedQuery = {
         ...query,
-        searchQuery: query.searchQuery || searchQuery
+        searchQuery: query.searchQuery || searchQuery,
       };
-      
-      console.log("Calculating result with updatedQuery:", updatedQuery);
-      
-      const { result: calculatedResult, error: calculationError } = await calculateQueryResult(updatedQuery);
-      
+
+      // console.log("Calculating result with updatedQuery:", updatedQuery);
+
+      const { result: calculatedResult, error: calculationError } =
+        await calculateQueryResult(updatedQuery);
+
       if (calculationError) {
         setError(calculationError);
         toast({
           title: "Query Error",
           description: calculationError,
-          variant: "destructive"
+          variant: "destructive",
         });
         return;
       }
-      
+
       if (calculatedResult === 0) {
         setError(null);
         toast({
           title: "No Data Found",
           description: "No records match your search criteria. Result is 0.",
-          variant: "default"
+          variant: "default",
         });
       } else {
         setError(null);
         toast({
           title: "Query Complete",
           description: `Found result: ${calculatedResult}`,
-          variant: "default"
+          variant: "default",
         });
       }
-      
+
       // Show filtered data in charts
       setShowFilteredData(true);
     } finally {
@@ -100,21 +109,21 @@ export const useAnalyticsActions = ({
     setIsLoading(true);
     try {
       const result = await refreshSupabaseData();
-      
+
       if (result.success) {
         toast({
           title: "Data Refresh",
           description: "Successfully refreshed connection to Supabase.",
-          variant: "default"
+          variant: "default",
         });
-        
+
         setDataLastUpdated(new Date());
         return true;
       } else {
         toast({
           title: "Refresh Error",
           description: "Failed to refresh connection: " + result.message,
-          variant: "destructive"
+          variant: "destructive",
         });
         return false;
       }
@@ -123,7 +132,7 @@ export const useAnalyticsActions = ({
       toast({
         title: "Refresh Error",
         description: "Failed to refresh data.",
-        variant: "destructive"
+        variant: "destructive",
       });
       return false;
     } finally {
@@ -135,17 +144,17 @@ export const useAnalyticsActions = ({
     setIsLoading(true);
     try {
       const result = await importNewDataset();
-      
+
       if (result.success) {
         toast({
           title: "Data Import Successful",
           description: `Imported ${result.message}`,
-          variant: "default"
+          variant: "default",
         });
-        
+
         setDataStats(result.stats);
         setDataLastUpdated(new Date());
-        
+
         // Refresh the data after successful import
         await refreshData();
         return true;
@@ -153,7 +162,7 @@ export const useAnalyticsActions = ({
         toast({
           title: "Import Error",
           description: result.message,
-          variant: "destructive"
+          variant: "destructive",
         });
         return false;
       }
@@ -162,7 +171,7 @@ export const useAnalyticsActions = ({
       toast({
         title: "Import Error",
         description: "Failed to import new dataset.",
-        variant: "destructive"
+        variant: "destructive",
       });
       return false;
     } finally {
@@ -172,19 +181,19 @@ export const useAnalyticsActions = ({
 
   // Function to handle successful CSV upload
   const handleCsvUploadSuccess = useCallback(async () => {
-    console.log("CSV upload success, refreshing data...");
+    // console.log("CSV upload success, refreshing data...");
     setDataLastUpdated(new Date());
-    
+
     // Clear any cached data and force a complete refresh of all metadata
     const success = await refreshData();
-    
+
     if (success) {
       toast({
         title: "Data Refreshed",
         description: "Successfully refreshed data after CSV upload.",
-        variant: "default"
+        variant: "default",
       });
-      
+
       // Clear the query state to avoid showing stale results
       setQuery({});
       setError(null);
@@ -195,6 +204,6 @@ export const useAnalyticsActions = ({
     calculateResult,
     refreshData,
     importNewData,
-    handleCsvUploadSuccess
+    handleCsvUploadSuccess,
   };
 };

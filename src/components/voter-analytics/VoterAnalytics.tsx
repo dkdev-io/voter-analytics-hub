@@ -1,16 +1,15 @@
-
-import React, { useState } from 'react';
-import { useVoterAnalytics } from '@/hooks/use-voter-analytics';
-import { DashboardHeader } from './dashboard/DashboardHeader';
-import { QuerySection } from './dashboard/QuerySection';
-import { ResultsSection } from './dashboard/ResultsSection';
-import { SearchSection } from './dashboard/SearchSection';
-import { DashboardCharts } from './DashboardCharts';
-import ErrorBoundary from '@/components/ErrorBoundary';
+import React, { useState } from "react";
+import { useVoterAnalytics } from "@/hooks/use-voter-analytics";
+import { DashboardHeader } from "./dashboard/DashboardHeader";
+import { QuerySection } from "./dashboard/QuerySection";
+import { ResultsSection } from "./dashboard/ResultsSection";
+import { SearchSection } from "./dashboard/SearchSection";
+import { DashboardCharts } from "./DashboardCharts";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 export const VoterAnalytics: React.FC = () => {
   const [showSearchPanel, setShowSearchPanel] = useState(true);
-  
+
   const {
     // Query state
     query,
@@ -21,20 +20,20 @@ export const VoterAnalytics: React.FC = () => {
     searchQuery,
     setSearchQuery,
     showFilteredData,
-    
+
     // Loading state
     isLoading,
     isDataMigrated,
-    
+
     // Data state
     dataStats,
     dataLastUpdated,
-    
+
     // Actions
     calculateResult,
     importNewData,
     refreshData,
-    handleCsvUploadSuccess
+    handleCsvUploadSuccess,
   } = useVoterAnalytics();
 
   const toggleSearchPanel = () => {
@@ -49,7 +48,7 @@ export const VoterAnalytics: React.FC = () => {
   return (
     <ErrorBoundary>
       <div className="container mx-auto px-4 py-6">
-        <DashboardHeader 
+        <DashboardHeader
           lastUpdated={dataLastUpdated}
           isDataMigrated={isDataMigrated}
           dataStats={dataStats}
@@ -57,22 +56,22 @@ export const VoterAnalytics: React.FC = () => {
           importNewData={importNewData}
           handleCsvUploadSuccess={handleCsvUploadSuccess}
         />
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
           {/* Left column: Query builder and search */}
           {showSearchPanel && (
             <div className="lg:col-span-1">
               <div className="bg-white p-6 rounded-lg shadow-md">
                 <div className="space-y-6">
-                  <SearchSection 
+                  <SearchSection
                     searchQuery={searchQuery}
                     setSearchQuery={setSearchQuery}
                     isLoading={isLoading}
                     onSubmit={calculateResult}
                     setQuery={setQuery}
                   />
-                  
-                  <QuerySection 
+
+                  <QuerySection
                     query={query}
                     setQuery={setQuery}
                     setError={setError}
@@ -84,18 +83,16 @@ export const VoterAnalytics: React.FC = () => {
               </div>
             </div>
           )}
-          
+
           {/* Right column: Results and charts */}
-          <div className={`${showSearchPanel ? 'lg:col-span-2' : 'lg:col-span-3'}`}>
-            <ResultsSection 
-              error={error}
-              result={result}
-              query={query}
-            />
-            
+          <div
+            className={`${showSearchPanel ? "lg:col-span-2" : "lg:col-span-3"}`}
+          >
+            <ResultsSection error={error} result={result} query={query} />
+
             <div className="mt-6">
-              <DashboardCharts 
-                isLoading={isLoading}
+              <DashboardCharts
+                isLoading={false}
                 query={query}
                 showFilteredData={showFilteredData}
                 onToggleSearchPanel={toggleSearchPanel}
