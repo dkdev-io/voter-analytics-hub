@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
@@ -31,11 +30,7 @@ export const Pricing = () => {
       price: "$999.25",
       period: "annually (and above)",
       features: [
-        "Built for statewide and national partners who need to view results across multiple campaigns.",
-        "Dedicated account manager",
-        "Custom integrations",
-        "Team training sessions",
-        "Advanced security features"
+        "Built for statewide and national partners who need to view results across multiple campaigns."
       ]
     }
   ];
