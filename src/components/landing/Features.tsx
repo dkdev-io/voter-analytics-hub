@@ -10,14 +10,14 @@ export const Features = () => {
       icon: <Database className="h-10 w-10 text-blue-500" />
     },
     {
-      title: "View Clear and Concise Reports",
-      description: "View prebuilt and adjustible reports that help you quickly see the data that you need.",
-      icon: <BarChart3 className="h-10 w-10 text-blue-500" />
-    },
-    {
       title: "Join Our Community",
       description: "Join our Discord community and learn from other campaign operatives who want to track and manage their field programs effectively.",
       icon: <Users className="h-10 w-10 text-blue-500" />
+    },
+    {
+      title: "View Clear and Concise Reports",
+      description: "View prebuilt and adjustible reports that help you quickly see the data that you need.",
+      icon: <BarChart3 className="h-10 w-10 text-blue-500" />
     },
     {
       title: "Plain text questions",
