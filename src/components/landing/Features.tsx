@@ -6,7 +6,7 @@ export const Features = () => {
   const featuresList = [
     {
       title: "Connect to your data",
-      description: "Dashboard connects to the leading voter file software. No importing and exporting spreadsheets.",
+      description: "Dashboard connects to the leading voter file software or import your voter contact data.",
       icon: <Database className="h-10 w-10 text-blue-500" />
     },
     {
