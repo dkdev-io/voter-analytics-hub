@@ -1,4 +1,3 @@
-
 import { Card, CardContent } from '@/components/ui/card';
 import { Database, BarChart3, LineChart, MessageSquareText, Lightbulb, ShieldCheck } from 'lucide-react';
 
@@ -30,7 +29,7 @@ export const Features = () => {
       icon: <Lightbulb className="h-10 w-10 text-blue-500" />
     },
     {
-      title: "Safe and Secure data",
+      title: "Keep Your Data Safe and Secure",
       description: "We take privacy and security seriously. We use enterprise level safety to keep your voter contact results safe and our data will never be sold.",
       icon: <ShieldCheck className="h-10 w-10 text-blue-500" />
     }
