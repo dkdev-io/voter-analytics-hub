@@ -1,3 +1,4 @@
+
 import { Card, CardContent } from '@/components/ui/card';
 import { Database, BarChart3, LineChart, MessageSquareText, Lightbulb, ShieldCheck } from 'lucide-react';
 
@@ -30,7 +31,7 @@ export const Features = () => {
     },
     {
       title: "Keep Your Data Safe and Secure",
-      description: "We take privacy and security seriously. We use enterprise level safety to keep your voter contact results safe and our data will never be sold.",
+      description: "Ask questions in everyday language about your voter contact data. No technical jargon required.",
       icon: <ShieldCheck className="h-10 w-10 text-blue-500" />
     }
   ];
