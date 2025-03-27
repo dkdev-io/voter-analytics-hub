@@ -25,7 +25,7 @@ export const Features = () => {
       icon: <MessageSquareText className="h-10 w-10 text-blue-500" />
     },
     {
-      title: "Ongoing support",
+      title: "Learn How to Analyze Your Metrics",
       description: "Attend regular workshops and trainings that help you use Dashboard to understand your data.",
       icon: <Lightbulb className="h-10 w-10 text-blue-500" />
     },
