@@ -131,7 +131,7 @@ export const useDataLoader = ({
           (sum, item) => sum + item.value,
           0,
         );
-        const totalContactsValue = contactsChartData.reduce(
+        totalContactsValue = contactsChartData.reduce(
           (sum, item) => sum + item.value,
           0,
         );
