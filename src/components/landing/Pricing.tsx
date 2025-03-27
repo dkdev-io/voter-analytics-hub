@@ -27,7 +27,7 @@ export const Pricing = () => {
       ]
     },
     {
-      name: "Enterprise",
+      name: "Partner",
       price: "$999.25",
       period: "annually (and above)",
       features: [
