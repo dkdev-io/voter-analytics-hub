@@ -1,6 +1,6 @@
 
 import { Card, CardContent } from '@/components/ui/card';
-import { Database, BarChart3, LineChart, MessageSquareText, Lightbulb, ShieldCheck } from 'lucide-react';
+import { Database, BarChart3, Users, MessageSquareText, Lightbulb, ShieldCheck } from 'lucide-react';
 
 export const Features = () => {
   const featuresList = [
@@ -15,9 +15,9 @@ export const Features = () => {
       icon: <BarChart3 className="h-10 w-10 text-blue-500" />
     },
     {
-      title: "Custom reports",
-      description: "Design custom reports by dragging and dropping.",
-      icon: <LineChart className="h-10 w-10 text-blue-500" />
+      title: "Join Our Community",
+      description: "Join our Discord community and learn from other campaign operatives who want to track and manage their field programs effectively.",
+      icon: <Users className="h-10 w-10 text-blue-500" />
     },
     {
       title: "Plain text questions",
