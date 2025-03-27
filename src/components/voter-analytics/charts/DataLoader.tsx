@@ -106,11 +106,6 @@ export const useDataLoader = ({
           },
         ];
 
-        // Calculate the total not reached from the metrics
-        const totalNotReachedValue =
-          (metrics.notReached.notHome || 0) +
-          (metrics.notReached.refusal || 0) +
-          (metrics.notReached.badData || 0);
 
         // Filter out any data points with invalid dates and ensure every day is included
         const validatedLineData = (metrics.byDate || [])
