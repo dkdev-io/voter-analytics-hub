@@ -10,7 +10,7 @@ export const Features = () => {
       icon: <Database className="h-10 w-10 text-blue-500" />
     },
     {
-      title: "Prebuilt reports",
+      title: "View Clear and Concise Reports",
       description: "View prebuilt and adjustible reports that help you quickly see the data that you need.",
       icon: <BarChart3 className="h-10 w-10 text-blue-500" />
     },
