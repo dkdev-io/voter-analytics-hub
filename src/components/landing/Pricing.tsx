@@ -31,7 +31,7 @@ export const Pricing = () => {
       price: "$999.25",
       period: "annually (and above)",
       features: [
-        "Full platform access",
+        "Built for statewide and national partners who need to view results across multiple campaigns.",
         "Dedicated account manager",
         "Custom integrations",
         "Team training sessions",
