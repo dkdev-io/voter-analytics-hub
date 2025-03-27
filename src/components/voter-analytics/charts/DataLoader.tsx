@@ -67,7 +67,7 @@ export const useDataLoader = ({
         ];
 
         // Chart 2: Contacts breakdown (Support, Oppose, Undecided)
-        const totalContactsValue = (metrics.contacts.support || 0) + (metrics.contacts.oppose || 0) + (metrics.contacts.undecided || 0);
+        let totalContactsValue = (metrics.contacts.support || 0) + (metrics.contacts.oppose || 0) + (metrics.contacts.undecided || 0);
         const contactsChartData = [
           {
             name: "Support",
