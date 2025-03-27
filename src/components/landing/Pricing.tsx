@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
@@ -9,9 +10,7 @@ export const Pricing = () => {
       price: "$99.25",
       period: "annually",
       features: [
-        "Basic voter data access",
-        "Standard reports",
-        "Email support"
+        "Built for local and legislative campaigns with a handful of staff and volunteers."
       ]
     },
     {
