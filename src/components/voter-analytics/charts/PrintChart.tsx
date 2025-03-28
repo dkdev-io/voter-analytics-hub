@@ -90,21 +90,6 @@ export const PrintChart: React.FC<PrintChartProps> = ({
 		chartClone.style.overflow = 'visible';
 		chartContainer.appendChild(chartClone);
 
-		// Find and resize all SVG elements to ensure they fill the available space
-		const svgElements = chartClone.querySelectorAll('svg');
-		svgElements.forEach(svg => {
-			svg.setAttribute('width', '100%');
-			svg.setAttribute('height', '100%');
-			svg.style.width = '100%';
-			svg.style.height = '100%';
-			svg.style.maxWidth = 'none';
-			svg.style.maxHeight = 'none';
-			svg.style.overflow = 'visible';
-
-			// Keep the viewBox if it exists to maintain proportions
-			// but set preserveAspectRatio to xMidYMid meet to maintain aspect ratio
-			svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-		});
 
 		// Enhance all Recharts components to fill the space completely
 		const rechartsWrapper = chartClone.querySelector('.recharts-wrapper');
@@ -220,15 +205,21 @@ export const PrintChart: React.FC<PrintChartProps> = ({
         #print-chart-clone .recharts-legend-wrapper {
           overflow: visible !important;
           display: flex !important;
-					height: 90px;
+					flex-direction: row !important;
+					height: 50px;
           justify-content: center !important;
           width: 100% !important;
-          margin-top: 10px !important;
           transform: scale(0.8) !important; /* Scale down the entire legend */
+        }
+       /* Ensure legends are visible */
+        #print-chart-clone .recharts-default-legend {
+          display: flex !important;
+					flex-direction: row !important;
         }
         
 				#print-chart-clone .recharts-legend-icon {
-          display: none !important;
+          width: 5px !important;
+					height: 5px !important;
         }
         /* Adjust legend item sizes */
         #print-chart-clone .recharts-legend-item {
