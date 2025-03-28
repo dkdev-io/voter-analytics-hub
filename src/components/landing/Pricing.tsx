@@ -7,35 +7,20 @@ export const Pricing = () => {
   const plans = [
     {
       name: "User",
-      price: "$99.25",
-      period: "annually",
       features: [
-        "Basic voter data access",
-        "Standard reports",
-        "Email support"
+        "Built for local and legislative campaigns with a handful of staff and volunteers."
       ]
     },
     {
       name: "Power User",
-      price: "$299.25",
-      period: "annually",
       features: [
-        "Advanced voter data analysis",
-        "Custom reports",
-        "Priority support",
-        "Team collaboration"
+        "Built for congressional and statewide staffs with large field teams."
       ]
     },
     {
-      name: "Enterprise",
-      price: "$999.25",
-      period: "annually (and above)",
+      name: "Partner",
       features: [
-        "Full platform access",
-        "Dedicated account manager",
-        "Custom integrations",
-        "Team training sessions",
-        "Advanced security features"
+        "Built for statewide and national partners who need to view results across multiple campaigns."
       ]
     }
   ];
@@ -43,17 +28,13 @@ export const Pricing = () => {
   return (
     <section className="py-20 px-4 md:px-6" id="pricing">
       <div className="container mx-auto max-w-6xl">
-        <h2 className="text-3xl md:text-4xl font-bold mb-4 text-center">Pricing</h2>
+        <h2 className="text-3xl md:text-4xl font-bold mb-4 text-center">Choose Your Plan</h2>
         
         <div className="grid md:grid-cols-3 gap-8 mt-12">
           {plans.map((plan, index) => (
             <Card key={index} className="border shadow-lg hover:shadow-xl transition-shadow">
               <CardHeader className="pb-0">
                 <CardTitle className="text-2xl font-bold">{plan.name}</CardTitle>
-                <div className="mt-4">
-                  <span className="text-3xl font-bold">{plan.price}</span>
-                  <span className="text-gray-500 ml-1">{plan.period}</span>
-                </div>
               </CardHeader>
               <CardContent className="pt-6">
                 <ul className="space-y-3 mb-6">

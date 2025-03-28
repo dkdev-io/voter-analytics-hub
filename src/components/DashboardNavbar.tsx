@@ -1,25 +1,19 @@
 
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { LogOut, Menu, X } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useMobile } from '@/hooks/useMobile';
 import { useState } from 'react';
 
 export const DashboardNavbar = () => {
-  const { user, signOut } = useAuth();
-  const navigate = useNavigate();
+  const { user } = useAuth();
   const location = useLocation();
   const { isMobile } = useMobile();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
-
-  const handleSignOut = async () => {
-    await signOut();
-    navigate('/');
-  };
 
   // Don't render on auth page
   if (location.pathname === '/auth') {
@@ -41,18 +35,6 @@ export const DashboardNavbar = () => {
               
               {isMenuOpen && (
                 <div className="absolute top-16 left-0 right-0 bg-background shadow-lg p-4 flex flex-col gap-4">
-                  {user && (
-                    <>
-                      <Button 
-                        onClick={handleSignOut} 
-                        variant="outline" 
-                        className="w-full justify-start"
-                      >
-                        <LogOut className="mr-2 h-4 w-4" />
-                        Sign Out
-                      </Button>
-                    </>
-                  )}
                   {!user && location.pathname !== '/' && (
                     <Link to="/" className="py-2" onClick={toggleMenu}>Home</Link>
                   )}
@@ -73,15 +55,7 @@ export const DashboardNavbar = () => {
             </div>
           ) : (
             <div className="flex items-center gap-6">
-              {user ? (
-                <>
-                  <ThemeToggle />
-                  <Button onClick={handleSignOut} variant="outline" size="sm">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Sign Out
-                  </Button>
-                </>
-              ) : (
+              {!user ? (
                 <>
                   {location.pathname !== '/' ? (
                     <nav className="flex items-center gap-6">
@@ -100,6 +74,10 @@ export const DashboardNavbar = () => {
                       <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">Get Started</Button>
                     </Link>
                   )}
+                </>
+              ) : (
+                <>
+                  <ThemeToggle />
                 </>
               )}
             </div>

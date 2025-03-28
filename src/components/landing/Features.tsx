@@ -1,23 +1,23 @@
 
 import { Card, CardContent } from '@/components/ui/card';
-import { Database, BarChart3, LineChart, MessageSquareText, Lightbulb, ShieldCheck } from 'lucide-react';
+import { Database, BarChart3, Users, MessageSquareText, Lightbulb, ShieldCheck } from 'lucide-react';
 
 export const Features = () => {
   const featuresList = [
     {
       title: "Connect to your data",
-      description: "Dashboard connects to the leading voter file software. No importing and exporting spreadsheets.",
+      description: "Dashboard connects to the leading voter file software or import your voter contact data.",
       icon: <Database className="h-10 w-10 text-blue-500" />
     },
     {
-      title: "Prebuilt reports",
-      description: "View prebuilt and adjustible reports that help you quickly see the data that you need.",
-      icon: <BarChart3 className="h-10 w-10 text-blue-500" />
+      title: "Join Our Community",
+      description: "Join our Discord community and learn from other campaign operatives who want to track and manage their field programs effectively.",
+      icon: <Users className="h-10 w-10 text-blue-500" />
     },
     {
-      title: "Custom reports",
-      description: "Design custom reports by dragging and dropping.",
-      icon: <LineChart className="h-10 w-10 text-blue-500" />
+      title: "View Clear and Concise Reports",
+      description: "View prebuilt and adjustible reports that help you quickly see the data that you need.",
+      icon: <BarChart3 className="h-10 w-10 text-blue-500" />
     },
     {
       title: "Plain text questions",
@@ -25,13 +25,13 @@ export const Features = () => {
       icon: <MessageSquareText className="h-10 w-10 text-blue-500" />
     },
     {
-      title: "Ongoing support",
+      title: "Learn How to Analyze Your Metrics",
       description: "Attend regular workshops and trainings that help you use Dashboard to understand your data.",
       icon: <Lightbulb className="h-10 w-10 text-blue-500" />
     },
     {
-      title: "Safe and Secure data",
-      description: "We take privacy and security seriously. We use enterprise level safety to keep your voter contact results safe and our data will never be sold.",
+      title: "Keep Your Data Safe and Secure",
+      description: "Ask questions in everyday language about your voter contact data. No technical jargon required.",
       icon: <ShieldCheck className="h-10 w-10 text-blue-500" />
     }
   ];

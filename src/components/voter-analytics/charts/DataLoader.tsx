@@ -44,15 +44,37 @@ export const useDataLoader = ({
 			try {
 				setLoading(true);
 
+
 				// Always use the query to filter data when it exists
 				// This ensures AI search results correctly filter line charts
 				const shouldFilter = showFilteredData || query.person || query.tactic;
-				console.log(`Loading chart data with filtering: ${shouldFilter}`, query);
 
 				// Fetch aggregated metrics from our service - either overall or filtered
 				const metrics = await fetchVoterMetrics(
 					shouldFilter ? query : undefined,
 				);
+				console.log(`Loading chart data with filtering: ${shouldFilter}`, query);
+				// Chart 2: Contacts breakdown (Support, Oppose, Undecided)
+				let totalContactsValue = (metrics.contacts.support || 0) + (metrics.contacts.oppose || 0) + (metrics.contacts.undecided || 0);
+				const contactsChartData = [
+					{
+						name: "Support",
+						value: metrics.contacts.support || 0,
+						color: CHART_COLORS.CONTACT.SUPPORT,
+					},
+					{
+						name: "Oppose",
+						value: metrics.contacts.oppose || 0,
+						color: CHART_COLORS.CONTACT.OPPOSE,
+					},
+					{
+						name: "Undecided",
+						value: metrics.contacts.undecided || 0,
+						color: CHART_COLORS.CONTACT.UNDECIDED,
+					},
+				];
+
+
 
 				console.log(metrics.notReached);
 
@@ -75,25 +97,6 @@ export const useDataLoader = ({
 					},
 				];
 
-				// Chart 2: Contacts breakdown (Support, Oppose, Undecided)
-				const totalContactsValue = (metrics.contacts.support || 0) + (metrics.contacts.oppose || 0) + (metrics.contacts.undecided || 0);
-				const contactsChartData = [
-					{
-						name: "Support",
-						value: metrics.contacts.support || 0,
-						color: CHART_COLORS.CONTACT.SUPPORT,
-					},
-					{
-						name: "Oppose",
-						value: metrics.contacts.oppose || 0,
-						color: CHART_COLORS.CONTACT.OPPOSE,
-					},
-					{
-						name: "Undecided",
-						value: metrics.contacts.undecided || 0,
-						color: CHART_COLORS.CONTACT.UNDECIDED,
-					},
-				];
 
 				// Chart 3: Not Reached breakdown (Not Home, Refusal, Bad Data)
 				const totalNotReachedValue = (metrics.notReached.notHome || 0) + (metrics.notReached.refusal || 0) + (metrics.notReached.badData || 0);
@@ -114,6 +117,15 @@ export const useDataLoader = ({
 						color: CHART_COLORS.NOT_REACHED.BAD_DATA,
 					},
 				];
+				// Calculate totals
+				const totalTactics = tacticsChartData.reduce(
+					(sum, item) => sum + item.value,
+					0,
+				);
+				totalContactsValue = contactsChartData.reduce(
+					(sum, item) => sum + item.value,
+					0,
+				);
 
 				// Filter out any data points with invalid dates and ensure every day is included
 				const validatedLineData = (metrics.byDate || [])
@@ -134,11 +146,6 @@ export const useDataLoader = ({
 					(a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
 				);
 
-				// Calculate totals
-				const totalTactics = tacticsChartData.reduce(
-					(sum, item) => sum + item.value,
-					0,
-				);
 
 
 				// Determine dataset name based on user's query or default
