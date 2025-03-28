@@ -8,99 +8,99 @@ import { DashboardCharts } from "./DashboardCharts";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
 export const VoterAnalytics: React.FC = () => {
-  const [showSearchPanel, setShowSearchPanel] = useState(true);
+	const [showSearchPanel, setShowSearchPanel] = useState(true);
 
-  const {
-    // Query state
-    query,
-    setQuery,
-    error,
-    setError,
-    result,
-    searchQuery,
-    setSearchQuery,
-    showFilteredData,
+	const {
+		// Query state
+		query,
+		setQuery,
+		error,
+		setError,
+		result,
+		searchQuery,
+		setSearchQuery,
+		showFilteredData,
 
-    // Loading state
-    isLoading,
-    isDataMigrated,
+		// Loading state
+		isLoading,
+		isDataMigrated,
 
-    // Data state
-    dataStats,
-    dataLastUpdated,
+		// Data state
+		dataStats,
+		dataLastUpdated,
 
-    // Actions
-    calculateResult,
-    importNewData,
-    refreshData,
-    handleCsvUploadSuccess,
-  } = useVoterAnalytics();
+		// Actions
+		calculateResult,
+		importNewData,
+		refreshData,
+		handleCsvUploadSuccess,
+	} = useVoterAnalytics();
 
-  const toggleSearchPanel = () => {
-    setShowSearchPanel(!showSearchPanel);
-  };
+	const toggleSearchPanel = () => {
+		setShowSearchPanel(!showSearchPanel);
+	};
 
-  // Wrapper function for refreshData to ensure it returns void
-  const handleRefreshData = async () => {
-    await refreshData();
-  };
+	// Wrapper function for refreshData to ensure it returns void
+	const handleRefreshData = async () => {
+		await refreshData();
+	};
 
-  return (
-    <ErrorBoundary>
-      <div className="container mx-auto px-4 py-6">
-        <DashboardHeader
-          lastUpdated={dataLastUpdated}
-          isDataMigrated={isDataMigrated}
-          dataStats={dataStats}
-          refreshData={handleRefreshData}
-          importNewData={importNewData}
-          handleCsvUploadSuccess={handleCsvUploadSuccess}
-        />
+	return (
+		<ErrorBoundary>
+			<div className="container mx-auto px-4 py-6">
+				<DashboardHeader
+					lastUpdated={dataLastUpdated}
+					isDataMigrated={isDataMigrated}
+					dataStats={dataStats}
+					refreshData={handleRefreshData}
+					importNewData={importNewData}
+					handleCsvUploadSuccess={handleCsvUploadSuccess}
+				/>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-          {/* Left column: Query builder and search */}
-          {showSearchPanel && (
-            <div className="lg:col-span-1">
-              <div className="bg-white p-6 rounded-lg shadow-md">
-                <div className="space-y-6">
-                  <SearchSection
-                    searchQuery={searchQuery}
-                    setSearchQuery={setSearchQuery}
-                    isLoading={isLoading}
-                    onSubmit={calculateResult}
-                    setQuery={setQuery}
-                  />
+				<div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+					{/* Left column: Query builder and search */}
+					{showSearchPanel && (
+						<div className="lg:col-span-1">
+							<div className="dark:bg-slate-800 bg-white p-6 rounded-lg shadow-md">
+								<div className="space-y-6">
+									<SearchSection
+										searchQuery={searchQuery}
+										setSearchQuery={setSearchQuery}
+										isLoading={isLoading}
+										onSubmit={calculateResult}
+										setQuery={setQuery}
+									/>
 
-                  <QuerySection
-                    query={query}
-                    setQuery={setQuery}
-                    setError={setError}
-                    isLoading={isLoading}
-                    isDataMigrated={isDataMigrated}
-                    onSubmit={calculateResult}
-                  />
-                </div>
-              </div>
-            </div>
-          )}
+									<QuerySection
+										query={query}
+										setQuery={setQuery}
+										setError={setError}
+										isLoading={isLoading}
+										isDataMigrated={isDataMigrated}
+										onSubmit={calculateResult}
+									/>
+								</div>
+							</div>
+						</div>
+					)}
 
-          {/* Right column: Results and charts */}
-          <div
-            className={`${showSearchPanel ? "lg:col-span-2" : "lg:col-span-3"}`}
-          >
-            <ResultsSection error={error} result={result} query={query} />
+					{/* Right column: Results and charts */}
+					<div
+						className={`${showSearchPanel ? "lg:col-span-2" : "lg:col-span-3"}`}
+					>
+						<ResultsSection error={error} result={result} query={query} />
 
-            <div className="mt-6">
-              <DashboardCharts
-                isLoading={false}
-                query={query}
-                showFilteredData={showFilteredData}
-                onToggleSearchPanel={toggleSearchPanel}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-    </ErrorBoundary>
-  );
+						<div className="mt-6">
+							<DashboardCharts
+								isLoading={false}
+								query={query}
+								showFilteredData={showFilteredData}
+								onToggleSearchPanel={toggleSearchPanel}
+							/>
+						</div>
+					</div>
+				</div>
+			</div>
+		</ErrorBoundary>
+	);
 };
