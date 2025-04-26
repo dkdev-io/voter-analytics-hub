@@ -61,7 +61,9 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
 		totalContacts,
 		totalNotReached,
 		loading,
-		datasetName
+		datasetName,
+		debugNotHome,
+		debugRawRows
 	} = useDataLoader({ query, showFilteredData });
 
 	const uploadDate = userMetadata?.last_dataset_upload_date
@@ -102,7 +104,14 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
 
 	return (
 		<div className="dark:bg-slate-900 bg-white p-6 rounded-lg shadow-md dashboard-container">
-
+			{/* --- DEBUG PANEL --- */}
+			<div className="mb-4 p-3 bg-yellow-100 border border-yellow-300 rounded text-yellow-800 text-xs">
+				<strong>Supabase Dataset Not Home sum:</strong> {typeof debugNotHome === "number" ? debugNotHome : "Loading..."}
+				<br />
+				<strong>First raw data row from Supabase:</strong>
+				<pre className="whitespace-pre-wrap break-words bg-white rounded p-1">{JSON.stringify(debugRawRows && debugRawRows[0], null, 2)}</pre>
+			</div>
+			{/* --- END DEBUG PANEL --- */}
 
 			<div className="flex justify-between items-center mb-4 print-hidden">
 				<Button
