@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { FileUploadStep } from './csv-upload/FileUploadStep';
 import { ProcessingStep } from './csv-upload/ProcessingStep';
 import { useCSVUpload } from '@/hooks/useCSVUpload';
+import { CSVFieldMapping } from './CSVFieldMapping';
 
 interface CSVUploadDialogProps {
   open: boolean;
@@ -23,7 +24,11 @@ export function CSVUploadDialog({ open, onOpenChange, onSuccess }: CSVUploadDial
     handleFileChange,
     handleSubmitFile,
     resetUpload,
-    userEmail
+    userEmail,
+    csvHeaders,
+    csvSampleData,
+    mapping,
+    handleMappingComplete,
   } = useCSVUpload(onSuccess);
 
   const handleClose = () => {
@@ -49,6 +54,15 @@ export function CSVUploadDialog({ open, onOpenChange, onSuccess }: CSVUploadDial
             file={file}
             onFileChange={handleFileChange}
             fileInputRef={fileInputRef}
+          />
+        )}
+
+        {step === 'mapping' && csvHeaders.length > 0 && (
+          <CSVFieldMapping 
+            headers={csvHeaders}
+            sampleData={csvSampleData}
+            onMappingComplete={handleMappingComplete}
+            onCancel={resetUpload}
           />
         )}
 

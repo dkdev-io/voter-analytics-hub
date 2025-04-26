@@ -4,38 +4,67 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { validateFileType, validateFileSize } from '@/utils/csvUploadValidation';
 import { processCSVFile, ValidationStats } from '@/services/csvUploadService';
+import { parseCSV } from '@/utils/csvUtils';
 
 export function useCSVUpload(onSuccess: () => void) {
   const [file, setFile] = useState<File | null>(null);
-  const [step, setStep] = useState<'upload' | 'processing'>('upload');
+  const [step, setStep] = useState<'upload' | 'mapping' | 'processing'>('upload');
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState<number>(0);
   const [validationStats, setValidationStats] = useState<ValidationStats>(null);
+  const [csvHeaders, setCSVHeaders] = useState<string[]>([]);
+  const [csvSampleData, setCSVSampleData] = useState<string[][]>([]);
+  const [mapping, setMapping] = useState<Record<string, string> | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
       if (!validateFileType(selectedFile, toast)) return;
       if (!validateFileSize(selectedFile, 10, toast)) return;
 
       setFile(selectedFile);
+
+      // Step 1: Parse to preview headers
+      try {
+        const { headers, data } = await parseCSV(selectedFile);
+        setCSVHeaders(headers);
+        setCSVSampleData(data.slice(0, 3));
+        setStep('mapping');
+      } catch (err) {
+        toast({
+          title: 'Could not parse file',
+          description: 'Please check your CSV file and try again.',
+          variant: 'destructive'
+        });
+        setFile(null);
+        setCSVHeaders([]);
+        setCSVSampleData([]);
+        setStep('upload');
+      }
     }
   };
 
-  const handleSubmitFile = () => {
+  const handleMappingComplete = (selectedMapping: Record<string, string>) => {
+    setMapping(selectedMapping);
+    setStep('processing');
+    handleSubmitFile(selectedMapping);
+  };
+
+  const handleSubmitFile = (passedMapping?: Record<string, string> | null) => {
     if (file) {
       setStep('processing');
       setIsUploading(true);
-      
+
       processCSVFile(
         file,
         setProgress,
         user?.id || '',
         user?.email,
         handleUploadSuccess,
-        handleUploadError
+        handleUploadError,
+        passedMapping || mapping
       ).then(stats => {
         if (stats) {
           setValidationStats(stats);
@@ -55,11 +84,9 @@ export function useCSVUpload(onSuccess: () => void) {
       title: 'Data uploaded successfully',
       description: `${file?.name} has been successfully imported.`,
     });
-    
-    console.log("Clearing data cache after successful upload");
-    
+
     onSuccess();
-    
+
     setTimeout(() => {
       resetUpload();
     }, 500);
@@ -82,6 +109,9 @@ export function useCSVUpload(onSuccess: () => void) {
     setIsUploading(false);
     setProgress(0);
     setValidationStats(null);
+    setCSVHeaders([]);
+    setCSVSampleData([]);
+    setMapping(null);
   };
 
   return {
@@ -93,6 +123,10 @@ export function useCSVUpload(onSuccess: () => void) {
     handleFileChange,
     handleSubmitFile,
     resetUpload,
-    userEmail: user?.email
+    userEmail: user?.email,
+    csvHeaders,
+    csvSampleData,
+    mapping,
+    handleMappingComplete,
   };
 }
