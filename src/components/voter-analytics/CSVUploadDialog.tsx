@@ -1,4 +1,3 @@
-
 import { useRef } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -45,7 +44,7 @@ export function CSVUploadDialog({ open, onOpenChange, onSuccess }: CSVUploadDial
           <DialogTitle>Import Voter Data</DialogTitle>
           <DialogDescription>
             Upload a CSV file with your voter contact data.
-            {userEmail && <div className="mt-1 text-xs">Data will be saved as "voter contact - {userEmail}"</div>}
+            {userEmail && <div className="mt-1 text-xs">Data will be saved as {"voter contact - "}{userEmail}</div>}
           </DialogDescription>
         </DialogHeader>
 
@@ -87,8 +86,9 @@ export function CSVUploadDialog({ open, onOpenChange, onSuccess }: CSVUploadDial
                 Select File
               </Button>
             ) : (
+              // Wrapped handleSubmitFile in an arrow function (moved comment out)
               <Button 
-                onClick={() => handleSubmitFile()} {/* Fix: wrap in arrow function */}
+                onClick={() => handleSubmitFile()}
                 disabled={isUploading}
               >
                 Upload File
