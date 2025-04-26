@@ -13,6 +13,25 @@ import { useErrorLogger } from '@/hooks/useErrorLogger';
 import { useReportIssue } from '@/lib/issue-log/useReportIssue';
 import { useEffect } from 'react';
 
+// Defines the three not reached categories and their color association
+const NOT_REACHED_CATEGORIES = [
+	{
+		name: 'Not Home',
+		key: 'notHome',
+		color: CHART_COLORS.NOT_REACHED.NOT_HOME
+	},
+	{
+		name: 'Refusal',
+		key: 'refusal',
+		color: CHART_COLORS.NOT_REACHED.REFUSAL
+	},
+	{
+		name: 'Bad Data',
+		key: 'badData',
+		color: CHART_COLORS.NOT_REACHED.BAD_DATA
+	}
+];
+
 interface NotReachedPieChartProps {
 	data: Array<{ name: string; value: number; color: string }>;
 	total: number;
@@ -21,74 +40,69 @@ interface NotReachedPieChartProps {
 export const NotReachedPieChart: React.FC<NotReachedPieChartProps> = ({ data, total }) => {
 	const { logDataIssue } = useErrorLogger();
 	const { reportPieChartCalculationIssue } = useReportIssue();
-	// Filter out any zero value data points
-	const filteredData = data.filter(item => item.value > 0);
+
+	// Always build data to guarantee 3 slices present even if 0
+	const normalizedData = NOT_REACHED_CATEGORIES.map(cat => {
+		const found = data.find(d => d.name === cat.name);
+		return {
+			name: cat.name,
+			value: found ? Number(found.value) || 0 : 0,
+			color: cat.color
+		}
+	});
+
+	// Filter out slices with 0 only for visualized slices (but total always sums all)
+	const filteredData = normalizedData.filter(item => item.value > 0);
+	// Calculate total from normalized slices for correct bottom value
+	const actualTotal = normalizedData.reduce((sum, item) => sum + (Number(item.value) || 0), 0);
+
+	// Add total/percent to each data entry
+	const dataWithTotal = normalizedData.map(item => ({
+		...item,
+		total: actualTotal > 0 ? actualTotal : 1,
+		percent: actualTotal > 0 ? ((item.value / actualTotal) * 100).toFixed(1) : '0.0'
+	}));
 
 	useEffect(() => {
-		console.log(filteredData.splice(0, 10));
-	}, [filteredData]);
-
-	// Calculate the total directly from the filtered data for consistency
-	const calculatedTotal = filteredData.reduce((sum, item) => sum + (Number(item.value) || 0), 0);
-
-	const actualTotal = calculatedTotal > 0 ? calculatedTotal : 1; // Avoid division by zero
-
-	// Add total to each data point for percentage calculation
-	const dataWithTotal = filteredData.map(item => {
-		const value = Number(item.value) || 0;
-
-		return {
-			...item,
-			value,
-			total: actualTotal,
-			percent: actualTotal > 0 ? ((value / actualTotal) * 100).toFixed(1) : '0.0'
-		};
-	});
+		// Diagnostic log for the chart input
+		console.log('NotReachedPieChart data:', dataWithTotal);
+	}, [dataWithTotal]);
 
 	// Only report issues if there's a significant discrepancy
 	useEffect(() => {
-		if (Math.abs(calculatedTotal - total) > 100) {
-			// Log the data issue for debugging
+		if (Math.abs(actualTotal - total) > 100) {
 			logDataIssue("NotReachedPieChart data issue", {
 				receivedData: data,
-				calculatedTotal: calculatedTotal,
+				calculatedTotal: actualTotal,
 				passedTotal: total
 			});
-
-			// Report the issue to the issue log
 			reportPieChartCalculationIssue("Not Reached",
-				data.reduce((acc, item) => ({ ...acc, [item.name]: item.value }), {}), // expected values
-				data.reduce((acc, item) => ({ ...acc, [item.name]: item.value }), {}) // actual values
+				data.reduce((acc, item) => ({ ...acc, [item.name]: item.value }), {}),
+				data.reduce((acc, item) => ({ ...acc, [item.name]: item.value }), {})
 			);
 		}
-	}, [data, logDataIssue, reportPieChartCalculationIssue, calculatedTotal, total]);
+	}, [data, logDataIssue, reportPieChartCalculationIssue, actualTotal, total]);
 
-	// Custom legend that includes percentages
+	// Custom legend that includes percentages and always 3 entries
 	const renderLegend = (props: any) => {
 		const { payload } = props;
 
-		if (!payload || payload.length === 0) {
-			return <div className="text-xs text-center mt-2">No data available</div>;
-		}
-
+		// Always use order as defined in NOT_REACHED_CATEGORIES for legend
 		return (
 			<ul className="text-xs flex flex-col items-start mt-2">
-				{payload.map((entry: any, index: number) => {
-					// Find the correct data point with the corrected values
-					const matchedItem = dataWithTotal.find(item => item.name === entry.value);
-
-					// If we found a match, use its corrected value, otherwise default to zero
-					const value = matchedItem ? matchedItem.value : 0;
-					const percentage = actualTotal > 0 ? ((value / actualTotal) * 100).toFixed(1) : '0.0';
+				{NOT_REACHED_CATEGORIES.map((cat, idx) => {
+					const entry = dataWithTotal.find(d => d.name === cat.name)!;
+					const value = entry.value;
+					const percentage = entry.percent;
 
 					return (
-						<li key={`legend-item-${index}`} className="flex items-center mb-1">
+						<li key={`legend-item-${cat.name}`} className="flex items-center mb-1">
 							<span
 								className="inline-block w-3 h-3 mr-2"
-								style={{ backgroundColor: entry.color }}
+								style={{ backgroundColor: cat.color }}
 							/>
 							<span className="whitespace-nowrap">
-								{entry.value}: {value.toLocaleString()} ({percentage}%)
+								{cat.name}: {value.toLocaleString()} ({percentage}%)
 							</span>
 						</li>
 					);
@@ -97,8 +111,8 @@ export const NotReachedPieChart: React.FC<NotReachedPieChartProps> = ({ data, to
 		);
 	};
 
-	// If there's no data, show an empty state
-	if (filteredData.length === 0) {
+	// If all values are 0, show empty state
+	if (actualTotal === 0) {
 		return (
 			<div className="h-72 rounded-lg border border-gray-200 flex flex-col">
 				<div className="flex justify-between items-center p-2">
@@ -136,7 +150,9 @@ export const NotReachedPieChart: React.FC<NotReachedPieChartProps> = ({ data, to
 							labelLine={false}
 						>
 							{dataWithTotal.map((entry, index) => (
-								<Cell key={`cell-${index}`} fill={entry.color} />
+								entry.value > 0
+									? <Cell key={`cell-${index}`} fill={entry.color} />
+									: null
 							))}
 						</Pie>
 						<Tooltip content={<CustomPieTooltip />} />
