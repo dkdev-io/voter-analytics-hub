@@ -16,43 +16,54 @@ interface NotReachedPieChartProps {
 }
 
 export const NotReachedPieChart: React.FC<NotReachedPieChartProps> = ({ data, total }) => {
-	// Filter out zero value data points
-	const filteredData = data.filter(item => Number(item.value) > 0);
-	const calculatedTotal = filteredData.reduce((sum, item) => sum + Number(item.value || 0), 0);
-	const actualTotal = calculatedTotal > 0 ? calculatedTotal : 1; // Avoid division by zero
+	// Always show all slices.
+	const categories = [
+		{ name: 'Not Home', color: CHART_COLORS.NOT_REACHED.NOT_HOME },
+		{ name: 'Refusal', color: CHART_COLORS.NOT_REACHED.REFUSAL },
+		{ name: 'Bad Data', color: CHART_COLORS.NOT_REACHED.BAD_DATA }
+	];
 
-	// Add total to each data point for percentage calculation
-	const dataWithTotal = filteredData.map(item => ({
+	// Map category labels to the passed-in data, filling in zero if not present
+	const displayData = categories.map(cat => {
+		const found = data.find(item => item.name === cat.name);
+		return {
+			name: cat.name,
+			value: found ? Number(found.value) || 0 : 0,
+			color: cat.color
+		};
+	});
+
+	const actualTotal = displayData.reduce((sum, item) => sum + Number(item.value || 0), 0);
+
+	const dataWithTotal = displayData.map(item => ({
 		...item,
 		total: actualTotal,
-		percent: ((item.value / actualTotal) * 100).toFixed(1)
+		percent: actualTotal > 0 ? ((item.value / actualTotal) * 100).toFixed(1) : "0.0"
 	}));
 
-	// Custom legend that includes percentages
 	const renderLegend = (props: any) => {
 		const { payload } = props;
-
 		if (!payload || payload.length === 0) {
 			return <div className="text-xs text-center mt-2">No data available</div>;
 		}
-
 		return (
 			<ul className="text-xs flex flex-col items-start mt-2">
-				{payload.map((entry: any, index: number) => (
+				{dataWithTotal.map((item, index) => (
 					<li key={`legend-item-${index}`} className="flex items-center mb-1">
 						<span
 							className="inline-block w-3 h-3 mr-2"
-							style={{ backgroundColor: entry.color }}
+							style={{ backgroundColor: item.color }}
 						/>
-						<span className="whitespace-nowrap">{entry.value} - {entry.payload.value.toLocaleString()} ({((entry.payload.value / actualTotal) * 100).toFixed(1)}%)</span>
+						<span className="whitespace-nowrap">
+							{item.name}: {item.value.toLocaleString()} ({item.percent}%)
+						</span>
 					</li>
 				))}
 			</ul>
 		);
 	};
 
-	// If there's no data, show an empty state
-	if (filteredData.length === 0) {
+	if (actualTotal === 0) {
 		return (
 			<div className="h-72 rounded-lg border border-gray-200 flex flex-col">
 				<h3 className="text-sm font-bold p-2 text-center">Not Reached</h3>
