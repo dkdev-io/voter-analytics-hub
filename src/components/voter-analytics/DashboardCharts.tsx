@@ -55,9 +55,11 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
 	const {
 		tacticsData,
 		contactsData,
+		notReachedData,
 		lineChartData,
 		totalAttempts,
 		totalContacts,
+		totalNotReached,
 		loading,
 		datasetName,
 		debugNotHome,
@@ -165,8 +167,10 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
 					<PieChartsRow
 						tacticsData={tacticsData}
 						contactsData={contactsData}
+						notReachedData={notReachedData}
 						totalAttempts={totalAttempts}
 						totalContacts={totalContacts}
+						totalNotReached={totalNotReached}
 					/>
 				</div>
 

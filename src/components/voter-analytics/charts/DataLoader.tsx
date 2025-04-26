@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import {
 	type VoterMetrics,
@@ -18,9 +19,11 @@ export const useDataLoader = ({
 }: UseDataLoaderProps) => {
 	const [tacticsData, setTacticsData] = useState<any[]>([]);
 	const [contactsData, setContactsData] = useState<any[]>([]);
+	const [notReachedData, setNotReachedData] = useState<any[]>([]);
 	const [lineChartData, setLineChartData] = useState<any[]>([]);
 	const [totalAttempts, setTotalAttempts] = useState(0);
 	const [totalContacts, setTotalContacts] = useState(0);
+	const [totalNotReached, setTotalNotReached] = useState(0);
 	const [loading, setLoading] = useState(true);
 	const [datasetName, setDatasetName] = useState<string>("");
 	const [debugNotHome, setDebugNotHome] = useState<number | null>(null);
@@ -61,6 +64,7 @@ export const useDataLoader = ({
 
 				let totalContactsValue =
 					(metrics.contacts.support || 0) + (metrics.contacts.oppose || 0) + (metrics.contacts.undecided || 0);
+
 				const contactsChartData = [
 					{
 						name: "Support",
@@ -95,8 +99,28 @@ export const useDataLoader = ({
 						color: CHART_COLORS.TACTIC.CANVAS,
 					},
 				];
+
+				// Not Reached pie chart data
+				const notReachedChartData = [
+					{
+						name: "Not Home",
+						value: metrics.notReached.notHome || 0,
+						color: CHART_COLORS.NOT_REACHED.NOT_HOME,
+					},
+					{
+						name: "Refusal",
+						value: metrics.notReached.refusal || 0,
+						color: CHART_COLORS.NOT_REACHED.REFUSAL,
+					},
+					{
+						name: "Bad Data",
+						value: metrics.notReached.badData || 0,
+						color: CHART_COLORS.NOT_REACHED.BAD_DATA,
+					},
+				];
 				const totalTactics = tacticsChartData.reduce((sum, item) => sum + item.value, 0);
 				totalContactsValue = contactsChartData.reduce((sum, item) => sum + item.value, 0);
+				const totalNotReachedValue = notReachedChartData.reduce((sum, item) => sum + item.value, 0);
 
 				const validatedLineData = (metrics.byDate || [])
 					.filter((item) => item.date && isValid(parseISO(item.date)))
@@ -117,9 +141,11 @@ export const useDataLoader = ({
 
 				setTacticsData(tacticsChartData);
 				setContactsData(contactsChartData);
+				setNotReachedData(notReachedChartData);
 				setLineChartData(validatedLineData);
 				setTotalAttempts(totalTactics);
 				setTotalContacts(totalContactsValue);
+				setTotalNotReached(totalNotReachedValue);
 				setDatasetName(datasetNameValue);
 			} catch (error) {
 				console.error("Error loading chart data:", error);
@@ -138,9 +164,11 @@ export const useDataLoader = ({
 	return {
 		tacticsData,
 		contactsData,
+		notReachedData,
 		lineChartData,
 		totalAttempts,
 		totalContacts,
+		totalNotReached,
 		loading,
 		datasetName,
 		debugNotHome,
