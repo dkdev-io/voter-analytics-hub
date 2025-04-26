@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import {
 	type VoterMetrics,
@@ -43,10 +44,9 @@ export const useDataLoader = ({
 		const loadChartData = async () => {
 			try {
 				setLoading(true);
-				// Always use the query to filter data when it exists
 				const shouldFilter = showFilteredData || query.person || query.tactic;
 
-				// Fetch raw metrics and underlying raw data
+				// ---- Fetch raw data for debugging ----
 				let rawData: any[] = [];
 				try {
 					const { fetchVoterMetrics: fetchVM, getTestData } = await import("@/lib/voter-data");
@@ -103,27 +103,34 @@ export const useDataLoader = ({
 						color: CHART_COLORS.TACTIC.CANVAS,
 					},
 				];
-				const totalNotReachedValue =
-					(metrics.notReached.notHome || 0) +
-					(metrics.notReached.refusal || 0) +
-					(metrics.notReached.badData || 0);
+
+				// ---- FIX: Directly aggregate Not Reached from rawData to avoid key mapping bug ----
+				// Instead of relying on metrics.notReached, directly sum the rawData for each 
+				// For the three pie segments, get the actual db fields
+				const notHomeValue = rawData.reduce((sum, r) => sum + (Number(r.not_home) || 0), 0);
+				const refusalValue = rawData.reduce((sum, r) => sum + (Number(r.refusal) || 0), 0);
+				const badDataValue = rawData.reduce((sum, r) => sum + (Number(r.bad_data) || 0), 0);
+
+				const totalNotReachedValue = notHomeValue + refusalValue + badDataValue;
+
 				const notReachedChartData = [
 					{
 						name: "Not Home",
-						value: metrics.notReached.notHome || 0,
+						value: notHomeValue,
 						color: CHART_COLORS.NOT_REACHED.NOT_HOME,
 					},
 					{
 						name: "Refusal",
-						value: metrics.notReached.refusal || 0,
+						value: refusalValue,
 						color: CHART_COLORS.NOT_REACHED.REFUSAL,
 					},
 					{
 						name: "Bad Data",
-						value: metrics.notReached.badData || 0,
+						value: badDataValue,
 						color: CHART_COLORS.NOT_REACHED.BAD_DATA,
 					},
 				];
+
 				const totalTactics = tacticsChartData.reduce((sum, item) => sum + item.value, 0);
 				totalContactsValue = contactsChartData.reduce((sum, item) => sum + item.value, 0);
 
