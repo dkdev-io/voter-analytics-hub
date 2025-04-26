@@ -33,7 +33,7 @@ const NOT_REACHED_CATEGORIES = [
 ];
 
 interface NotReachedPieChartProps {
-	data: Array<{ name: string; value: number; color: string }>;
+	data: Array<{ name: string; value: number | string; color: string }>;
 	total: number;
 }
 
@@ -48,27 +48,26 @@ export const NotReachedPieChart: React.FC<NotReachedPieChartProps> = ({ data, to
 			name: cat.name,
 			value: found ? Number(found.value) || 0 : 0,
 			color: cat.color
-		}
+		};
 	});
 
-	// Filter out slices with 0 only for visualized slices (but total always sums all)
-	const filteredData = normalizedData.filter(item => item.value > 0);
-	// Calculate total from normalized slices for correct bottom value
+	// Calculate the total directly from normalizedData
 	const actualTotal = normalizedData.reduce((sum, item) => sum + (Number(item.value) || 0), 0);
 
-	// Add total/percent to each data entry
+	// Add total/percent and ensure all entries are numeric
 	const dataWithTotal = normalizedData.map(item => ({
 		...item,
+		value: Number(item.value) || 0,
 		total: actualTotal > 0 ? actualTotal : 1,
-		percent: actualTotal > 0 ? ((item.value / actualTotal) * 100).toFixed(1) : '0.0'
+		percent: actualTotal > 0 ? ((Number(item.value) / actualTotal) * 100).toFixed(1) : '0.0'
 	}));
 
 	useEffect(() => {
 		// Diagnostic log for the chart input
-		console.log('NotReachedPieChart data:', dataWithTotal);
-	}, [dataWithTotal]);
+		console.log('NotReachedPieChart (CORRECTED) data:', dataWithTotal, 'actualTotal:', actualTotal, 'expected total:', total);
+	}, [dataWithTotal, actualTotal, total]);
 
-	// Only report issues if there's a significant discrepancy
+	// Issue reporting if there's a significant mismatch
 	useEffect(() => {
 		if (Math.abs(actualTotal - total) > 100) {
 			logDataIssue("NotReachedPieChart data issue", {
@@ -77,39 +76,25 @@ export const NotReachedPieChart: React.FC<NotReachedPieChartProps> = ({ data, to
 				passedTotal: total
 			});
 			reportPieChartCalculationIssue("Not Reached",
-				data.reduce((acc, item) => ({ ...acc, [item.name]: item.value }), {}),
+				normalizedData.reduce((acc, item) => ({ ...acc, [item.name]: item.value }), {}),
 				data.reduce((acc, item) => ({ ...acc, [item.name]: item.value }), {})
 			);
 		}
-	}, [data, logDataIssue, reportPieChartCalculationIssue, actualTotal, total]);
+	}, [data, logDataIssue, reportPieChartCalculationIssue, actualTotal, total, normalizedData]);
 
 	// Custom legend that includes percentages and always 3 entries
-	const renderLegend = (props: any) => {
-		const { payload } = props;
-
-		// Always use order as defined in NOT_REACHED_CATEGORIES for legend
-		return (
-			<ul className="text-xs flex flex-col items-start mt-2">
-				{NOT_REACHED_CATEGORIES.map((cat, idx) => {
-					const entry = dataWithTotal.find(d => d.name === cat.name)!;
-					const value = entry.value;
-					const percentage = entry.percent;
-
-					return (
-						<li key={`legend-item-${cat.name}`} className="flex items-center mb-1">
-							<span
-								className="inline-block w-3 h-3 mr-2"
-								style={{ backgroundColor: cat.color }}
-							/>
-							<span className="whitespace-nowrap">
-								{cat.name}: {value.toLocaleString()} ({percentage}%)
-							</span>
-						</li>
-					);
-				})}
-			</ul>
-		);
-	};
+	const renderLegend = () => (
+		<ul className="text-xs flex flex-col items-start mt-2">
+			{dataWithTotal.map((entry, idx) => (
+				<li key={`legend-item-${entry.name}`} className="flex items-center mb-1">
+					<span className="inline-block w-3 h-3 mr-2" style={{ backgroundColor: entry.color }} />
+					<span className="whitespace-nowrap">
+						{entry.name}: {entry.value.toLocaleString()} ({entry.percent}%)
+					</span>
+				</li>
+			))}
+		</ul>
+	);
 
 	// If all values are 0, show empty state
 	if (actualTotal === 0) {
@@ -150,9 +135,7 @@ export const NotReachedPieChart: React.FC<NotReachedPieChartProps> = ({ data, to
 							labelLine={false}
 						>
 							{dataWithTotal.map((entry, index) => (
-								entry.value > 0
-									? <Cell key={`cell-${index}`} fill={entry.color} />
-									: null
+								<Cell key={`cell-${index}`} fill={entry.color} />
 							))}
 						</Pie>
 						<Tooltip content={<CustomPieTooltip />} />
