@@ -55,11 +55,9 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
 	const {
 		tacticsData,
 		contactsData,
-		notReachedData,
 		lineChartData,
 		totalAttempts,
 		totalContacts,
-		totalNotReached,
 		loading,
 		datasetName,
 		debugNotHome,
@@ -167,10 +165,8 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
 					<PieChartsRow
 						tacticsData={tacticsData}
 						contactsData={contactsData}
-						notReachedData={notReachedData}
 						totalAttempts={totalAttempts}
 						totalContacts={totalContacts}
-						totalNotReached={totalNotReached}
 					/>
 				</div>
 
@@ -180,27 +176,17 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
 						onPrintChart={() => handlePrintChart('activity-line-chart')}
 					/>
 				</div>
-
 				<div id="cumulative-line-chart" className="mt-6 h-96">
 					<CumulativeLineChart
 						data={lineChartData}
 						onPrintChart={() => handlePrintChart('cumulative-line-chart')}
 					/>
 				</div>
-
 				<ReportFooter
 					userEmail={user?.email}
 					datasetName={uploadedFileName || datasetName}
 				/>
 			</div>
-
-			{/* <div className="print-hidden">
-				<PrintReport
-					query={query}
-					onPrint={handlePrint}
-					onToggleSearchPanel={onToggleSearchPanel}
-				/>
-			</div> */}
 		</div>
 	);
 };

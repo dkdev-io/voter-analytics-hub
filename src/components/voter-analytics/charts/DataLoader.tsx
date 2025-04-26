@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import {
 	type VoterMetrics,
@@ -19,11 +18,9 @@ export const useDataLoader = ({
 }: UseDataLoaderProps) => {
 	const [tacticsData, setTacticsData] = useState<any[]>([]);
 	const [contactsData, setContactsData] = useState<any[]>([]);
-	const [notReachedData, setNotReachedData] = useState<any[]>([]);
 	const [lineChartData, setLineChartData] = useState<any[]>([]);
 	const [totalAttempts, setTotalAttempts] = useState(0);
 	const [totalContacts, setTotalContacts] = useState(0);
-	const [totalNotReached, setTotalNotReached] = useState(0);
 	const [loading, setLoading] = useState(true);
 	const [datasetName, setDatasetName] = useState<string>("");
 	const [debugNotHome, setDebugNotHome] = useState<number | null>(null);
@@ -40,13 +37,10 @@ export const useDataLoader = ({
 
 	useEffect(() => {
 		let isMounted = true;
-
 		const loadChartData = async () => {
 			try {
 				setLoading(true);
 				const shouldFilter = showFilteredData || query.person || query.tactic;
-
-				// ---- Fetch raw data for debugging ----
 				let rawData: any[] = [];
 				try {
 					const { fetchVoterMetrics: fetchVM, getTestData } = await import("@/lib/voter-data");
@@ -61,11 +55,9 @@ export const useDataLoader = ({
 				} catch (e) {
 					console.error("[DEBUG] Could not log raw Supabase data", e);
 				}
-
 				const metrics = await fetchVoterMetrics(
 					shouldFilter ? query : undefined,
 				);
-				console.log("[DEBUG] Aggregated metrics.notReached:", metrics.notReached);
 
 				let totalContactsValue =
 					(metrics.contacts.support || 0) + (metrics.contacts.oppose || 0) + (metrics.contacts.undecided || 0);
@@ -103,34 +95,6 @@ export const useDataLoader = ({
 						color: CHART_COLORS.TACTIC.CANVAS,
 					},
 				];
-
-				// ---- FIX: Directly aggregate Not Reached from rawData to avoid key mapping bug ----
-				// Instead of relying on metrics.notReached, directly sum the rawData for each 
-				// For the three pie segments, get the actual db fields
-				const notHomeValue = rawData.reduce((sum, r) => sum + (Number(r.not_home) || 0), 0);
-				const refusalValue = rawData.reduce((sum, r) => sum + (Number(r.refusal) || 0), 0);
-				const badDataValue = rawData.reduce((sum, r) => sum + (Number(r.bad_data) || 0), 0);
-
-				const totalNotReachedValue = notHomeValue + refusalValue + badDataValue;
-
-				const notReachedChartData = [
-					{
-						name: "Not Home",
-						value: notHomeValue,
-						color: CHART_COLORS.NOT_REACHED.NOT_HOME,
-					},
-					{
-						name: "Refusal",
-						value: refusalValue,
-						color: CHART_COLORS.NOT_REACHED.REFUSAL,
-					},
-					{
-						name: "Bad Data",
-						value: badDataValue,
-						color: CHART_COLORS.NOT_REACHED.BAD_DATA,
-					},
-				];
-
 				const totalTactics = tacticsChartData.reduce((sum, item) => sum + item.value, 0);
 				totalContactsValue = contactsChartData.reduce((sum, item) => sum + item.value, 0);
 
@@ -153,11 +117,9 @@ export const useDataLoader = ({
 
 				setTacticsData(tacticsChartData);
 				setContactsData(contactsChartData);
-				setNotReachedData(notReachedChartData);
 				setLineChartData(validatedLineData);
 				setTotalAttempts(totalTactics);
 				setTotalContacts(totalContactsValue);
-				setTotalNotReached(totalNotReachedValue);
 				setDatasetName(datasetNameValue);
 			} catch (error) {
 				console.error("Error loading chart data:", error);
@@ -167,9 +129,7 @@ export const useDataLoader = ({
 				}
 			}
 		};
-
 		loadChartData();
-
 		return () => {
 			isMounted = false;
 		};
@@ -178,11 +138,9 @@ export const useDataLoader = ({
 	return {
 		tacticsData,
 		contactsData,
-		notReachedData,
 		lineChartData,
 		totalAttempts,
 		totalContacts,
-		totalNotReached,
 		loading,
 		datasetName,
 		debugNotHome,
