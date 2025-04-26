@@ -88,7 +88,7 @@ export function CSVUploadDialog({ open, onOpenChange, onSuccess }: CSVUploadDial
               </Button>
             ) : (
               <Button 
-                onClick={handleSubmitFile} 
+                onClick={() => handleSubmitFile()} {/* Fix: wrap in arrow function */}
                 disabled={isUploading}
               >
                 Upload File
