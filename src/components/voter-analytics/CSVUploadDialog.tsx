@@ -1,3 +1,4 @@
+
 import { useRef } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -36,6 +37,11 @@ export function CSVUploadDialog({ open, onOpenChange, onSuccess }: CSVUploadDial
       onOpenChange(false);
     }
   };
+
+  // Debugging output to confirm state/props
+  console.log("[CSVUploadDialog] Current Step:", step);
+  console.log("[CSVUploadDialog] csvHeaders:", csvHeaders);
+  console.log("[CSVUploadDialog] csvSampleData:", csvSampleData);
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>

@@ -29,10 +29,13 @@ export function useCSVUpload(onSuccess: () => void) {
       // Step 1: Parse to preview headers
       try {
         const { headers, data } = await parseCSV(selectedFile);
+        console.log("[useCSVUpload] Parsed Headers:", headers); // <-- debug
+        console.log("[useCSVUpload] Parsed Data (first 3):", data.slice(0, 3)); // <-- debug
         setCSVHeaders(headers);
         setCSVSampleData(data.slice(0, 3));
         setStep('mapping');
       } catch (err) {
+        console.error("[useCSVUpload] Parse failed:", err);
         toast({
           title: 'Could not parse file',
           description: 'Please check your CSV file and try again.',
