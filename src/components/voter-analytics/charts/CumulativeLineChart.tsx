@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import {
 	LineChart,
@@ -38,36 +39,47 @@ export const CumulativeLineChart: React.FC<CumulativeLineChartProps> = ({ data, 
 			return isValidDate;
 		});
 
-		// Sort dates chronologically
+		// Sort dates chronologically to ensure proper cumulative calculation
 		validData.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-		// Calculate cumulative values with small random variations to make it look more natural
+		// Calculate cumulative values accurately
 		let cumulativeAttempts = 0;
 		let cumulativeContacts = 0;
 		let cumulativeIssues = 0;
 
 		const processed = validData.map(item => {
-			// Add the actual values for the current day
-			const dailyAttempts = item.attempts || 0;
-			const dailyContacts = item.contacts || 0;
-			const dailyIssues = item.issues || 0;
+			// Ensure we're using actual numbers for calculations
+			const dailyAttempts = Math.max(0, Number(item.attempts) || 0);
+			const dailyContacts = Math.max(0, Number(item.contacts) || 0);
+			const dailyIssues = Math.max(0, Number(item.issues) || 0);
 
 			// Add each day's value to the cumulative total
 			cumulativeAttempts += dailyAttempts;
 			cumulativeContacts += dailyContacts;
 			cumulativeIssues += dailyIssues;
 
+			// Format the date for display
+			const displayDate = format(new Date(item.date), 'MM/dd');
+
 			return {
 				...item,
-				displayDate: format(new Date(item.date), 'MM/dd'),
+				displayDate,
+				// Store accurate cumulative values
 				cumulativeAttempts,
 				cumulativeContacts,
 				cumulativeIssues,
-				// Include the daily values for potential future use
+				// Include the daily values for toggle functionality
 				dailyAttempts,
 				dailyContacts,
 				dailyIssues
 			};
+		});
+
+		// Log the processed data for verification
+		console.log('Cumulative data calculation:', {
+			original: validData.slice(0, 3),
+			processed: processed.slice(0, 3),
+			final: processed.length > 0 ? processed[processed.length - 1] : null
 		});
 
 		setCumulativeData(processed);
@@ -75,10 +87,18 @@ export const CumulativeLineChart: React.FC<CumulativeLineChartProps> = ({ data, 
 
 	// Calculate the maximum value for Y-axis scaling with 10% padding
 	const maxValue = cumulativeData.length > 0 ?
-		cumulativeData[cumulativeData.length - 1]?.cumulativeAttempts || 0 : 0;
+		Math.max(
+			cumulativeData[cumulativeData.length - 1]?.cumulativeAttempts || 0,
+			cumulativeData[cumulativeData.length - 1]?.cumulativeContacts || 0,
+			cumulativeData[cumulativeData.length - 1]?.cumulativeIssues || 0
+		) : 0;
 
 	const maxDailyValue = cumulativeData.length > 0 ?
-		Math.max(...cumulativeData.map(item => Math.max(item.dailyAttempts, item.dailyContacts, item.dailyIssues))) : 0;
+		Math.max(...cumulativeData.map(item => Math.max(
+			item.dailyAttempts || 0, 
+			item.dailyContacts || 0, 
+			item.dailyIssues || 0
+		))) : 0;
 
 	// If no data is available, show an empty state
 	if (cumulativeData.length === 0) {
@@ -126,7 +146,13 @@ export const CumulativeLineChart: React.FC<CumulativeLineChartProps> = ({ data, 
 						axisLine={{ strokeWidth: 1.5 }}
 						width={50} // Ensure Y-axis has enough width for labels
 					/>
-					<Tooltip />
+					<Tooltip 
+						formatter={(value, name) => {
+							// Format the value as a number with commas
+							return [Number(value).toLocaleString(), name];
+						}}
+						labelFormatter={(label) => `Date: ${label}`}
+					/>
 					<Legend
 						verticalAlign="top"
 						height={36}
@@ -145,6 +171,7 @@ export const CumulativeLineChart: React.FC<CumulativeLineChartProps> = ({ data, 
 						activeDot={{ r: 8 }}
 						strokeWidth={2}
 						name="Attempts"
+						isAnimationActive={false}
 					/>
 					<Line
 						type="monotone"
@@ -153,6 +180,7 @@ export const CumulativeLineChart: React.FC<CumulativeLineChartProps> = ({ data, 
 						activeDot={{ r: 6 }}
 						strokeWidth={2}
 						name="Contacts"
+						isAnimationActive={false}
 					/>
 					<Line
 						type="monotone"
@@ -161,6 +189,7 @@ export const CumulativeLineChart: React.FC<CumulativeLineChartProps> = ({ data, 
 						activeDot={{ r: 6 }}
 						strokeWidth={2}
 						name="Issues"
+						isAnimationActive={false}
 					/>
 				</LineChart>
 			</ResponsiveContainer>
