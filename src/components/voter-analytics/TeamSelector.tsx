@@ -38,12 +38,12 @@ export const TeamSelector = ({
 					<SelectItem value="All">All Teams</SelectItem>
 					{displayTeams.length > 0 ? (
 						displayTeams.map(team => (
-							<SelectItem key={team} value={team}>
-								{team}
+							<SelectItem key={team} value={team || "unknown-team"}>
+								{team || "Unknown Team"}
 							</SelectItem>
 						))
 					) : (
-						<SelectItem value="no-data" disabled>
+						<SelectItem value="no-data">
 							{isLoading ? "Loading teams..." : "No team data available"}
 						</SelectItem>
 					)}

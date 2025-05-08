@@ -65,7 +65,7 @@ export function CSVFieldMapping({ headers, sampleData, onMappingComplete, onCanc
   // Check for missing required fields
   useEffect(() => {
     const missing = requiredFields
-      .filter(field => field.required && !fieldMapping[field.key])
+      .filter(field => field.required && (!fieldMapping[field.key] || fieldMapping[field.key] === 'not-mapped'))
       .map(field => field.label);
     
     setMissingRequiredFields(missing);
@@ -74,15 +74,22 @@ export function CSVFieldMapping({ headers, sampleData, onMappingComplete, onCanc
   const handleMappingChange = (fieldKey: string, headerValue: string) => {
     setFieldMapping(prev => ({
       ...prev,
-      [fieldKey]: headerValue
+      [fieldKey]: headerValue === 'not-mapped' ? '' : headerValue
     }));
   };
 
   const handleComplete = () => {
     if (missingRequiredFields.length === 0) {
-      // Log mapping for debugging
-      console.log("[CSVFieldMapping] Final field mapping:", fieldMapping);
-      onMappingComplete(fieldMapping);
+      // Filter out any 'not-mapped' values before submitting
+      const finalMapping = Object.entries(fieldMapping)
+        .filter(([_, value]) => value && value !== 'not-mapped')
+        .reduce((obj, [key, value]) => {
+          obj[key] = value;
+          return obj;
+        }, {} as Record<string, string>);
+      
+      console.log("[CSVFieldMapping] Final field mapping:", finalMapping);
+      onMappingComplete(finalMapping);
     }
   };
 

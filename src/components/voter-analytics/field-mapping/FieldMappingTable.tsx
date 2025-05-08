@@ -1,5 +1,4 @@
 
-import { useState } from 'react';
 import { 
   Select, 
   SelectContent, 
@@ -56,7 +55,8 @@ export function FieldMappingTable({
                     <SelectValue placeholder="Select a field" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Not Mapped</SelectItem>
+                    {/* Important fix: Use "not-mapped" instead of empty string */}
+                    <SelectItem value="not-mapped">Not Mapped</SelectItem>
                     {headers.map((header) => (
                       <SelectItem key={header} value={header}>
                         {header}

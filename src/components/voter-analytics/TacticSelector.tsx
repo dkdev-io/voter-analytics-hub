@@ -1,3 +1,4 @@
+
 import {
 	Select,
 	SelectContent,
@@ -22,7 +23,7 @@ export const TacticSelector = ({
 
 	return (
 		<div className="w-full">
-			<Select value={value} onValueChange={onChange} disabled={isLoading}>
+			<Select value={value || "All"} onValueChange={onChange} disabled={isLoading}>
 				<SelectTrigger className="w-full font-sans border-primary/20 focus:ring-primary/30">
 					<SelectValue
 						placeholder={isLoading ? "Loading..." : "Select Tactic"}
@@ -34,12 +35,12 @@ export const TacticSelector = ({
 					</SelectItem>
 					{tactics && tactics.length > 0 ? (
 						tactics.map((tactic) => (
-							<SelectItem key={tactic} value={tactic}>
-								{tactic}
+							<SelectItem key={tactic} value={tactic || "unknown-tactic"}>
+								{tactic || "Unknown Tactic"}
 							</SelectItem>
 						))
 					) : (
-						<SelectItem value="no-data" disabled>
+						<SelectItem value="no-data">
 							{isLoading ? "Loading..." : "No data in database yet"}
 						</SelectItem>
 					)}

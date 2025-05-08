@@ -17,8 +17,6 @@ export const PersonSelector = ({
 	disabled,
 	isLoading
 }: PersonSelectorProps) => {
-	// Log people list for debugging
-
 	// Expected names for fallback/testing
 	const expectedNames = [
 		"John Smith", "Jane Doe", "Alex Johnson",
@@ -47,12 +45,12 @@ export const PersonSelector = ({
 					<SelectItem value="All">All Members</SelectItem>
 					{allPeople && allPeople.length > 0 ? (
 						allPeople.map((person: string) => (
-							<SelectItem key={person} value={person}>
-								{person}
+							<SelectItem key={person} value={person || "unknown-person"}>
+								{person || "Unknown Person"}
 							</SelectItem>
 						))
 					) : (
-						<SelectItem value="no-data" disabled>
+						<SelectItem value="no-data">
 							{isLoading ? "Loading people..." : "No people available"}
 						</SelectItem>
 					)}

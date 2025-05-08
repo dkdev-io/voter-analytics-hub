@@ -27,7 +27,7 @@ export const ResultTypeSelector = ({
 	return (
 		<div className="w-full">
 			<Select
-				value={value || ""}
+				value={value || "All"}
 				onValueChange={onChange}
 				disabled={isLoading}
 			>

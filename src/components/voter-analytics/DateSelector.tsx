@@ -46,12 +46,12 @@ export const DateSelector = ({
           <SelectItem value="All">{label === "Start Date" ? "All Dates" : "No End Date"}</SelectItem>
           {uniqueDates && uniqueDates.length > 0 ? (
             uniqueDates.map((dateValue: string) => (
-              <SelectItem key={dateValue} value={dateValue}>
-                {dateValue}
+              <SelectItem key={dateValue} value={dateValue || "unknown-date"}>
+                {dateValue || "Unknown Date"}
               </SelectItem>
             ))
           ) : (
-            <SelectItem value="no-data" disabled>
+            <SelectItem value="no-data">
               {isLoading ? "Loading dates..." : "No dates available"}
             </SelectItem>
           )}
