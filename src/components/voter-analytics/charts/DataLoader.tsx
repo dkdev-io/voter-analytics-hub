@@ -49,8 +49,16 @@ export const useDataLoader = ({
 					const { fetchVoterMetrics: fetchVM, getTestData } = await import("@/lib/voter-data");
 					rawData = await getTestData();
 					console.log("[DEBUG] Raw Supabase data sample (first 5):", rawData.slice(0, 5));
+					
+					// Debug: Check specific fields in the data
 					const notHomeSum = rawData.reduce((sum, r) => sum + (Number(r.not_home) || 0), 0);
+					const badDataSum = rawData.reduce((sum, r) => sum + (Number(r.bad_data) || 0), 0);
+					const refusalSum = rawData.reduce((sum, r) => sum + (Number(r.refusal) || 0), 0);
+					
 					console.log("[DEBUG] Sum of not_home in all records:", notHomeSum);
+					console.log("[DEBUG] Sum of bad_data in all records:", badDataSum);
+					console.log("[DEBUG] Sum of refusal in all records:", refusalSum);
+					
 					if (isMounted) {
 						setDebugNotHome(notHomeSum);
 						setDebugRawRows(rawData.slice(0, 5));
@@ -100,7 +108,9 @@ export const useDataLoader = ({
 					},
 				];
 
-				// Not Reached pie chart data
+				// Not Reached pie chart data - debug each value
+				console.log("[DataLoader] notReached metrics:", metrics.notReached);
+				
 				const notReachedChartData = [
 					{
 						name: "Not Home",
@@ -118,6 +128,9 @@ export const useDataLoader = ({
 						color: CHART_COLORS.NOT_REACHED.BAD_DATA,
 					},
 				];
+				
+				console.log("[DataLoader] notReachedChartData created:", notReachedChartData);
+				
 				const totalTactics = tacticsChartData.reduce((sum, item) => sum + item.value, 0);
 				totalContactsValue = contactsChartData.reduce((sum, item) => sum + item.value, 0);
 				const totalNotReachedValue = notReachedChartData.reduce((sum, item) => sum + item.value, 0);

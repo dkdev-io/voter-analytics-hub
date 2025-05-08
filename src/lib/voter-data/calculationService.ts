@@ -86,6 +86,9 @@ export const aggregateVoterMetrics = (filteredData: any[]): VoterMetrics => {
 
 	metrics.byDate = dateData;
 
+	// Log raw data for debugging
+	console.log("[calculationService] First few records:", filteredData.slice(0, 3));
+
 	// Aggregate data - ensure we're parsing string values to numbers with explicit conversion
 	filteredData.forEach(item => {
 		// Aggregate by tactic
@@ -101,6 +104,11 @@ export const aggregateVoterMetrics = (filteredData: any[]): VoterMetrics => {
 		metrics.contacts.support += Number(item.support) || 0;
 		metrics.contacts.oppose += Number(item.oppose) || 0;
 		metrics.contacts.undecided += Number(item.undecided) || 0;
+
+		// Debug logging for individual record not_home values
+		if (Number(item.not_home) > 0) {
+			console.log(`Found not_home value: ${item.not_home} for ${item.first_name} ${item.last_name}`);
+		}
 
 		// Actually sum the not reached metrics from filtered data
 		// instead of using hardcoded values

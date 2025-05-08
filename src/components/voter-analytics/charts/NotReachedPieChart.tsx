@@ -20,6 +20,9 @@ export const NotReachedPieChart: React.FC<NotReachedPieChartProps> = ({
   data,
   total,
 }) => {
+  console.log("[NotReachedPieChart] Received data:", data);
+  console.log("[NotReachedPieChart] Received total:", total);
+
   // Always show the three categories, even if some values are 0
   const fullData = [
     {
@@ -42,10 +45,14 @@ export const NotReachedPieChart: React.FC<NotReachedPieChartProps> = ({
     },
   ];
 
+  console.log("[NotReachedPieChart] Processed fullData:", fullData);
+
   // Filter out all-0 data for display check, but always render all for the legend
   const hasData = fullData.some((item) => item.value > 0);
   const sumTotal = fullData.reduce((sum, item) => sum + (item.value || 0), 0) || 0;
   const displayTotal = sumTotal; // the sum is the not reached total
+
+  console.log("[NotReachedPieChart] hasData:", hasData, "sumTotal:", sumTotal);
 
   // Prepare for percentage display, possibly showing 0%
   const dataWithPercent = fullData.map((item) => ({

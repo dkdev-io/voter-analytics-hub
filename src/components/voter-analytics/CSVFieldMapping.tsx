@@ -39,7 +39,7 @@ export function CSVFieldMapping({ headers, sampleData, onMappingComplete, onCanc
   const [fieldMapping, setFieldMapping] = useState<Record<string, string>>({});
   const [missingRequiredFields, setMissingRequiredFields] = useState<string[]>([]);
 
-  // Initialize with best-guess mappings based on header names
+  // Enhanced initialization with better guessing for not_home and bad_data fields
   useEffect(() => {
     const initialMapping: Record<string, string> = {};
     
@@ -52,16 +52,34 @@ export function CSVFieldMapping({ headers, sampleData, onMappingComplete, onCanc
           normalizedHeader === field.key.toLowerCase() || 
           normalizedHeader === field.label.toLowerCase() ||
           normalizedHeader.includes(field.key.toLowerCase()) ||
-          // Special cases for common abbreviations
-          (field.key === 'not_home' && (normalizedHeader === 'nh' || normalizedHeader.includes('not home'))) ||
-          (field.key === 'refusal' && (normalizedHeader === 'ref' || normalizedHeader.includes('refused'))) ||
-          (field.key === 'bad_data' && (normalizedHeader === 'bd' || normalizedHeader.includes('bad data')))
+          // Improved special cases for common abbreviations and alternative names
+          (field.key === 'not_home' && (
+            normalizedHeader === 'nh' || 
+            normalizedHeader.includes('not home') || 
+            normalizedHeader.includes('nothome') ||
+            normalizedHeader.includes('not_home') ||
+            normalizedHeader.includes('no answer') ||
+            normalizedHeader.includes('no-answer')
+          )) ||
+          (field.key === 'refusal' && (
+            normalizedHeader === 'ref' || 
+            normalizedHeader.includes('refused') || 
+            normalizedHeader.includes('refus')
+          )) ||
+          (field.key === 'bad_data' && (
+            normalizedHeader === 'bd' || 
+            normalizedHeader.includes('bad data') ||
+            normalizedHeader.includes('baddata') ||
+            normalizedHeader.includes('bad_data') ||
+            normalizedHeader.includes('invalid')
+          ))
         ) {
           initialMapping[field.key] = header;
         }
       });
     });
     
+    console.log("[CSVFieldMapping] Initial mapping:", initialMapping);
     setFieldMapping(initialMapping);
   }, [headers]);
 
@@ -84,7 +102,7 @@ export function CSVFieldMapping({ headers, sampleData, onMappingComplete, onCanc
   const handleComplete = () => {
     if (missingRequiredFields.length === 0) {
       // Log mapping for debugging
-      console.log("Final field mapping:", fieldMapping);
+      console.log("[CSVFieldMapping] Final field mapping:", fieldMapping);
       onMappingComplete(fieldMapping);
     }
   };
