@@ -7,6 +7,7 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useState, useEffect } from "react";
 
 interface FieldDefinition {
   key: string;
@@ -28,6 +29,15 @@ export function FieldMappingTable({
   fieldMapping,
   onMappingChange,
 }: FieldMappingTableProps) {
+  // Add state to track if SelectContent is open to debug rendering issues
+  const [openSelectKey, setOpenSelectKey] = useState<string | null>(null);
+
+  // Debug the headers to ensure they're being passed correctly
+  useEffect(() => {
+    console.log("FieldMappingTable received headers:", headers);
+    console.log("Current field mapping:", fieldMapping);
+  }, [headers, fieldMapping]);
+
   return (
     <div className="max-h-[300px] overflow-y-auto border rounded-md">
       <Table>
@@ -49,18 +59,42 @@ export function FieldMappingTable({
               <TableCell>
                 <Select
                   value={fieldMapping[field.key] || ''}
-                  onValueChange={(value) => onMappingChange(field.key, value)}
+                  onValueChange={(value) => {
+                    console.log(`Selecting ${value} for field ${field.key}`);
+                    onMappingChange(field.key, value);
+                  }}
+                  onOpenChange={(open) => {
+                    if (open) {
+                      setOpenSelectKey(field.key);
+                      console.log(`Opening select for ${field.key}, headers:`, headers);
+                    } else {
+                      setOpenSelectKey(null);
+                    }
+                  }}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select a field" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent 
+                    className="max-h-[200px] overflow-y-auto"
+                    position="popper"
+                    side="bottom"
+                    align="start"
+                    sideOffset={5}
+                    avoidCollisions={false}
+                  >
                     <SelectItem value="not-mapped">Not Mapped</SelectItem>
-                    {headers.map((header) => (
-                      <SelectItem key={header} value={header}>
-                        {header}
+                    {headers && headers.length > 0 ? (
+                      headers.map((header) => (
+                        <SelectItem key={header} value={header}>
+                          {header}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="no-headers" disabled>
+                        No headers available
                       </SelectItem>
-                    ))}
+                    )}
                   </SelectContent>
                 </Select>
               </TableCell>

@@ -18,6 +18,12 @@ export function CSVFieldMapping({ headers, sampleData, onMappingComplete, onCanc
   const [fieldMapping, setFieldMapping] = useState<Record<string, string>>({});
   const [missingRequiredFields, setMissingRequiredFields] = useState<string[]>([]);
 
+  // Debug to check if all headers are coming through
+  useEffect(() => {
+    console.log("CSVFieldMapping received headers:", headers);
+    console.log("Sample data:", sampleData);
+  }, [headers, sampleData]);
+
   // Enhanced initialization with better guessing for not_home and bad_data fields
   useEffect(() => {
     const initialMapping: Record<string, string> = {};
@@ -72,6 +78,7 @@ export function CSVFieldMapping({ headers, sampleData, onMappingComplete, onCanc
   }, [fieldMapping]);
 
   const handleMappingChange = (fieldKey: string, headerValue: string) => {
+    console.log(`Mapping changed: ${fieldKey} => ${headerValue}`);
     setFieldMapping(prev => ({
       ...prev,
       [fieldKey]: headerValue === 'not-mapped' ? '' : headerValue

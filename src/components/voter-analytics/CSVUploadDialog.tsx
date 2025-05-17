@@ -63,7 +63,7 @@ export function CSVUploadDialog({ open, onOpenChange, onSuccess }: CSVUploadDial
             />
           )}
 
-          {step === 'mapping' && csvHeaders.length > 0 && (
+          {step === 'mapping' && csvHeaders && csvHeaders.length > 0 && (
             <CSVFieldMapping 
               headers={csvHeaders}
               sampleData={csvSampleData}

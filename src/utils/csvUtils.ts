@@ -17,7 +17,7 @@ export const parseCSV = (file: File): Promise<{ headers: string[], data: string[
         
         const parsedLines = lines.map(parseCSVLine);
         
-        // Normalize headers (trim whitespace and convert to lowercase)
+        // Normalize headers (trim whitespace but preserve case for display)
         const headers = parsedLines[0].map(header => header.trim());
         
         // Process data rows - clean up any trailing carriage returns
@@ -27,6 +27,7 @@ export const parseCSV = (file: File): Promise<{ headers: string[], data: string[
         
         console.log("Parsed headers:", headers);
         console.log("First data row:", cleanData.length > 0 ? cleanData[0] : []);
+        console.log("Total data rows:", cleanData.length);
         
         resolve({
           headers: headers,
