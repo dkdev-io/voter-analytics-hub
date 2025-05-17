@@ -25,12 +25,18 @@ interface ActivityLineChartProps {
 }
 
 export const ActivityLineChart: React.FC<ActivityLineChartProps> = ({ data, onPrintChart }) => {
+	// Add some debug logging
+	console.log("ActivityLineChart received data:", data);
+
 	// Filter out any data points with invalid dates
-	const validData = data.filter(item => {
+	const validData = (data || []).filter(item => {
 		// Check if the date is valid
-		const isValidDate = item.date && isValid(parseISO(item.date));
+		const isValidDate = item && item.date && isValid(parseISO(item.date));
+		if (!isValidDate) console.warn("Invalid date found in chart data:", item);
 		return isValidDate;
 	});
+
+	console.log("ActivityLineChart valid data count:", validData.length);
 
 	// Sort dates chronologically
 	validData.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
@@ -47,13 +53,12 @@ export const ActivityLineChart: React.FC<ActivityLineChartProps> = ({ data, onPr
 
 	// Calculate the maximum value for Y-axis scaling - add 10% padding
 	const maxValue = formattedData.reduce((max, item) => {
-		const itemMax = Math.max(item.attempts, item.contacts, item.issues);
+		const itemMax = Math.max(item.attempts || 0, item.contacts || 0, item.issues || 0);
 		return itemMax > max ? itemMax : max;
 	}, 0);
 
-
 	// If no data is available, show an empty state
-	if (formattedData.length === 0) {
+	if (!data || !Array.isArray(data) || formattedData.length === 0) {
 		return (
 			<div id="activity-line-chart" className="mt-8 h-full bg-white rounded-lg border border-gray-200 relative flex items-center justify-center">
 				<h3 className="text-sm font-bold p-2 text-center absolute top-0 left-0 right-0">Activity Over Time</h3>
@@ -122,7 +127,7 @@ export const ActivityLineChart: React.FC<ActivityLineChartProps> = ({ data, onPr
 
 			{/* Print Chart Button */}
 			{onPrintChart && (
-				<div className="absolute bottom-2  right-2 print:hidden">
+				<div className="absolute bottom-2 right-2 print:hidden">
 					<Button
 						onClick={onPrintChart}
 						variant="outline"

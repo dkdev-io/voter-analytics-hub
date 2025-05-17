@@ -17,7 +17,7 @@ export const useChartData = ({ query, showFilteredData }: UseChartDataProps) => 
   });
 
   useEffect(() => {
-    console.log("Chart data state:", { query, showFilteredData });
+    console.log("Chart data hook triggered with query:", query, "showFiltered:", showFilteredData);
   }, [query, showFilteredData]);
 
   useEffect(() => {
@@ -27,6 +27,7 @@ export const useChartData = ({ query, showFilteredData }: UseChartDataProps) => 
       try {
         setIsLoading(true);
         const shouldFilter = showFilteredData || query.person || query.tactic;
+        console.log("Loading metrics with filter:", shouldFilter ? "yes" : "no");
         
         // Debug raw data
         let rawData: any[] = [];
@@ -39,7 +40,9 @@ export const useChartData = ({ query, showFilteredData }: UseChartDataProps) => 
           const notHomeSum = rawData.reduce((sum, r) => sum + (Number(r.not_home) || 0), 0);
           const badDataSum = rawData.reduce((sum, r) => sum + (Number(r.bad_data) || 0), 0);
           const refusalSum = rawData.reduce((sum, r) => sum + (Number(r.refusal) || 0), 0);
+          const attemptsSum = rawData.reduce((sum, r) => sum + (Number(r.attempts) || 0), 0);
           
+          console.log("[DEBUG] Sum of attempts in all records:", attemptsSum);
           console.log("[DEBUG] Sum of not_home in all records:", notHomeSum);
           console.log("[DEBUG] Sum of bad_data in all records:", badDataSum);
           console.log("[DEBUG] Sum of refusal in all records:", refusalSum);
@@ -58,6 +61,8 @@ export const useChartData = ({ query, showFilteredData }: UseChartDataProps) => 
         const fetchedMetrics = await fetchVoterMetrics(
           shouldFilter ? query : undefined,
         );
+        
+        console.log("[DEBUG] Fetched metrics:", fetchedMetrics);
         
         if (isMounted) {
           setMetrics(fetchedMetrics);

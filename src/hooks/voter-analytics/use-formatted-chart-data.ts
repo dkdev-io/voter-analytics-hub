@@ -23,6 +23,8 @@ export const useFormattedChartData = ({
 
   useEffect(() => {
     if (isLoading || !metrics) return;
+    
+    console.log("Formatting chart data from metrics:", metrics);
 
     // Format tactics data for pie chart
     const tacticsChartData = [
@@ -81,26 +83,38 @@ export const useFormattedChartData = ({
       },
     ];
     
-    console.log("[FormattedChartData] notReachedChartData created:", notReachedChartData);
+    console.log("[FormattedChartData] Tactics chart data:", tacticsChartData);
+    console.log("[FormattedChartData] Contacts chart data:", contactsChartData);
+    console.log("[FormattedChartData] Not Reached chart data:", notReachedChartData);
     
     // Calculate totals
     const calculatedTotalAttempts = tacticsChartData.reduce((sum, item) => sum + item.value, 0);
     const calculatedTotalContacts = contactsChartData.reduce((sum, item) => sum + item.value, 0);
     const calculatedTotalNotReached = notReachedChartData.reduce((sum, item) => sum + item.value, 0);
     
+    console.log("[FormattedChartData] Total attempts:", calculatedTotalAttempts);
+    
     // Process line chart data
-    const validatedLineData = (metrics.byDate || [])
-      .filter((item) => item.date && isValid(parseISO(item.date)))
-      .map((item) => ({
-        ...item,
-        attempts: item.attempts || 0,
-        contacts: item.contacts || 0,
-        issues: item.issues || 0,
-      }));
+    let validatedLineData: any[] = [];
+    if (metrics.byDate && Array.isArray(metrics.byDate)) {
+      validatedLineData = metrics.byDate
+        .filter((item) => item && item.date && isValid(parseISO(item.date)))
+        .map((item) => ({
+          ...item,
+          attempts: item.attempts || 0,
+          contacts: item.contacts || 0,
+          issues: item.issues || 0,
+        }));
       
-    validatedLineData.sort((a, b) => 
-      new Date(a.date).getTime() - new Date(b.date).getTime()
-    );
+      // Sort date chronologically
+      validatedLineData.sort((a, b) => 
+        new Date(a.date).getTime() - new Date(b.date).getTime()
+      );
+      
+      console.log("[FormattedChartData] Line chart data:", validatedLineData);
+    } else {
+      console.warn("[FormattedChartData] No valid byDate array in metrics");
+    }
     
     setTacticsData(tacticsChartData);
     setContactsData(contactsChartData);
