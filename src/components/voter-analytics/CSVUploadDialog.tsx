@@ -45,7 +45,7 @@ export function CSVUploadDialog({ open, onOpenChange, onSuccess }: CSVUploadDial
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle>Import Voter Data</DialogTitle>
           <DialogDescription>
@@ -54,33 +54,35 @@ export function CSVUploadDialog({ open, onOpenChange, onSuccess }: CSVUploadDial
           </DialogDescription>
         </DialogHeader>
 
+        <div className="flex-1 overflow-hidden">
+          {step === 'upload' && (
+            <FileUploadStep 
+              file={file}
+              onFileChange={handleFileChange}
+              fileInputRef={fileInputRef}
+            />
+          )}
+
+          {step === 'mapping' && csvHeaders.length > 0 && (
+            <CSVFieldMapping 
+              headers={csvHeaders}
+              sampleData={csvSampleData}
+              onMappingComplete={handleMappingComplete}
+              onCancel={resetUpload}
+            />
+          )}
+
+          {step === 'processing' && (
+            <ProcessingStep 
+              progress={progress}
+              validationStats={validationStats}
+              userEmail={userEmail}
+            />
+          )}
+        </div>
+
         {step === 'upload' && (
-          <FileUploadStep 
-            file={file}
-            onFileChange={handleFileChange}
-            fileInputRef={fileInputRef}
-          />
-        )}
-
-        {step === 'mapping' && csvHeaders.length > 0 && (
-          <CSVFieldMapping 
-            headers={csvHeaders}
-            sampleData={csvSampleData}
-            onMappingComplete={handleMappingComplete}
-            onCancel={resetUpload}
-          />
-        )}
-
-        {step === 'processing' && (
-          <ProcessingStep 
-            progress={progress}
-            validationStats={validationStats}
-            userEmail={userEmail}
-          />
-        )}
-
-        {step === 'upload' && (
-          <DialogFooter>
+          <DialogFooter className="pt-2">
             <Button variant="outline" onClick={handleClose}>
               Cancel
             </Button>
@@ -92,7 +94,6 @@ export function CSVUploadDialog({ open, onOpenChange, onSuccess }: CSVUploadDial
                 Select File
               </Button>
             ) : (
-              // Wrapped handleSubmitFile in an arrow function (moved comment out)
               <Button 
                 onClick={() => handleSubmitFile()}
                 disabled={isUploading}

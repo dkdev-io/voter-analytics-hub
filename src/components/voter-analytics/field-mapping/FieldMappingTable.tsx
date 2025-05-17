@@ -29,9 +29,9 @@ export function FieldMappingTable({
   onMappingChange,
 }: FieldMappingTableProps) {
   return (
-    <div className="max-h-96 overflow-y-auto border rounded-md">
+    <div className="max-h-[300px] overflow-y-auto border rounded-md">
       <Table>
-        <TableHeader>
+        <TableHeader className="sticky top-0 bg-background z-10">
           <TableRow>
             <TableHead className="w-1/3">Database Field</TableHead>
             <TableHead className="w-2/3">CSV Field</TableHead>
@@ -55,7 +55,6 @@ export function FieldMappingTable({
                     <SelectValue placeholder="Select a field" />
                   </SelectTrigger>
                   <SelectContent>
-                    {/* Important fix: Use "not-mapped" instead of empty string */}
                     <SelectItem value="not-mapped">Not Mapped</SelectItem>
                     {headers.map((header) => (
                       <SelectItem key={header} value={header}>

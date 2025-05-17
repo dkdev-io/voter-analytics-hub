@@ -94,7 +94,7 @@ export function CSVFieldMapping({ headers, sampleData, onMappingComplete, onCanc
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
       <h2 className="text-lg font-semibold">Map Your CSV Fields</h2>
       
       <InstructionsAlert />
@@ -110,7 +110,7 @@ export function CSVFieldMapping({ headers, sampleData, onMappingComplete, onCanc
 
       <MissingFieldsAlert missingFields={missingRequiredFields} />
 
-      <div className="flex justify-end space-x-2 mt-4">
+      <div className="flex justify-end space-x-2 mt-4 sticky bottom-0 pt-2 bg-background">
         <Button variant="outline" onClick={onCancel}>
           Cancel
         </Button>
