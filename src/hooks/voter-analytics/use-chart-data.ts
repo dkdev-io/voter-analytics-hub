@@ -63,6 +63,7 @@ export const useChartData = ({ query, showFilteredData }: UseChartDataProps) => 
         );
         
         console.log("[DEBUG] Fetched metrics:", fetchedMetrics);
+        console.log("[DEBUG] Fetched date data:", fetchedMetrics.byDate);
         
         if (isMounted) {
           setMetrics(fetchedMetrics);

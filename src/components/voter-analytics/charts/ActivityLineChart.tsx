@@ -102,7 +102,7 @@ export const ActivityLineChart: React.FC<ActivityLineChartProps> = ({ data, onPr
 						activeDot={{ r: 8 }}
 						strokeWidth={2}
 						name="Attempts"
-						connectNulls={false}
+						connectNulls={true}
 					/>
 					<Line
 						type="monotone"
@@ -111,7 +111,7 @@ export const ActivityLineChart: React.FC<ActivityLineChartProps> = ({ data, onPr
 						activeDot={{ r: 6 }}
 						strokeWidth={2}
 						name="Contacts"
-						connectNulls={false}
+						connectNulls={true}
 					/>
 					<Line
 						type="monotone"
@@ -120,7 +120,7 @@ export const ActivityLineChart: React.FC<ActivityLineChartProps> = ({ data, onPr
 						activeDot={{ r: 6 }}
 						strokeWidth={2}
 						name="Issues"
-						connectNulls={false}
+						connectNulls={true}
 					/>
 				</LineChart>
 			</ResponsiveContainer>

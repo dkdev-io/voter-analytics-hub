@@ -22,12 +22,17 @@ export const useCumulativeData = (rawData: ChartDataPoint[]) => {
   const [maxCumulativeValue, setMaxCumulativeValue] = useState(0);
 
   useEffect(() => {
+    console.log("Cumulative chart raw data:", rawData);
+    
     // Filter out any data points with invalid dates
-    const validData = rawData.filter(item => {
+    const validData = (rawData || []).filter(item => {
       // Check if the date is valid
-      const isValidDate = item.date && isValid(parseISO(item.date));
+      const isValidDate = item && item.date && isValid(parseISO(item.date));
+      if (!isValidDate) console.warn("Invalid date found in cumulative chart data:", item);
       return isValidDate;
     });
+    
+    console.log("Cumulative chart valid data count:", validData.length);
 
     // Sort dates chronologically to ensure proper cumulative calculation
     validData.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
@@ -80,8 +85,9 @@ export const useCumulativeData = (rawData: ChartDataPoint[]) => {
 
     // Log the processed data for verification
     console.log('Cumulative data calculation:', {
-      original: validData.slice(0, 3),
-      processed: processed.slice(0, 3),
+      originalCount: validData.length,
+      processedCount: processed.length,
+      sample: processed.slice(0, 3),
       final: processed.length > 0 ? processed[processed.length - 1] : null,
       maxDaily,
       maxCumulative

@@ -66,15 +66,20 @@ export const aggregateVoterMetrics = (filteredData: any[]): VoterMetrics => {
 
 	// Get unique dates
 	const uniqueDates = [...new Set(filteredData.map(item => item.date))].sort();
+	console.log("[calculationService] Found uniqueDates:", uniqueDates);
 
 	// Create byDate data structure
 	const dateData = uniqueDates.map(date => {
 		const dateItems = filteredData.filter(item => item.date === date);
+		console.log(`[calculationService] Date ${date} has ${dateItems.length} items`);
+
 		const attempts = dateItems.reduce((sum, item) => sum + (Number(item.attempts) || 0), 0);
 		const contacts = dateItems.reduce((sum, item) => sum + (Number(item.contacts) || 0), 0);
 		// "issues" are the sum of not_home, refusal, and bad_data
 		const issues = dateItems.reduce((sum, item) =>
 			sum + (Number(item.not_home) || 0) + (Number(item.refusal) || 0) + (Number(item.bad_data) || 0), 0);
+
+		console.log(`[calculationService] Date ${date} totals:`, { attempts, contacts, issues });
 
 		return {
 			date,
@@ -83,6 +88,10 @@ export const aggregateVoterMetrics = (filteredData: any[]): VoterMetrics => {
 			issues
 		};
 	});
+
+	// This logging is important for debugging date issues
+	console.log("[calculationService] Date-based data generated:", dateData.length, "entries");
+	console.log("[calculationService] Sample date data:", dateData.slice(0, 3));
 
 	metrics.byDate = dateData;
 
@@ -124,6 +133,9 @@ export const aggregateVoterMetrics = (filteredData: any[]): VoterMetrics => {
 		badData: metrics.notReached.badData,
 		total: metrics.notReached.notHome + metrics.notReached.refusal + metrics.notReached.badData
 	});
+
+	// Also log the byDate data to verify it's being processed correctly
+	console.log("Final byDate data:", metrics.byDate);
 
 	return metrics;
 };

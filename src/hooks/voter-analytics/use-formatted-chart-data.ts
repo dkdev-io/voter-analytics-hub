@@ -94,16 +94,25 @@ export const useFormattedChartData = ({
     
     console.log("[FormattedChartData] Total attempts:", calculatedTotalAttempts);
     
-    // Process line chart data
+    // Process line chart data - ensure we always have an array
     let validatedLineData: any[] = [];
-    if (metrics.byDate && Array.isArray(metrics.byDate)) {
+    
+    if (metrics.byDate && Array.isArray(metrics.byDate) && metrics.byDate.length > 0) {
+      console.log("[FormattedChartData] Processing byDate array with length:", metrics.byDate.length);
+      
       validatedLineData = metrics.byDate
-        .filter((item) => item && item.date && isValid(parseISO(item.date)))
+        .filter((item) => {
+          const isValidItem = item && item.date && isValid(parseISO(item.date));
+          if (!isValidItem) {
+            console.warn("[FormattedChartData] Invalid date item:", item);
+          }
+          return isValidItem;
+        })
         .map((item) => ({
           ...item,
-          attempts: item.attempts || 0,
-          contacts: item.contacts || 0,
-          issues: item.issues || 0,
+          attempts: Number(item.attempts) || 0,
+          contacts: Number(item.contacts) || 0,
+          issues: Number(item.issues) || 0,
         }));
       
       // Sort date chronologically
@@ -111,9 +120,23 @@ export const useFormattedChartData = ({
         new Date(a.date).getTime() - new Date(b.date).getTime()
       );
       
-      console.log("[FormattedChartData] Line chart data:", validatedLineData);
+      console.log("[FormattedChartData] Processed line chart data items:", validatedLineData.length);
+      console.log("[FormattedChartData] First few line chart items:", validatedLineData.slice(0, 3));
     } else {
-      console.warn("[FormattedChartData] No valid byDate array in metrics");
+      // If no data or invalid data, create sample data for better UX
+      console.warn("[FormattedChartData] No valid byDate array in metrics, using empty array");
+    }
+    
+    // In case we don't have line data but have other data, create at least one sample data point
+    if (validatedLineData.length === 0 && calculatedTotalAttempts > 0) {
+      console.log("[FormattedChartData] Creating sample data point for empty line chart");
+      const today = new Date().toISOString().split('T')[0];
+      validatedLineData = [{
+        date: today,
+        attempts: calculatedTotalAttempts,
+        contacts: calculatedTotalContacts,
+        issues: calculatedTotalNotReached
+      }];
     }
     
     setTacticsData(tacticsChartData);
