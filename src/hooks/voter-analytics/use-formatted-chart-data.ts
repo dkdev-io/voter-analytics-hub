@@ -22,9 +22,13 @@ export const useFormattedChartData = ({
   const [datasetName, setDatasetName] = useState<string>("");
 
   useEffect(() => {
-    if (isLoading || !metrics) return;
+    if (isLoading || !metrics) {
+      console.log("Formatting skipped: loading or no metrics", { isLoading, hasMetrics: !!metrics });
+      return;
+    }
     
     console.log("Formatting chart data from metrics:", metrics);
+    console.log("Metrics byDate length:", metrics.byDate?.length || 0);
 
     // Format tactics data for pie chart
     const tacticsChartData = [
@@ -93,6 +97,8 @@ export const useFormattedChartData = ({
     const calculatedTotalNotReached = notReachedChartData.reduce((sum, item) => sum + item.value, 0);
     
     console.log("[FormattedChartData] Total attempts:", calculatedTotalAttempts);
+    console.log("[FormattedChartData] Total contacts:", calculatedTotalContacts);
+    console.log("[FormattedChartData] Total not reached:", calculatedTotalNotReached);
     
     // Process line chart data - ensure we always have an array
     let validatedLineData: any[] = [];
@@ -123,7 +129,6 @@ export const useFormattedChartData = ({
       console.log("[FormattedChartData] Processed line chart data items:", validatedLineData.length);
       console.log("[FormattedChartData] First few line chart items:", validatedLineData.slice(0, 3));
     } else {
-      // If no data or invalid data, create sample data for better UX
       console.warn("[FormattedChartData] No valid byDate array in metrics, using empty array");
     }
     
@@ -137,6 +142,7 @@ export const useFormattedChartData = ({
         contacts: calculatedTotalContacts,
         issues: calculatedTotalNotReached
       }];
+      console.log("[FormattedChartData] Created sample data point:", validatedLineData[0]);
     }
     
     setTacticsData(tacticsChartData);

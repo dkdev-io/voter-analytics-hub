@@ -9,7 +9,8 @@ export const calculateResult = (filteredData: any[], resultType: string | undefi
 	if (filteredData.length === 0) {
 		return 0;
 	}
-	console.log(filteredData.splice(0, 10));
+	// Changed from splice to slice to avoid modifying the original array
+	console.log("Sample filtered data for calculation:", filteredData.slice(0, 10));
 
 	// Map the display result type to the actual property name in the data
 	let propertyName = resultType ?
@@ -43,6 +44,9 @@ export const calculateResult = (filteredData: any[], resultType: string | undefi
  * Aggregates voter data into metrics
  */
 export const aggregateVoterMetrics = (filteredData: any[]): VoterMetrics => {
+	// Log the data amount we're aggregating
+	console.log(`[aggregateVoterMetrics] Processing ${filteredData.length} records for metrics`);
+	
 	// Initialize metrics structure
 	const metrics: VoterMetrics = {
 		tactics: {
@@ -66,18 +70,25 @@ export const aggregateVoterMetrics = (filteredData: any[]): VoterMetrics => {
 
 	// Get unique dates
 	const uniqueDates = [...new Set(filteredData.map(item => item.date))].sort();
-	console.log("[calculationService] Found uniqueDates:", uniqueDates);
+	console.log("[calculationService] Found uniqueDates:", uniqueDates.length, "dates");
+	console.log("[calculationService] Sample dates:", uniqueDates.slice(0, 5));
 
 	// Create byDate data structure
 	const dateData = uniqueDates.map(date => {
 		const dateItems = filteredData.filter(item => item.date === date);
 		console.log(`[calculationService] Date ${date} has ${dateItems.length} items`);
 
+		// Ensure numbers and handle nulls/undefined
 		const attempts = dateItems.reduce((sum, item) => sum + (Number(item.attempts) || 0), 0);
 		const contacts = dateItems.reduce((sum, item) => sum + (Number(item.contacts) || 0), 0);
+		
 		// "issues" are the sum of not_home, refusal, and bad_data
-		const issues = dateItems.reduce((sum, item) =>
-			sum + (Number(item.not_home) || 0) + (Number(item.refusal) || 0) + (Number(item.bad_data) || 0), 0);
+		const issues = dateItems.reduce((sum, item) => {
+			const notHome = Number(item.not_home) || 0;
+			const refusal = Number(item.refusal) || 0;
+			const badData = Number(item.bad_data) || 0;
+			return sum + notHome + refusal + badData;
+		}, 0);
 
 		console.log(`[calculationService] Date ${date} totals:`, { attempts, contacts, issues });
 
@@ -101,12 +112,15 @@ export const aggregateVoterMetrics = (filteredData: any[]): VoterMetrics => {
 	// Aggregate data - ensure we're parsing string values to numbers with explicit conversion
 	filteredData.forEach(item => {
 		// Aggregate by tactic
-		if (item.tactic && item.tactic.toLowerCase() === 'sms') {
-			metrics.tactics.sms += Number(item.attempts) || 0;
-		} else if (item.tactic && item.tactic.toLowerCase() === 'phone') {
-			metrics.tactics.phone += Number(item.attempts) || 0;
-		} else if (item.tactic && item.tactic.toLowerCase() === 'canvas') {
-			metrics.tactics.canvas += Number(item.attempts) || 0;
+		if (item.tactic) {
+			const tactic = item.tactic.toLowerCase();
+			if (tactic === 'sms') {
+				metrics.tactics.sms += Number(item.attempts) || 0;
+			} else if (tactic === 'phone') {
+				metrics.tactics.phone += Number(item.attempts) || 0;
+			} else if (tactic === 'canvas') {
+				metrics.tactics.canvas += Number(item.attempts) || 0;
+			}
 		}
 
 		// Aggregate contacts by result - explicit Number conversion for all values
@@ -120,7 +134,6 @@ export const aggregateVoterMetrics = (filteredData: any[]): VoterMetrics => {
 		}
 
 		// Actually sum the not reached metrics from filtered data
-		// instead of using hardcoded values
 		metrics.notReached.notHome += Number(item.not_home) || 0;
 		metrics.notReached.refusal += Number(item.refusal) || 0;
 		metrics.notReached.badData += Number(item.bad_data) || 0;
@@ -135,7 +148,8 @@ export const aggregateVoterMetrics = (filteredData: any[]): VoterMetrics => {
 	});
 
 	// Also log the byDate data to verify it's being processed correctly
-	console.log("Final byDate data:", metrics.byDate);
+	console.log("Final byDate data count:", metrics.byDate.length);
+	console.log("Final byDate data sample:", metrics.byDate.slice(0, 3));
 
 	return metrics;
 };

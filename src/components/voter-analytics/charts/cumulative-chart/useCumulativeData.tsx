@@ -22,7 +22,16 @@ export const useCumulativeData = (rawData: ChartDataPoint[]) => {
   const [maxCumulativeValue, setMaxCumulativeValue] = useState(0);
 
   useEffect(() => {
-    console.log("Cumulative chart raw data:", rawData);
+    console.log("Cumulative chart received raw data count:", (rawData || []).length);
+    console.log("Cumulative chart raw data sample:", (rawData || []).slice(0, 3));
+    
+    if (!rawData || rawData.length === 0) {
+      console.log("No raw data provided to cumulative chart");
+      setProcessedData([]);
+      setMaxDailyValue(0);
+      setMaxCumulativeValue(0);
+      return;
+    }
     
     // Filter out any data points with invalid dates
     const validData = (rawData || []).filter(item => {
@@ -73,14 +82,18 @@ export const useCumulativeData = (rawData: ChartDataPoint[]) => {
     // Calculate the maximum values for Y-axis scaling
     const maxDaily = processed.length > 0 ?
       Math.max(...processed.map(item => 
-        Math.max(item.dailyAttempts || 0, item.dailyContacts || 0, item.dailyIssues || 0)
+        Math.max(
+          Number(item.dailyAttempts) || 0, 
+          Number(item.dailyContacts) || 0, 
+          Number(item.dailyIssues) || 0
+        )
       )) : 0;
 
     const maxCumulative = processed.length > 0 ?
       Math.max(
-        processed[processed.length - 1]?.cumulativeAttempts || 0,
-        processed[processed.length - 1]?.cumulativeContacts || 0,
-        processed[processed.length - 1]?.cumulativeIssues || 0
+        Number(processed[processed.length - 1]?.cumulativeAttempts) || 0,
+        Number(processed[processed.length - 1]?.cumulativeContacts) || 0,
+        Number(processed[processed.length - 1]?.cumulativeIssues) || 0
       ) : 0;
 
     // Log the processed data for verification

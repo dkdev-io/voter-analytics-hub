@@ -26,14 +26,15 @@ export const useChartData = ({ query, showFilteredData }: UseChartDataProps) => 
     const loadMetricsData = async () => {
       try {
         setIsLoading(true);
-        const shouldFilter = showFilteredData || query.person || query.tactic;
-        console.log("Loading metrics with filter:", shouldFilter ? "yes" : "no");
+        const shouldFilter = showFilteredData || Boolean(query.person) || Boolean(query.tactic);
+        console.log("Loading metrics with filter:", shouldFilter ? "yes" : "no", "Query:", query);
         
         // Debug raw data
         let rawData: any[] = [];
         try {
           const { getTestData } = await import("@/lib/voter-data");
           rawData = await getTestData();
+          console.log("[DEBUG] Raw Supabase data count:", rawData.length);
           console.log("[DEBUG] Raw Supabase data sample (first 5):", rawData.slice(0, 5));
           
           // Debug: Check specific fields in the data
@@ -63,7 +64,8 @@ export const useChartData = ({ query, showFilteredData }: UseChartDataProps) => 
         );
         
         console.log("[DEBUG] Fetched metrics:", fetchedMetrics);
-        console.log("[DEBUG] Fetched date data:", fetchedMetrics.byDate);
+        console.log("[DEBUG] Fetched date data count:", fetchedMetrics.byDate?.length || 0);
+        console.log("[DEBUG] Fetched date data sample:", fetchedMetrics.byDate?.slice(0, 3) || []);
         
         if (isMounted) {
           setMetrics(fetchedMetrics);

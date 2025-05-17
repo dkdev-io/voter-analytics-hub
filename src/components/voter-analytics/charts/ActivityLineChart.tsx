@@ -26,10 +26,16 @@ interface ActivityLineChartProps {
 
 export const ActivityLineChart: React.FC<ActivityLineChartProps> = ({ data, onPrintChart }) => {
 	// Add some debug logging
-	console.log("ActivityLineChart received data:", data);
+	console.log("ActivityLineChart received data:", data ? data.length : 0, "items");
+	console.log("ActivityLineChart received data sample:", data ? data.slice(0, 3) : "null");
+
+	// Handle case where data is null or undefined
+	if (!data) {
+		data = [];
+	}
 
 	// Filter out any data points with invalid dates
-	const validData = (data || []).filter(item => {
+	const validData = data.filter(item => {
 		// Check if the date is valid
 		const isValidDate = item && item.date && isValid(parseISO(item.date));
 		if (!isValidDate) console.warn("Invalid date found in chart data:", item);
@@ -58,7 +64,7 @@ export const ActivityLineChart: React.FC<ActivityLineChartProps> = ({ data, onPr
 	}, 0);
 
 	// If no data is available, show an empty state
-	if (!data || !Array.isArray(data) || formattedData.length === 0) {
+	if (formattedData.length === 0) {
 		return (
 			<div id="activity-line-chart" className="mt-8 h-full bg-white rounded-lg border border-gray-200 relative flex items-center justify-center">
 				<h3 className="text-sm font-bold p-2 text-center absolute top-0 left-0 right-0">Activity Over Time</h3>
@@ -103,6 +109,7 @@ export const ActivityLineChart: React.FC<ActivityLineChartProps> = ({ data, onPr
 						strokeWidth={2}
 						name="Attempts"
 						connectNulls={true}
+						isAnimationActive={false}
 					/>
 					<Line
 						type="monotone"
@@ -112,6 +119,7 @@ export const ActivityLineChart: React.FC<ActivityLineChartProps> = ({ data, onPr
 						strokeWidth={2}
 						name="Contacts"
 						connectNulls={true}
+						isAnimationActive={false}
 					/>
 					<Line
 						type="monotone"
@@ -121,6 +129,7 @@ export const ActivityLineChart: React.FC<ActivityLineChartProps> = ({ data, onPr
 						strokeWidth={2}
 						name="Issues"
 						connectNulls={true}
+						isAnimationActive={false}
 					/>
 				</LineChart>
 			</ResponsiveContainer>
