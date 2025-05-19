@@ -121,7 +121,7 @@ export const useFormattedChartData = ({
           issues: Number(item.issues) || 0,
         }));
       
-      // Sort date chronologically
+      // Sort dates chronologically
       validatedLineData.sort((a, b) => 
         new Date(a.date).getTime() - new Date(b.date).getTime()
       );

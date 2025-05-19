@@ -25,7 +25,7 @@ export const useCumulativeData = (rawData: ChartDataPoint[]) => {
     console.log("Cumulative chart received raw data count:", (rawData || []).length);
     console.log("Cumulative chart raw data sample:", (rawData || []).slice(0, 3));
     
-    if (!rawData || rawData.length === 0) {
+    if (!rawData || !Array.isArray(rawData) || rawData.length === 0) {
       console.log("No raw data provided to cumulative chart");
       setProcessedData([]);
       setMaxDailyValue(0);

@@ -16,10 +16,16 @@ interface TacticsPieChartProps {
 }
 
 export const TacticsPieChart: React.FC<TacticsPieChartProps> = ({ data, total }) => {
+	console.log("TacticsPieChart received data:", data);
+	console.log("TacticsPieChart received total:", total);
+	
 	// Filter out zero value data points
-	const filteredData = data.filter(item => item.value > 0);
+	const filteredData = (data || []).filter(item => item && Number(item.value) > 0);
 	const calculatedTotal = filteredData.reduce((sum, item) => sum + Number(item.value || 0), 0);
 	const actualTotal = calculatedTotal > 0 ? calculatedTotal : 1; // Avoid division by zero
+
+	console.log("TacticsPieChart filtered data:", filteredData);
+	console.log("TacticsPieChart calculated total:", calculatedTotal);
 
 	// Add total to each data point for percentage calculation
 	const dataWithTotal = filteredData.map(item => ({

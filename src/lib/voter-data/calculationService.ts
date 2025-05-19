@@ -6,10 +6,10 @@ import { filterVoterData } from './filterService';
  * Calculates the result value based on filtered data and query type
  */
 export const calculateResult = (filteredData: any[], resultType: string | undefined) => {
-	if (filteredData.length === 0) {
+	if (!filteredData || filteredData.length === 0) {
 		return 0;
 	}
-	// Changed from splice to slice to avoid modifying the original array
+	// Use slice (not splice) to avoid modifying the original array
 	console.log("Sample filtered data for calculation:", filteredData.slice(0, 10));
 
 	// Map the display result type to the actual property name in the data
@@ -45,7 +45,11 @@ export const calculateResult = (filteredData: any[], resultType: string | undefi
  */
 export const aggregateVoterMetrics = (filteredData: any[]): VoterMetrics => {
 	// Log the data amount we're aggregating
-	console.log(`[aggregateVoterMetrics] Processing ${filteredData.length} records for metrics`);
+	console.log(`[aggregateVoterMetrics] Processing ${filteredData?.length || 0} records for metrics`);
+	
+	if (!filteredData || !Array.isArray(filteredData)) {
+		filteredData = [];
+	}
 	
 	// Initialize metrics structure
 	const metrics: VoterMetrics = {
@@ -69,7 +73,7 @@ export const aggregateVoterMetrics = (filteredData: any[]): VoterMetrics => {
 	};
 
 	// Get unique dates
-	const uniqueDates = [...new Set(filteredData.map(item => item.date))].sort();
+	const uniqueDates = [...new Set(filteredData.map(item => item.date))].filter(date => date).sort();
 	console.log("[calculationService] Found uniqueDates:", uniqueDates.length, "dates");
 	console.log("[calculationService] Sample dates:", uniqueDates.slice(0, 5));
 

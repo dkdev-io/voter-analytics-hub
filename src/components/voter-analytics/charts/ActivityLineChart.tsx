@@ -30,7 +30,7 @@ export const ActivityLineChart: React.FC<ActivityLineChartProps> = ({ data, onPr
 	console.log("ActivityLineChart received data sample:", data ? data.slice(0, 3) : "null");
 
 	// Handle case where data is null or undefined
-	if (!data) {
+	if (!data || !Array.isArray(data)) {
 		data = [];
 	}
 
@@ -52,14 +52,14 @@ export const ActivityLineChart: React.FC<ActivityLineChartProps> = ({ data, onPr
 		...item,
 		displayDate: format(new Date(item.date), 'MM/dd'),
 		// Ensure all values are at least 0 (not undefined/null)
-		attempts: item.attempts || 0,
-		contacts: item.contacts || 0,
-		issues: item.issues || 0
+		attempts: Number(item.attempts) || 0,
+		contacts: Number(item.contacts) || 0,
+		issues: Number(item.issues) || 0
 	}));
 
 	// Calculate the maximum value for Y-axis scaling - add 10% padding
 	const maxValue = formattedData.reduce((max, item) => {
-		const itemMax = Math.max(item.attempts || 0, item.contacts || 0, item.issues || 0);
+		const itemMax = Math.max(Number(item.attempts) || 0, Number(item.contacts) || 0, Number(item.issues) || 0);
 		return itemMax > max ? itemMax : max;
 	}, 0);
 
