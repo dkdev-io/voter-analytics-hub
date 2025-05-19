@@ -132,6 +132,7 @@ export const fetchPeopleByTeam = async (team: string): Promise<string[]> => {
 // Function to fetch all people
 export const fetchAllPeople = async (): Promise<string[]> => {
 	try {
+		console.log("Fetching all people from the database...");
 		// Try to fetch directly from Supabase first
 		const { data: peopleData, error } = await supabase
 			.from('voter_contacts')
@@ -159,6 +160,7 @@ export const fetchAllPeople = async (): Promise<string[]> => {
 			return uniquePeople;
 		}
 
+		console.log("No people data found in database");
 		// Return empty array if no data is found - no fallbacks
 		return [];
 	} catch (error) {

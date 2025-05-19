@@ -41,6 +41,8 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
 					fetchAllPeople()
 				]);
 
+				console.log("All people fetched:", allPeopleResult);
+
 				// Set state with fetched data
 				setTactics(tacticsResult || []);
 				setTeams(teamsResult || []);
@@ -86,15 +88,20 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
 			try {
 				if (selectedTeam && selectedTeam !== "All") {
 					// If a specific team is selected, fetch people from that team
+					console.log("Fetching people for team:", selectedTeam);
 					const teamPeople = await fetchPeopleByTeam(selectedTeam);
+					console.log("Fetched team people:", teamPeople);
 					setFilteredPeople(teamPeople || []);
 				} else {
 					// If "All" is selected or no team is selected, use allPeople
+					console.log("Using all people for filtering");
 					if (allPeople.length === 0) {
 						const allPeopleData = await fetchAllPeople();
+						console.log("Fetched all people:", allPeopleData);
 						setFilteredPeople(allPeopleData || []);
 						setAllPeople(allPeopleData || []);
 					} else {
+						console.log("Using cached all people:", allPeople);
 						setFilteredPeople(allPeople);
 					}
 				}
