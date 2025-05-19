@@ -51,6 +51,7 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
 
 				// Initialize filteredPeople with all people when no team is selected
 				if (!selectedTeam || selectedTeam === "All") {
+					console.log("Initializing filteredPeople with all people:", allPeopleResult);
 					setFilteredPeople(allPeopleResult || []);
 				}
 			} catch (err) {

@@ -33,6 +33,12 @@ const normalizeTeamName = (team: string): string => {
 	return normalizedTeam || 'Unknown Team';
 };
 
+// Format a person's name from first and last name
+const formatPersonName = (firstName: string, lastName: string): string => {
+	if (!firstName && !lastName) return '';
+	return `${firstName || ''} ${lastName || ''}`.trim();
+};
+
 // Function to fetch all available tactics from the test data
 export const fetchTactics = async (): Promise<string[]> => {
 	try {
@@ -107,10 +113,7 @@ export const fetchPeopleByTeam = async (team: string): Promise<string[]> => {
 			// Map to full names and get unique entries
 			const peopleInTeam = peopleData
 				.map(item => {
-					if (!item.first_name || !item.last_name) {
-						return null;
-					}
-					return `${item.first_name} ${item.last_name}`;
+					return formatPersonName(item.first_name, item.last_name);
 				})
 				.filter(Boolean) as string[];
 
@@ -147,16 +150,13 @@ export const fetchAllPeople = async (): Promise<string[]> => {
 			// Map to full names and get unique entries
 			const allPeople = peopleData
 				.map(item => {
-					if (!item.first_name || !item.last_name) {
-						return null;
-					}
-					return `${item.first_name} ${item.last_name}`;
+					return formatPersonName(item.first_name, item.last_name);
 				})
-				.filter(Boolean) as string[];
+				.filter(name => name && name.trim() !== '') as string[];
 
 			// Make sure we get unique names only and sort them
 			const uniquePeople = [...new Set(allPeople)].sort();
-			console.log(`Found ${uniquePeople.length} unique people`);
+			console.log(`Found ${uniquePeople.length} unique people:`, uniquePeople);
 			return uniquePeople;
 		}
 

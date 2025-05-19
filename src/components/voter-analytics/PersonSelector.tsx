@@ -18,13 +18,14 @@ export const PersonSelector = ({
 }: PersonSelectorProps) => {
 	// Filter out any null/undefined values and get unique people
 	// Also filter out any values that look like "X Unknown" which are invalid entries
-	const uniquePeople = [...new Set(
-		people
-			.filter(Boolean)
-			.filter(person => !person.match(/^\d+\s+Unknown$/))
-	)].sort();
+	const validPeople = people
+		.filter(Boolean)
+		.filter(person => !person.match(/^\d+\s+Unknown$/));
+	
+	// Get unique entries and sort them
+	const uniquePeople = [...new Set(validPeople)].sort();
 
-	console.log("PersonSelector rendered with people:", uniquePeople);
+	console.log("PersonSelector rendered with people:", uniquePeople.length > 0 ? uniquePeople : "No valid people found");
 	console.log("Current selected person:", value);
 
 	return (
