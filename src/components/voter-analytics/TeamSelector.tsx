@@ -1,6 +1,5 @@
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useEffect } from "react";
 
 interface TeamSelectorProps {
 	value: string | null;
@@ -15,10 +14,11 @@ export const TeamSelector = ({
 	teams,
 	isLoading
 }: TeamSelectorProps) => {
-	// Ensure we always have the standard teams available
+	// Define our standard teams that should always be available
 	const standardTeams = ["Team Tony", "Local Party", "Candidate"];
 	
 	// Combine standard teams with any unique ones from the database
+	// Filter out duplicates and ensure values aren't null/undefined
 	const allTeams = [...new Set([...standardTeams, ...(teams || [])])].filter(Boolean);
 	
 	console.log("TeamSelector rendered with teams:", allTeams);
@@ -48,7 +48,7 @@ export const TeamSelector = ({
 							</SelectItem>
 						))
 					) : (
-						<SelectItem value="no-data">
+						<SelectItem value="no-data" disabled>
 							{isLoading ? "Loading teams..." : "No team data available"}
 						</SelectItem>
 					)}

@@ -20,10 +20,11 @@ export const TacticSelector = ({
 	tactics,
 	isLoading,
 }: TacticSelectorProps) => {
-	// Ensure we always display standard tactic values regardless of data
+	// Define our standard tactics that should always be available
 	const standardTactics = ['SMS', 'Phone', 'Canvas'];
 	
 	// Combine standard tactics with any unique ones from the database
+	// Filter out duplicates and ensure values aren't null/undefined
 	const allTactics = [...new Set([...standardTactics, ...(tactics || [])])].filter(Boolean);
 	
 	console.log("TacticSelector rendered with tactics:", allTactics);
@@ -48,8 +49,8 @@ export const TacticSelector = ({
 							</SelectItem>
 						))
 					) : (
-						<SelectItem value="no-data">
-							{isLoading ? "Loading..." : "No data in database yet"}
+						<SelectItem value="no-data" disabled>
+							{isLoading ? "Loading..." : "No tactics available"}
 						</SelectItem>
 					)}
 				</SelectContent>

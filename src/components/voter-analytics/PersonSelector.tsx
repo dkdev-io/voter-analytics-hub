@@ -1,6 +1,5 @@
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useEffect } from "react";
 
 interface PersonSelectorProps {
 	value: string | undefined;
@@ -17,14 +16,11 @@ export const PersonSelector = ({
 	disabled,
 	isLoading
 }: PersonSelectorProps) => {
-	// Expected names for fallback/testing
-	const expectedNames = [
-		"John Smith", "Jane Doe", "Alex Johnson",
-		"Maria Martinez", "Chris Brown", "Candidate Carter"
-	];
+	// Filter out any null/undefined values and get unique people
+	const uniquePeople = [...new Set(people.filter(Boolean))].sort();
 
-	// Combine uploaded people with expected names, removing duplicates
-	const allPeople = [...new Set([...people, ...expectedNames])].sort();
+	console.log("PersonSelector rendered with people:", uniquePeople);
+	console.log("Current selected person:", value);
 
 	return (
 		<div className="w-full">
@@ -43,14 +39,14 @@ export const PersonSelector = ({
 					align="start"
 				>
 					<SelectItem value="All">All Members</SelectItem>
-					{allPeople && allPeople.length > 0 ? (
-						allPeople.map((person: string) => (
-							<SelectItem key={person} value={person || "unknown-person"}>
-								{person || "Unknown Person"}
+					{uniquePeople && uniquePeople.length > 0 ? (
+						uniquePeople.map((person: string) => (
+							<SelectItem key={person} value={person}>
+								{person}
 							</SelectItem>
 						))
 					) : (
-						<SelectItem value="no-data">
+						<SelectItem value="no-data" disabled>
 							{isLoading ? "Loading people..." : "No people available"}
 						</SelectItem>
 					)}
