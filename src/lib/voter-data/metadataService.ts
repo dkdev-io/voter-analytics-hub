@@ -4,14 +4,15 @@ import { supabase } from '@/integrations/supabase/client';
 
 // Function to normalize tactic name for consistency
 const normalizeTacticName = (tactic: string): string => {
-	const normalizedTactic = String(tactic || '').trim();
+	const normalizedTactic = String(tactic || '').trim().toLowerCase();
 	
 	// Standardize common variations
-	if (/sms/i.test(normalizedTactic)) return 'SMS';
+	if (/sms|text/i.test(normalizedTactic)) return 'SMS';
 	if (/phone|call/i.test(normalizedTactic)) return 'Phone';
 	if (/canvas|door|knock/i.test(normalizedTactic)) return 'Canvas';
 	
-	return normalizedTactic || 'Unknown';
+	// If it doesn't match any standard categories, return as-is but properly capitalized
+	return normalizedTactic.charAt(0).toUpperCase() + normalizedTactic.slice(1) || 'Unknown';
 };
 
 // Function to normalize team name for consistency
@@ -41,12 +42,21 @@ export const fetchTactics = async (): Promise<string[]> => {
 
 		if (tacticsData && tacticsData.length > 0) {
 			// Extract unique tactics from the database result and normalize them
-			const tactics = [...new Set(
+			let tactics = [...new Set(
 				tacticsData
 					.map(item => normalizeTacticName(item.tactic))
 					.filter(Boolean)
-			)].sort();
+			)];
 			
+			// Make sure standard tactics are always included
+			const standardTactics = ['SMS', 'Phone', 'Canvas'];
+			standardTactics.forEach(tactic => {
+				if (!tactics.includes(tactic)) {
+					tactics.push(tactic);
+				}
+			});
+			
+			tactics.sort();
 			console.log("Fetched normalized tactics:", tactics);
 			return tactics;
 		}
@@ -75,12 +85,21 @@ export const fetchTeams = async (): Promise<string[]> => {
 
 		if (teamsData && teamsData.length > 0) {
 			// Extract unique teams from the database result and normalize them
-			const teams = [...new Set(
+			let teams = [...new Set(
 				teamsData
 					.map(item => normalizeTeamName(item.team))
 					.filter(Boolean)
-			)].sort();
+			)];
 			
+			// Make sure standard teams are always included
+			const standardTeams = ['Team Tony', 'Local Party', 'Candidate'];
+			standardTeams.forEach(team => {
+				if (!teams.includes(team)) {
+					teams.push(team);
+				}
+			});
+			
+			teams.sort();
 			console.log("Fetched normalized teams:", teams);
 			return teams;
 		}
@@ -152,7 +171,6 @@ export const fetchAllPeople = async (): Promise<string[]> => {
 			const allPeople = peopleData
 				.map(item => {
 					if (!item.first_name || !item.last_name) {
-						console.warn("Missing name data:", item);
 						return null;
 					}
 					return `${item.first_name} ${item.last_name}`;
