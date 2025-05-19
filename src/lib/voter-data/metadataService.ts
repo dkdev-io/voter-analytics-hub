@@ -51,11 +51,11 @@ export const fetchTactics = async (): Promise<string[]> => {
 			return tactics;
 		}
 
-		// Return standard tactics if no data is found
+		// Return default tactics if no data is found
 		return ['SMS', 'Phone', 'Canvas'];
 	} catch (error) {
 		console.error("Error fetching tactics:", error);
-		// Return standard tactics on error
+		// Return default tactics on error
 		return ['SMS', 'Phone', 'Canvas'];
 	}
 };
@@ -85,11 +85,11 @@ export const fetchTeams = async (): Promise<string[]> => {
 			return teams;
 		}
 
-		// Return standard teams if no data is found
+		// Return default teams if no data is found
 		return ['Team Tony', 'Local Party', 'Candidate'];
 	} catch (error) {
 		console.error("Error fetching teams:", error);
-		// Return standard teams on error
+		// Return default teams on error
 		return ['Team Tony', 'Local Party', 'Candidate'];
 	}
 };
