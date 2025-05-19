@@ -5,11 +5,13 @@ import { Pricing } from '@/components/landing/Pricing';
 import { Footer } from '@/components/landing/Footer';
 import { PasswordGate } from '@/components/landing/PasswordGate';
 import { Hero } from '@/components/landing/Hero';
+import { Navbar } from '@/components/landing/Navbar';
 
 const Landing = () => {
   return (
     <PasswordGate>
       <div className="min-h-screen font-sans">
+        <Navbar />
         <main className="pt-16">
           <Hero />
           <HowItWorks />
