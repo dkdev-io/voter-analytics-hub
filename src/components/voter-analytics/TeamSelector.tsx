@@ -14,14 +14,11 @@ export const TeamSelector = ({
 	teams,
 	isLoading
 }: TeamSelectorProps) => {
-	// Define our standard teams that should always be available
+	// Only use the standard teams - these should be the only ones coming from fetchTeams
+	// but we'll filter here just to be sure
 	const standardTeams = ["Team Tony", "Local Party", "Candidate"];
 	
-	// Combine standard teams with any unique ones from the database
-	// Filter out duplicates and ensure values aren't null/undefined
-	const allTeams = [...new Set([...standardTeams, ...(teams || [])])].filter(Boolean);
-	
-	console.log("TeamSelector rendered with teams:", allTeams);
+	console.log("TeamSelector rendered with teams:", teams);
 	console.log("Current selected team:", value);
 
 	return (
@@ -41,17 +38,11 @@ export const TeamSelector = ({
 					align="start"
 				>
 					<SelectItem value="All">All Teams</SelectItem>
-					{allTeams.length > 0 ? (
-						allTeams.map(team => (
-							<SelectItem key={team} value={team}>
-								{team}
-							</SelectItem>
-						))
-					) : (
-						<SelectItem value="no-data" disabled>
-							{isLoading ? "Loading teams..." : "No team data available"}
+					{standardTeams.map(team => (
+						<SelectItem key={team} value={team}>
+							{team}
 						</SelectItem>
-					)}
+					))}
 				</SelectContent>
 			</Select>
 		</div>

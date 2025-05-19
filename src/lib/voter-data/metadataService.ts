@@ -15,6 +15,12 @@ const normalizeTacticName = (tactic: string): string => {
 	return normalizedTactic.charAt(0).toUpperCase() + normalizedTactic.slice(1) || 'Unknown';
 };
 
+// Function to check if a string is a standard team name
+const isStandardTeam = (team: string): boolean => {
+	const standardTeams = ['Team Tony', 'Local Party', 'Candidate'];
+	return standardTeams.includes(team);
+};
+
 // Function to normalize team name for consistency
 const normalizeTeamName = (team: string): string => {
 	const normalizedTeam = String(team || '').trim();
@@ -70,42 +76,12 @@ export const fetchTactics = async (): Promise<string[]> => {
 	}
 };
 
-// Function to fetch all available teams from the test data
+// Function to fetch all available teams from the test data - ONLY standard teams
 export const fetchTeams = async (): Promise<string[]> => {
 	try {
-		// Try to fetch directly from Supabase first
-		const { data: teamsData, error } = await supabase
-			.from('voter_contacts')
-			.select('team')
-			.limit(1000);
-
-		if (error) {
-			throw error;
-		}
-
-		if (teamsData && teamsData.length > 0) {
-			// Extract unique teams from the database result and normalize them
-			let teams = [...new Set(
-				teamsData
-					.map(item => normalizeTeamName(item.team))
-					.filter(Boolean)
-			)];
-			
-			// Make sure standard teams are always included
-			const standardTeams = ['Team Tony', 'Local Party', 'Candidate'];
-			standardTeams.forEach(team => {
-				if (!teams.includes(team)) {
-					teams.push(team);
-				}
-			});
-			
-			teams.sort();
-			console.log("Fetched normalized teams:", teams);
-			return teams;
-		}
-
-		// Return default teams if no data is found
-		return ['Team Tony', 'Local Party', 'Candidate'];
+		// Always return only the standard teams
+		const standardTeams = ['Team Tony', 'Local Party', 'Candidate'];
+		return standardTeams;
 	} catch (error) {
 		console.error("Error fetching teams:", error);
 		// Return default teams on error

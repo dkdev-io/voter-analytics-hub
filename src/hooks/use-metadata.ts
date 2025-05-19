@@ -33,7 +33,6 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
 					return;
 				}
 
-
 				// Fetch all metadata in parallel for better performance
 				const [tacticsResult, teamsResult, datesResult, allPeopleResult] = await Promise.all([
 					fetchTactics(),
@@ -85,7 +84,6 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
 			setIsLoading(true);
 
 			try {
-
 				if (selectedTeam && selectedTeam !== "All") {
 					// If a specific team is selected, fetch people from that team
 					const teamPeople = await fetchPeopleByTeam(selectedTeam);
@@ -124,7 +122,6 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
 
 		setIsLoading(true);
 		try {
-
 			const [tacticsResult, teamsResult, datesResult, allPeopleResult] = await Promise.all([
 				fetchTactics(),
 				fetchTeams(),
