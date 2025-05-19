@@ -20,6 +20,14 @@ export const TacticSelector = ({
 	tactics,
 	isLoading,
 }: TacticSelectorProps) => {
+	// Ensure we always display standard tactic values regardless of data
+	const standardTactics = ['SMS', 'Phone', 'Canvas'];
+	
+	// Combine standard tactics with any unique ones from the database
+	const allTactics = [...new Set([...standardTactics, ...(tactics || [])])].filter(Boolean);
+	
+	console.log("TacticSelector rendered with tactics:", allTactics);
+	console.log("Current selected tactic:", value);
 
 	return (
 		<div className="w-full">
@@ -33,10 +41,10 @@ export const TacticSelector = ({
 					<SelectItem value="All" className="font-medium">
 						All Tactics
 					</SelectItem>
-					{tactics && tactics.length > 0 ? (
-						tactics.map((tactic) => (
-							<SelectItem key={tactic} value={tactic || "unknown-tactic"}>
-								{tactic || "Unknown Tactic"}
+					{allTactics.length > 0 ? (
+						allTactics.map((tactic) => (
+							<SelectItem key={tactic} value={tactic}>
+								{tactic}
 							</SelectItem>
 						))
 					) : (

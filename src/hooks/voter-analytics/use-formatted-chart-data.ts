@@ -30,7 +30,7 @@ export const useFormattedChartData = ({
     console.log("Formatting chart data from metrics:", metrics);
     console.log("Metrics byDate length:", metrics.byDate?.length || 0);
 
-    // Format tactics data for pie chart
+    // Format tactics data for pie chart - ensuring all standard tactics are included
     const tacticsChartData = [
       {
         name: "SMS",

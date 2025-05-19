@@ -15,9 +15,14 @@ export const TeamSelector = ({
 	teams,
 	isLoading
 }: TeamSelectorProps) => {
-
-	// Handle empty teams array - this ensures we always show expected values
-	const displayTeams = teams.length > 0 ? teams : [];
+	// Ensure we always have the standard teams available
+	const standardTeams = ["Team Tony", "Local Party", "Candidate"];
+	
+	// Combine standard teams with any unique ones from the database
+	const allTeams = [...new Set([...standardTeams, ...(teams || [])])].filter(Boolean);
+	
+	console.log("TeamSelector rendered with teams:", allTeams);
+	console.log("Current selected team:", value);
 
 	return (
 		<div className="w-full">
@@ -36,10 +41,10 @@ export const TeamSelector = ({
 					align="start"
 				>
 					<SelectItem value="All">All Teams</SelectItem>
-					{displayTeams.length > 0 ? (
-						displayTeams.map(team => (
-							<SelectItem key={team} value={team || "unknown-team"}>
-								{team || "Unknown Team"}
+					{allTeams.length > 0 ? (
+						allTeams.map(team => (
+							<SelectItem key={team} value={team}>
+								{team}
 							</SelectItem>
 						))
 					) : (

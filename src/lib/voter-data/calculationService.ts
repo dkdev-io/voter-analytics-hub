@@ -2,6 +2,15 @@
 import type { QueryParams, VoterMetrics } from '@/types/analytics';
 import { filterVoterData } from './filterService';
 
+// Helper function to normalize tactic names for consistent calculation
+const normalizeTactic = (tactic: string): string => {
+  const normalized = (tactic || '').toLowerCase().trim();
+  if (normalized.includes('sms')) return 'sms';
+  if (normalized.includes('phone') || normalized.includes('call')) return 'phone';
+  if (normalized.includes('canvas') || normalized.includes('knock') || normalized.includes('door')) return 'canvas';
+  return normalized || 'unknown';
+};
+
 /**
  * Calculates the result value based on filtered data and query type
  */
@@ -115,16 +124,19 @@ export const aggregateVoterMetrics = (filteredData: any[]): VoterMetrics => {
 
 	// Aggregate data - ensure we're parsing string values to numbers with explicit conversion
 	filteredData.forEach(item => {
-		// Aggregate by tactic
-		if (item.tactic) {
-			const tactic = item.tactic.toLowerCase();
-			if (tactic === 'sms') {
-				metrics.tactics.sms += Number(item.attempts) || 0;
-			} else if (tactic === 'phone') {
-				metrics.tactics.phone += Number(item.attempts) || 0;
-			} else if (tactic === 'canvas') {
-				metrics.tactics.canvas += Number(item.attempts) || 0;
-			}
+		// Normalize the tactic for consistent aggregation
+		const normalizedTactic = normalizeTactic(item.tactic);
+		
+		// Record the actual tactic for debugging
+		console.log(`[calculationService] Normalizing tactic "${item.tactic}" to "${normalizedTactic}"`);
+		
+		// Aggregate by normalized tactic
+		if (normalizedTactic === 'sms') {
+			metrics.tactics.sms += Number(item.attempts) || 0;
+		} else if (normalizedTactic === 'phone') {
+			metrics.tactics.phone += Number(item.attempts) || 0;
+		} else if (normalizedTactic === 'canvas') {
+			metrics.tactics.canvas += Number(item.attempts) || 0;
 		}
 
 		// Aggregate contacts by result - explicit Number conversion for all values
@@ -149,6 +161,14 @@ export const aggregateVoterMetrics = (filteredData: any[]): VoterMetrics => {
 		refusal: metrics.notReached.refusal,
 		badData: metrics.notReached.badData,
 		total: metrics.notReached.notHome + metrics.notReached.refusal + metrics.notReached.badData
+	});
+	
+	// Log the tactics aggregation for debugging
+	console.log("Tactics aggregation details:", {
+		sms: metrics.tactics.sms,
+		phone: metrics.tactics.phone,
+		canvas: metrics.tactics.canvas,
+		total: metrics.tactics.sms + metrics.tactics.phone + metrics.tactics.canvas
 	});
 
 	// Also log the byDate data to verify it's being processed correctly

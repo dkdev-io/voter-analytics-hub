@@ -19,12 +19,20 @@ export const TacticsPieChart: React.FC<TacticsPieChartProps> = ({ data, total })
 	console.log("TacticsPieChart received data:", data);
 	console.log("TacticsPieChart received total:", total);
 	
-	// Filter out zero value data points
-	const filteredData = (data || []).filter(item => item && Number(item.value) > 0);
+	// Filter out zero value data points and ensure valid data
+	const filteredData = (data || [])
+		.filter(item => item && Number(item.value) > 0)
+		.map(item => ({
+			...item,
+			name: item.name || "Unknown", // Ensure name is always populated
+			value: Number(item.value) || 0 // Ensure value is a number
+		}));
+
+	console.log("TacticsPieChart filtered data:", filteredData);
+
 	const calculatedTotal = filteredData.reduce((sum, item) => sum + Number(item.value || 0), 0);
 	const actualTotal = calculatedTotal > 0 ? calculatedTotal : 1; // Avoid division by zero
 
-	console.log("TacticsPieChart filtered data:", filteredData);
 	console.log("TacticsPieChart calculated total:", calculatedTotal);
 
 	// Add total to each data point for percentage calculation
@@ -73,7 +81,6 @@ export const TacticsPieChart: React.FC<TacticsPieChartProps> = ({ data, total })
 	}
 
 	return (
-
 		<div className="h-96 rounded-lg border border-gray-200 flex flex-col">
 			<h3 className="text-sm font-bold p-2 text-center">Attempts</h3>
 			<div className="text-center text-sm font-medium pb-4">

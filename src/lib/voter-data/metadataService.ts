@@ -2,10 +2,33 @@
 import { getTestData } from './migrationService';
 import { supabase } from '@/integrations/supabase/client';
 
+// Function to normalize tactic name for consistency
+const normalizeTacticName = (tactic: string): string => {
+	const normalizedTactic = String(tactic || '').trim();
+	
+	// Standardize common variations
+	if (/sms/i.test(normalizedTactic)) return 'SMS';
+	if (/phone|call/i.test(normalizedTactic)) return 'Phone';
+	if (/canvas|door|knock/i.test(normalizedTactic)) return 'Canvas';
+	
+	return normalizedTactic || 'Unknown';
+};
+
+// Function to normalize team name for consistency
+const normalizeTeamName = (team: string): string => {
+	const normalizedTeam = String(team || '').trim();
+	
+	// Standardize common variations
+	if (/tony/i.test(normalizedTeam)) return 'Team Tony';
+	if (/local|party/i.test(normalizedTeam)) return 'Local Party';
+	if (/candidate/i.test(normalizedTeam)) return 'Candidate';
+	
+	return normalizedTeam || 'Unknown Team';
+};
+
 // Function to fetch all available tactics from the test data
 export const fetchTactics = async (): Promise<string[]> => {
 	try {
-
 		// Try to fetch directly from Supabase first
 		const { data: tacticsData, error } = await supabase
 			.from('voter_contacts')
@@ -17,24 +40,29 @@ export const fetchTactics = async (): Promise<string[]> => {
 		}
 
 		if (tacticsData && tacticsData.length > 0) {
-			// Extract unique tactics from the database result
-			const tactics = [...new Set(tacticsData.map(item => item.tactic))].filter(Boolean).sort();
+			// Extract unique tactics from the database result and normalize them
+			const tactics = [...new Set(
+				tacticsData
+					.map(item => normalizeTacticName(item.tactic))
+					.filter(Boolean)
+			)].sort();
+			
+			console.log("Fetched normalized tactics:", tactics);
 			return tactics;
 		}
 
-		// Return empty array if no data is found - no fallbacks
-		return [];
+		// Return default tactics if no data is found
+		return ['SMS', 'Phone', 'Canvas'];
 	} catch (error) {
 		console.error("Error fetching tactics:", error);
-		// Return empty array instead of fallbacks
-		return [];
+		// Return default tactics on error
+		return ['SMS', 'Phone', 'Canvas'];
 	}
 };
 
 // Function to fetch all available teams from the test data
 export const fetchTeams = async (): Promise<string[]> => {
 	try {
-
 		// Try to fetch directly from Supabase first
 		const { data: teamsData, error } = await supabase
 			.from('voter_contacts')
@@ -46,25 +74,29 @@ export const fetchTeams = async (): Promise<string[]> => {
 		}
 
 		if (teamsData && teamsData.length > 0) {
-			// Extract unique teams from the database result
-			const teams = [...new Set(teamsData.map(item => item.team).filter(Boolean))];
-
-			return teams.sort();
+			// Extract unique teams from the database result and normalize them
+			const teams = [...new Set(
+				teamsData
+					.map(item => normalizeTeamName(item.team))
+					.filter(Boolean)
+			)].sort();
+			
+			console.log("Fetched normalized teams:", teams);
+			return teams;
 		}
 
-		// Return empty array if no data is found - no fallbacks
-		return [];
+		// Return default teams if no data is found
+		return ['Team Tony', 'Local Party', 'Candidate'];
 	} catch (error) {
 		console.error("Error fetching teams:", error);
-		// Return empty array instead of fallbacks
-		return [];
+		// Return default teams on error
+		return ['Team Tony', 'Local Party', 'Candidate'];
 	}
 };
 
 // Function to fetch people by team
 export const fetchPeopleByTeam = async (team: string): Promise<string[]> => {
 	try {
-
 		// Try to fetch directly from Supabase first
 		const { data: peopleData, error } = await supabase
 			.from('voter_contacts')
@@ -89,6 +121,7 @@ export const fetchPeopleByTeam = async (team: string): Promise<string[]> => {
 
 			// Get unique people (in case there are duplicates)
 			const uniquePeople = [...new Set(peopleInTeam)].sort();
+			console.log(`Found ${uniquePeople.length} people for team ${team}`);
 			return uniquePeople;
 		}
 
@@ -104,7 +137,6 @@ export const fetchPeopleByTeam = async (team: string): Promise<string[]> => {
 // Function to fetch all people
 export const fetchAllPeople = async (): Promise<string[]> => {
 	try {
-
 		// Try to fetch directly from Supabase first
 		const { data: peopleData, error } = await supabase
 			.from('voter_contacts')
@@ -129,6 +161,7 @@ export const fetchAllPeople = async (): Promise<string[]> => {
 
 			// Make sure we get unique names only and sort them
 			const uniquePeople = [...new Set(allPeople)].sort();
+			console.log(`Found ${uniquePeople.length} unique people`);
 			return uniquePeople;
 		}
 
@@ -144,7 +177,6 @@ export const fetchAllPeople = async (): Promise<string[]> => {
 // Function to fetch all available dates from the test data
 export const fetchDates = async (): Promise<string[]> => {
 	try {
-
 		// Try to fetch directly from Supabase first
 		const { data: datesData, error } = await supabase
 			.from('voter_contacts')
@@ -161,6 +193,7 @@ export const fetchDates = async (): Promise<string[]> => {
 				return new Date(a).getTime() - new Date(b).getTime();
 			});
 
+			console.log(`Found ${dates.length} unique dates`);
 			return dates;
 		}
 
