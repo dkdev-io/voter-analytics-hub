@@ -1,4 +1,3 @@
-
 import { getTestData } from './migrationService';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -179,41 +178,63 @@ export const fetchAllPeople = async (): Promise<string[]> => {
 	}
 };
 
+// Function to check if a string is a valid date
+const isValidDate = (dateString: string): boolean => {
+  // Return false for empty strings
+  if (!dateString || typeof dateString !== 'string' || dateString.trim() === '') {
+    return false;
+  }
+  
+  // Try to parse the date
+  const timestamp = Date.parse(dateString);
+  
+  // If timestamp is not a number, it's not a valid date
+  if (isNaN(timestamp)) {
+    return false;
+  }
+  
+  // Return true if we have a valid date
+  return true;
+};
+
 // Function to fetch all available dates from the test data
 export const fetchDates = async (): Promise<string[]> => {
-	try {
-		// Try to fetch directly from Supabase first
-		const { data: datesData, error } = await supabase
-			.from('voter_contacts')
-			.select('date')
-			.limit(1000);
+  try {
+    console.log("Fetching dates from database...");
+    
+    // Try to fetch directly from Supabase first
+    const { data: datesData, error } = await supabase
+      .from('voter_contacts')
+      .select('date')
+      .limit(1000);
 
-		if (error) {
-			throw error;
-		}
+    if (error) {
+      throw error;
+    }
 
-		if (datesData && datesData.length > 0) {
-			// Extract unique dates, ensure they are valid date strings
-			const dates = [...new Set(
-				datesData
-					.map(item => item.date)
-					.filter(date => date && typeof date === 'string' && date.trim() !== '')
-					// Filter out any values that don't look like dates
-					.filter(date => !isNaN(Date.parse(date)))
-			)].sort((a, b) => {
-				return new Date(a).getTime() - new Date(b).getTime();
-			});
+    if (datesData && datesData.length > 0) {
+      // Extract all date strings from the data
+      const rawDates = datesData.map(item => item.date);
+      
+      // Filter to only valid dates
+      const validDates = rawDates
+        .filter(date => isValidDate(date))
+        .sort((a, b) => {
+          return new Date(a).getTime() - new Date(b).getTime();
+        });
+      
+      // Get unique dates
+      const uniqueDates = [...new Set(validDates)];
+      
+      console.log(`Found ${uniqueDates.length} unique valid dates from ${datesData.length} records`);
+      console.log("Sample dates:", uniqueDates.slice(0, 5));
+      return uniqueDates;
+    }
 
-			console.log(`Found ${dates.length} unique valid dates`);
-			console.log("Sample dates:", dates.slice(0, 5));
-			return dates;
-		}
-
-		// Return empty array if no data is found - no fallbacks
-		return [];
-	} catch (error) {
-		console.error("Error fetching dates:", error);
-		// Return empty array instead of fallbacks
-		return [];
-	}
+    console.log("No dates found in database");
+    return [];
+  } catch (error) {
+    console.error("Error fetching dates:", error);
+    return [];
+  }
 };

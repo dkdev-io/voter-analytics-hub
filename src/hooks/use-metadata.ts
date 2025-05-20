@@ -41,7 +41,8 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
 					fetchAllPeople()
 				]);
 
-				console.log("All people fetched:", allPeopleResult);
+				console.log("Available dates fetched:", datesResult.length);
+				console.log("Date samples:", datesResult.slice(0, 5));
 
 				// Set state with fetched data
 				setTactics(tacticsResult || []);
@@ -138,6 +139,8 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
 				fetchDates(),
 				fetchAllPeople()
 			]);
+
+			console.log("Refreshed dates:", datesResult.length);
 
 			setTactics(tacticsResult || []);
 			setTeams(teamsResult || []);
