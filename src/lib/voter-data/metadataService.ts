@@ -1,4 +1,3 @@
-
 import { getTestData } from './migrationService';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -98,6 +97,7 @@ export const fetchTeams = async (): Promise<string[]> => {
 // Function to fetch people by team
 export const fetchPeopleByTeam = async (team: string): Promise<string[]> => {
 	try {
+		console.log(`Fetching people for team ${team} from database...`);
 		// Try to fetch directly from Supabase first
 		const { data: peopleData, error } = await supabase
 			.from('voter_contacts')
@@ -112,18 +112,17 @@ export const fetchPeopleByTeam = async (team: string): Promise<string[]> => {
 		if (peopleData && peopleData.length > 0) {
 			// Map to full names and get unique entries
 			const peopleInTeam = peopleData
-				.map(item => {
-					return formatPersonName(item.first_name, item.last_name);
-				})
-				.filter(Boolean) as string[];
+				.map(item => formatPersonName(item.first_name, item.last_name))
+				.filter(name => name && name.trim() !== '') as string[];
 
 			// Get unique people (in case there are duplicates)
 			const uniquePeople = [...new Set(peopleInTeam)].sort();
-			console.log(`Found ${uniquePeople.length} people for team ${team}`);
+			console.log(`Found ${uniquePeople.length} people for team ${team}:`, uniquePeople);
 			return uniquePeople;
 		}
 
-		// Return empty array if no data is found - no fallbacks
+		console.log(`No people found for team ${team}`);
+		// Return empty array if no data is found
 		return [];
 	} catch (error) {
 		console.error(`Error fetching people for team ${team}:`, error);
@@ -149,9 +148,7 @@ export const fetchAllPeople = async (): Promise<string[]> => {
 		if (peopleData && peopleData.length > 0) {
 			// Map to full names and get unique entries
 			const allPeople = peopleData
-				.map(item => {
-					return formatPersonName(item.first_name, item.last_name);
-				})
+				.map(item => formatPersonName(item.first_name, item.last_name))
 				.filter(name => name && name.trim() !== '') as string[];
 
 			// Make sure we get unique names only and sort them
@@ -161,7 +158,7 @@ export const fetchAllPeople = async (): Promise<string[]> => {
 		}
 
 		console.log("No people data found in database");
-		// Return empty array if no data is found - no fallbacks
+		// Return empty array if no data is found
 		return [];
 	} catch (error) {
 		console.error("Error fetching all people:", error);
