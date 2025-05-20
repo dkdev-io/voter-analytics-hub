@@ -123,17 +123,15 @@ export const fetchPeopleByTeam = async (team: string): Promise<string[]> => {
 		}
 
 		// Map to full names
-		const peopleInTeam = peopleData.map(item => {
-			// Format name using first and last name
+		const peopleNames = peopleData.map(item => {
 			return formatPersonName(item.first_name, item.last_name);
 		}).filter(name => name && name.trim() !== '');
 		
-		// Get unique people (since there might be duplicates in raw data)
-		// We'll keep duplicates as per the user's request
-		const sortedPeople = [...peopleInTeam].sort();
+		// Get unique people (remove duplicates)
+		const uniqueNames = [...new Set(peopleNames)].sort();
 		
-		console.log(`Found ${sortedPeople.length} people for team ${team}`);
-		return sortedPeople;
+		console.log(`Found ${uniqueNames.length} unique people for team ${team} (from ${peopleNames.length} total entries)`);
+		return uniqueNames;
 	} catch (error) {
 		console.error(`Error fetching people for team ${team}:`, error);
 		return [];
@@ -161,16 +159,15 @@ export const fetchAllPeople = async (): Promise<string[]> => {
 		}
 
 		// Map to full names
-		const allPeople = peopleData.map(item => {
+		const allPeopleNames = peopleData.map(item => {
 			return formatPersonName(item.first_name, item.last_name);
 		}).filter(name => name && name.trim() !== '');
 		
-		// Sort people alphabetically
-		// Keep duplicates as per the user's request
-		const sortedPeople = [...allPeople].sort();
+		// Get unique people (remove duplicates)
+		const uniqueNames = [...new Set(allPeopleNames)].sort();
 		
-		console.log(`Found ${sortedPeople.length} people`);
-		return sortedPeople;
+		console.log(`Found ${uniqueNames.length} unique people (from ${allPeopleNames.length} total entries)`);
+		return uniqueNames;
 	} catch (error) {
 		console.error("Error fetching all people:", error);
 		return [];

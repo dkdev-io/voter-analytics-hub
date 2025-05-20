@@ -21,7 +21,7 @@ export const PersonSelector = ({
 		? people.filter(person => person && typeof person === 'string' && person.trim() !== '')
 		: [];
 	
-	console.log("PersonSelector rendered with people:", validPeople.length, "valid people", validPeople);
+	console.log("PersonSelector rendered with people:", validPeople.length, "valid people");
 	console.log("Current selected person:", value);
 
 	return (
