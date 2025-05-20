@@ -125,7 +125,8 @@ export const fetchPeopleByTeam = async (team: string): Promise<string[]> => {
 
 		// Create full names from first and last names
 		const peopleNames = peopleData.map(item => {
-			return formatPersonName(item.first_name, item.last_name);
+			const fullName = formatPersonName(item.first_name, item.last_name);
+			return fullName;
 		}).filter(name => name && name.trim() !== '');
 		
 		// Get unique names (remove duplicates)
@@ -161,14 +162,15 @@ export const fetchAllPeople = async (): Promise<string[]> => {
 
 		// Create full names from first and last names
 		const allPeopleNames = peopleData.map(item => {
-			return formatPersonName(item.first_name, item.last_name);
+			const fullName = formatPersonName(item.first_name, item.last_name);
+			return fullName;
 		}).filter(name => name && name.trim() !== '');
 		
 		// Get unique names (remove duplicates)
 		const uniqueNames = [...new Set(allPeopleNames)].sort();
 		
 		console.log(`Found ${uniqueNames.length} unique people (from ${allPeopleNames.length} total entries)`);
-		console.log("Unique people names:", uniqueNames);
+		console.log("Unique people names sample:", uniqueNames.slice(0, 5));
 		
 		return uniqueNames;
 	} catch (error) {
@@ -191,12 +193,19 @@ export const fetchDates = async (): Promise<string[]> => {
 		}
 
 		if (datesData && datesData.length > 0) {
-			// Extract unique dates from the database result and sort chronologically
-			const dates = [...new Set(datesData.map(item => item.date).filter(Boolean))].sort((a, b) => {
+			// Extract unique dates, ensure they are valid date strings
+			const dates = [...new Set(
+				datesData
+					.map(item => item.date)
+					.filter(date => date && typeof date === 'string' && date.trim() !== '')
+					// Filter out any values that don't look like dates
+					.filter(date => !isNaN(Date.parse(date)))
+			)].sort((a, b) => {
 				return new Date(a).getTime() - new Date(b).getTime();
 			});
 
-			console.log(`Found ${dates.length} unique dates`);
+			console.log(`Found ${dates.length} unique valid dates`);
+			console.log("Sample dates:", dates.slice(0, 5));
 			return dates;
 		}
 

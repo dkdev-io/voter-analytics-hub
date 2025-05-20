@@ -18,13 +18,17 @@ export const DateSelector = ({
   label = "Date",
   placeholder = "Select Date"
 }: DateSelectorProps) => {
-  // Get unique dates and sort them chronologically
-  const uniqueDates = [...new Set(availableDates)].sort((a, b) => {
-    return new Date(a).getTime() - new Date(b).getTime();
-  });
+  // Get unique dates, filter out any non-date values, and sort them chronologically
+  const uniqueDates = [...new Set(availableDates)]
+    .filter(date => date && typeof date === 'string' && date.trim() !== '')
+    .sort((a, b) => {
+      return new Date(a).getTime() - new Date(b).getTime();
+    });
   
   // Ensure value is a string, not undefined
   const safeValue = value || "All";
+  
+  console.log(`DateSelector for ${label} rendered with dates:`, uniqueDates.length);
   
   return (
     <div className="w-full">
@@ -46,12 +50,12 @@ export const DateSelector = ({
           <SelectItem value="All">{label === "Start Date" ? "All Dates" : "No End Date"}</SelectItem>
           {uniqueDates && uniqueDates.length > 0 ? (
             uniqueDates.map((dateValue: string) => (
-              <SelectItem key={dateValue} value={dateValue || "unknown-date"}>
-                {dateValue || "Unknown Date"}
+              <SelectItem key={dateValue} value={dateValue}>
+                {dateValue}
               </SelectItem>
             ))
           ) : (
-            <SelectItem value="no-data">
+            <SelectItem value="no-data" disabled>
               {isLoading ? "Loading dates..." : "No dates available"}
             </SelectItem>
           )}
