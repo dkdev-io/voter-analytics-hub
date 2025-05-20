@@ -16,7 +16,7 @@ export const PersonSelector = ({
 	disabled,
 	isLoading
 }: PersonSelectorProps) => {
-	// Only show valid people names - filter out empty strings and undefined values
+	// Filter out invalid entries and ensure we have a valid array
 	const validPeople = Array.isArray(people) 
 		? people.filter(person => person && typeof person === 'string' && person.trim() !== '')
 		: [];

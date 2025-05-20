@@ -1,4 +1,3 @@
-
 import { getTestData } from './migrationService';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -35,14 +34,15 @@ const normalizeTeamName = (team: string): string => {
 
 // Format a person's name from first and last name
 const formatPersonName = (firstName: string, lastName: string): string => {
-	// If both fields are empty, return empty string
-	if (!firstName && !lastName) return '';
+	// Handle null/undefined values
+	const first = firstName || '';
+	const last = lastName || '';
 	
-	// If both fields have values, combine them
-	if (firstName && lastName) return `${firstName} ${lastName}`;
+	// If both values are empty, return empty string
+	if (!first && !last) return '';
 	
-	// If only one field has a value, return that
-	return firstName || lastName || '';
+	// Return properly formatted name
+	return `${first} ${last}`.trim();
 };
 
 // Function to fetch all available tactics from the test data
@@ -105,7 +105,8 @@ export const fetchTeams = async (): Promise<string[]> => {
 export const fetchPeopleByTeam = async (team: string): Promise<string[]> => {
 	try {
 		console.log(`Fetching people for team ${team} from database...`);
-		// Try to fetch directly from Supabase first
+		
+		// Query Supabase for people in the specified team
 		const { data: peopleData, error } = await supabase
 			.from('voter_contacts')
 			.select('first_name, last_name')
@@ -116,27 +117,25 @@ export const fetchPeopleByTeam = async (team: string): Promise<string[]> => {
 			throw error;
 		}
 
-		if (peopleData && peopleData.length > 0) {
-			// Map to full names and filter out any empty names
-			const peopleInTeam = peopleData
-				.map(item => {
-					const name = formatPersonName(item.first_name, item.last_name);
-					return name;
-				})
-				.filter(name => name && name.trim() !== '') as string[];
-
-			// Get unique people (in case there are duplicates)
-			const uniquePeople = [...new Set(peopleInTeam)].sort();
-			console.log(`Found ${uniquePeople.length} people for team ${team}:`, uniquePeople);
-			return uniquePeople;
+		if (!peopleData || peopleData.length === 0) {
+			console.log(`No people found for team ${team}`);
+			return [];
 		}
 
-		console.log(`No people found for team ${team}`);
-		// Return empty array if no data is found
-		return [];
+		// Map to full names
+		const peopleInTeam = peopleData.map(item => {
+			// Format name using first and last name
+			return formatPersonName(item.first_name, item.last_name);
+		}).filter(name => name && name.trim() !== '');
+		
+		// Get unique people (since there might be duplicates in raw data)
+		// We'll keep duplicates as per the user's request
+		const sortedPeople = [...peopleInTeam].sort();
+		
+		console.log(`Found ${sortedPeople.length} people for team ${team}`);
+		return sortedPeople;
 	} catch (error) {
 		console.error(`Error fetching people for team ${team}:`, error);
-		// Return empty array on error
 		return [];
 	}
 };
@@ -145,7 +144,8 @@ export const fetchPeopleByTeam = async (team: string): Promise<string[]> => {
 export const fetchAllPeople = async (): Promise<string[]> => {
 	try {
 		console.log("Fetching all people from the database...");
-		// Try to fetch directly from Supabase first
+		
+		// Query Supabase for all people
 		const { data: peopleData, error } = await supabase
 			.from('voter_contacts')
 			.select('first_name, last_name')
@@ -155,27 +155,24 @@ export const fetchAllPeople = async (): Promise<string[]> => {
 			throw error;
 		}
 
-		if (peopleData && peopleData.length > 0) {
-			// Map to full names and filter out any empty names
-			const allPeople = peopleData
-				.map(item => {
-					const name = formatPersonName(item.first_name, item.last_name);
-					return name;
-				})
-				.filter(name => name && name.trim() !== '') as string[];
-
-			// Make sure we get unique names only and sort them
-			const uniquePeople = [...new Set(allPeople)].sort();
-			console.log(`Found ${uniquePeople.length} unique people:`, uniquePeople);
-			return uniquePeople;
+		if (!peopleData || peopleData.length === 0) {
+			console.log("No people data found in database");
+			return [];
 		}
 
-		console.log("No people data found in database");
-		// Return empty array if no data is found
-		return [];
+		// Map to full names
+		const allPeople = peopleData.map(item => {
+			return formatPersonName(item.first_name, item.last_name);
+		}).filter(name => name && name.trim() !== '');
+		
+		// Sort people alphabetically
+		// Keep duplicates as per the user's request
+		const sortedPeople = [...allPeople].sort();
+		
+		console.log(`Found ${sortedPeople.length} people`);
+		return sortedPeople;
 	} catch (error) {
 		console.error("Error fetching all people:", error);
-		// Return empty array on error
 		return [];
 	}
 };

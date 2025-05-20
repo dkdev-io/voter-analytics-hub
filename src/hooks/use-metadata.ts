@@ -101,8 +101,8 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
 					if (allPeople.length === 0) {
 						const allPeopleData = await fetchAllPeople();
 						console.log("Fetched all people:", allPeopleData);
-						setFilteredPeople(allPeopleData || []);
 						setAllPeople(allPeopleData || []);
+						setFilteredPeople(allPeopleData || []);
 					} else {
 						console.log("Using cached all people:", allPeople);
 						setFilteredPeople(allPeople);
