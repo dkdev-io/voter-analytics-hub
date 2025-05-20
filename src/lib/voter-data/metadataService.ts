@@ -1,3 +1,4 @@
+
 import { getTestData } from './migrationService';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -34,8 +35,14 @@ const normalizeTeamName = (team: string): string => {
 
 // Format a person's name from first and last name
 const formatPersonName = (firstName: string, lastName: string): string => {
+	// If both fields are empty, return empty string
 	if (!firstName && !lastName) return '';
-	return `${firstName || ''} ${lastName || ''}`.trim();
+	
+	// If both fields have values, combine them
+	if (firstName && lastName) return `${firstName} ${lastName}`;
+	
+	// If only one field has a value, return that
+	return firstName || lastName || '';
 };
 
 // Function to fetch all available tactics from the test data
@@ -110,9 +117,12 @@ export const fetchPeopleByTeam = async (team: string): Promise<string[]> => {
 		}
 
 		if (peopleData && peopleData.length > 0) {
-			// Map to full names and get unique entries
+			// Map to full names and filter out any empty names
 			const peopleInTeam = peopleData
-				.map(item => formatPersonName(item.first_name, item.last_name))
+				.map(item => {
+					const name = formatPersonName(item.first_name, item.last_name);
+					return name;
+				})
 				.filter(name => name && name.trim() !== '') as string[];
 
 			// Get unique people (in case there are duplicates)
@@ -126,7 +136,7 @@ export const fetchPeopleByTeam = async (team: string): Promise<string[]> => {
 		return [];
 	} catch (error) {
 		console.error(`Error fetching people for team ${team}:`, error);
-		// Return empty array instead of fallbacks
+		// Return empty array on error
 		return [];
 	}
 };
@@ -146,9 +156,12 @@ export const fetchAllPeople = async (): Promise<string[]> => {
 		}
 
 		if (peopleData && peopleData.length > 0) {
-			// Map to full names and get unique entries
+			// Map to full names and filter out any empty names
 			const allPeople = peopleData
-				.map(item => formatPersonName(item.first_name, item.last_name))
+				.map(item => {
+					const name = formatPersonName(item.first_name, item.last_name);
+					return name;
+				})
 				.filter(name => name && name.trim() !== '') as string[];
 
 			// Make sure we get unique names only and sort them
@@ -162,7 +175,7 @@ export const fetchAllPeople = async (): Promise<string[]> => {
 		return [];
 	} catch (error) {
 		console.error("Error fetching all people:", error);
-		// Return empty array instead of fallbacks
+		// Return empty array on error
 		return [];
 	}
 };

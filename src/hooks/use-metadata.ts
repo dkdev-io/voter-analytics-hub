@@ -96,6 +96,8 @@ export const useMetadata = (isDataMigrated: boolean, selectedTeam: string | null
 				} else {
 					// If "All" is selected or no team is selected, use allPeople
 					console.log("Using all people for filtering");
+					
+					// If allPeople is empty, fetch them
 					if (allPeople.length === 0) {
 						const allPeopleData = await fetchAllPeople();
 						console.log("Fetched all people:", allPeopleData);

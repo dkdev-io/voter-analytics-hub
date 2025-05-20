@@ -16,16 +16,12 @@ export const PersonSelector = ({
 	disabled,
 	isLoading
 }: PersonSelectorProps) => {
-	// Filter out any null/undefined values and get unique people
-	// Also filter out any values that look like "X Unknown" which are invalid entries
-	const validPeople = people
-		.filter(Boolean)
-		.filter(person => !person.match(/^\d+\s+Unknown$/));
+	// Only show valid people names - filter out empty strings and undefined values
+	const validPeople = Array.isArray(people) 
+		? people.filter(person => person && typeof person === 'string' && person.trim() !== '')
+		: [];
 	
-	// Get unique entries and sort them
-	const uniquePeople = [...new Set(validPeople)].sort();
-
-	console.log("PersonSelector rendered with people:", uniquePeople.length > 0 ? uniquePeople : "No valid people found");
+	console.log("PersonSelector rendered with people:", validPeople.length, "valid people", validPeople);
 	console.log("Current selected person:", value);
 
 	return (
@@ -45,8 +41,8 @@ export const PersonSelector = ({
 					align="start"
 				>
 					<SelectItem value="All">All Members</SelectItem>
-					{uniquePeople && uniquePeople.length > 0 ? (
-						uniquePeople.map((person: string) => (
+					{validPeople && validPeople.length > 0 ? (
+						validPeople.map((person: string) => (
 							<SelectItem key={person} value={person}>
 								{person}
 							</SelectItem>
