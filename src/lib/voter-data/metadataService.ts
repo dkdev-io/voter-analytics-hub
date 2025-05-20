@@ -1,3 +1,4 @@
+
 import { getTestData } from './migrationService';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -122,15 +123,15 @@ export const fetchPeopleByTeam = async (team: string): Promise<string[]> => {
 			return [];
 		}
 
-		// Map to full names
+		// Create full names from first and last names
 		const peopleNames = peopleData.map(item => {
 			return formatPersonName(item.first_name, item.last_name);
 		}).filter(name => name && name.trim() !== '');
 		
-		// Get unique people (remove duplicates)
+		// Get unique names (remove duplicates)
 		const uniqueNames = [...new Set(peopleNames)].sort();
 		
-		console.log(`Found ${uniqueNames.length} unique people for team ${team} (from ${peopleNames.length} total entries)`);
+		console.log(`Found ${uniqueNames.length} unique people for team ${team}`);
 		return uniqueNames;
 	} catch (error) {
 		console.error(`Error fetching people for team ${team}:`, error);
@@ -141,7 +142,7 @@ export const fetchPeopleByTeam = async (team: string): Promise<string[]> => {
 // Function to fetch all people
 export const fetchAllPeople = async (): Promise<string[]> => {
 	try {
-		console.log("Fetching all people from the database...");
+		console.log("Fetching all unique people from the database...");
 		
 		// Query Supabase for all people
 		const { data: peopleData, error } = await supabase
@@ -158,15 +159,17 @@ export const fetchAllPeople = async (): Promise<string[]> => {
 			return [];
 		}
 
-		// Map to full names
+		// Create full names from first and last names
 		const allPeopleNames = peopleData.map(item => {
 			return formatPersonName(item.first_name, item.last_name);
 		}).filter(name => name && name.trim() !== '');
 		
-		// Get unique people (remove duplicates)
+		// Get unique names (remove duplicates)
 		const uniqueNames = [...new Set(allPeopleNames)].sort();
 		
 		console.log(`Found ${uniqueNames.length} unique people (from ${allPeopleNames.length} total entries)`);
+		console.log("Unique people names:", uniqueNames);
+		
 		return uniqueNames;
 	} catch (error) {
 		console.error("Error fetching all people:", error);

@@ -21,7 +21,7 @@ export const PersonSelector = ({
 		? people.filter(person => person && typeof person === 'string' && person.trim() !== '')
 		: [];
 	
-	console.log("PersonSelector rendered with people:", validPeople.length, "valid people");
+	console.log("PersonSelector rendered with people:", validPeople);
 	console.log("Current selected person:", value);
 
 	return (
@@ -42,8 +42,8 @@ export const PersonSelector = ({
 				>
 					<SelectItem value="All">All Members</SelectItem>
 					{validPeople && validPeople.length > 0 ? (
-						validPeople.map((person: string) => (
-							<SelectItem key={person} value={person}>
+						validPeople.map((person: string, index) => (
+							<SelectItem key={`${person}-${index}`} value={person}>
 								{person}
 							</SelectItem>
 						))
