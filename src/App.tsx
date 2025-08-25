@@ -14,6 +14,7 @@ import { AuthGuard } from '@/components/AuthGuard';
 import AIChat from '@/pages/AIChat';
 import { IssueTracker } from '@/components/issue-log/IssueTracker';
 import { DashboardNavbar } from '@/components/DashboardNavbar';
+import { PasswordGate } from '@/components/landing/PasswordGate';
 import './App.css';
 
 function App() {
@@ -32,23 +33,25 @@ function App() {
 
 function AppContent() {
   return (
-    <div className="app">
-      <DashboardNavbar />
-      <main>
-        <Routes>
-          <Route path="/" element={<Landing />} />
-          <Route path="/demo" element={<Demo />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/dashboard" element={<AuthGuard><Index /></AuthGuard>} />
-          <Route path="/connect-data" element={<AuthGuard><ConnectData /></AuthGuard>} />
-          <Route path="/ai-chat" element={<AuthGuard><AIChat /></AuthGuard>} />
-          <Route path="/issues/*" element={<AuthGuard><IssueTracker /></AuthGuard>} />
-          <Route path="/404" element={<NotFound />} />
-          <Route path="*" element={<Navigate to="/404" replace />} />
-        </Routes>
-      </main>
-      <Toaster />
-    </div>
+    <PasswordGate>
+      <div className="app">
+        <DashboardNavbar />
+        <main>
+          <Routes>
+            <Route path="/" element={<Landing />} />
+            <Route path="/demo" element={<Demo />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/dashboard" element={<AuthGuard><Index /></AuthGuard>} />
+            <Route path="/connect-data" element={<AuthGuard><ConnectData /></AuthGuard>} />
+            <Route path="/ai-chat" element={<AuthGuard><AIChat /></AuthGuard>} />
+            <Route path="/issues/*" element={<AuthGuard><IssueTracker /></AuthGuard>} />
+            <Route path="/404" element={<NotFound />} />
+            <Route path="*" element={<Navigate to="/404" replace />} />
+          </Routes>
+        </main>
+        <Toaster />
+      </div>
+    </PasswordGate>
   );
 }
 

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 
 // The correct password for accessing the site
-const CORRECT_PASSWORD = 'votercontact2025';
+const CORRECT_PASSWORD = '123abc';
 const PASSWORD_STORAGE_KEY = 'votercontact_auth';
 
 interface PasswordGateProps {
