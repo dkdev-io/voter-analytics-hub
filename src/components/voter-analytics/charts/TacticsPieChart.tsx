@@ -7,7 +7,6 @@ import {
 	Tooltip,
 	Legend
 } from 'recharts';
-import { CHART_COLORS } from '@/types/analytics';
 import { CustomPieTooltip } from './CustomTooltip';
 
 interface TacticsPieChartProps {
@@ -25,7 +24,8 @@ export const TacticsPieChart: React.FC<TacticsPieChartProps> = ({ data, total })
 		.map(item => ({
 			...item,
 			name: item.name || "Unknown", // Ensure name is always populated
-			value: Number(item.value) || 0 // Ensure value is a number
+			value: Number(item.value) || 0, // Ensure value is a number
+			color: item.color || `hsl(${Math.random() * 360}, 70%, 50%)` // Ensure color is present
 		}));
 
 	console.log("TacticsPieChart filtered data:", filteredData);
@@ -68,13 +68,13 @@ export const TacticsPieChart: React.FC<TacticsPieChartProps> = ({ data, total })
 	// If there's no data, show an empty state
 	if (filteredData.length === 0) {
 		return (
-			<div className="h-72 bg-white rounded-lg border border-gray-200 flex flex-col">
-				<h3 className="text-sm font-bold p-2 text-center">Attempts</h3>
-				<div className="text-center text-sm font-medium pb-4">
+			<div className="h-96 bg-white rounded-lg border border-gray-200 flex flex-col">
+				<h3 className="text-sm font-bold p-4 text-center border-b">Tactics Overview</h3>
+				<div className="text-center text-sm font-medium py-2">
 					Total: 0
 				</div>
 				<div className="flex-1 flex items-center justify-center">
-					<p className="text-gray-500">No data available</p>
+					<p className="text-gray-500">No tactics data available</p>
 				</div>
 			</div>
 		);
@@ -82,12 +82,12 @@ export const TacticsPieChart: React.FC<TacticsPieChartProps> = ({ data, total })
 
 	return (
 		<div className="h-96 rounded-lg border border-gray-200 flex flex-col">
-			<h3 className="text-sm font-bold p-2 text-center">Attempts</h3>
-			<div className="text-center text-sm font-medium pb-4">
+			<h3 className="text-sm font-bold p-4 text-center border-b">Tactics Overview</h3>
+			<div className="text-center text-sm font-medium py-2">
 				Total: {actualTotal.toLocaleString()}
 			</div>
-			<div className="flex-1 py-2">
-				<ResponsiveContainer className='py-2' width="100%" height="100%">
+			<div className="flex-1 p-2">
+				<ResponsiveContainer width="100%" height="100%">
 					<PieChart>
 						<Pie
 							data={dataWithTotal}
@@ -95,7 +95,7 @@ export const TacticsPieChart: React.FC<TacticsPieChartProps> = ({ data, total })
 							cy="45%"
 							innerRadius={40}
 							outerRadius={70}
-							paddingAngle={5}
+							paddingAngle={Math.min(5, Math.max(1, 20 / filteredData.length))} // Dynamic padding based on number of slices
 							dataKey="value"
 						>
 							{dataWithTotal.map((entry, index) => (
@@ -108,6 +108,7 @@ export const TacticsPieChart: React.FC<TacticsPieChartProps> = ({ data, total })
 							layout="horizontal"
 							align="center"
 							verticalAlign="bottom"
+							wrapperStyle={{ paddingTop: '10px', maxHeight: '120px', overflow: 'auto' }}
 						/>
 					</PieChart>
 				</ResponsiveContainer>

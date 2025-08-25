@@ -1,6 +1,7 @@
 
 import type { QueryParams, VoterMetrics } from '@/types/analytics';
 import { filterVoterData } from './filterService';
+import { detectTacticsFromData, detectResultTypesFromData } from '@/services/dynamicChartService';
 
 // Helper function to normalize tactic names for consistent calculation
 const normalizeTactic = (tactic: string): string => {
@@ -60,25 +61,48 @@ export const aggregateVoterMetrics = (filteredData: any[]): VoterMetrics => {
 		filteredData = [];
 	}
 	
+	// Detect all tactics and result types from the data
+	const allTactics = detectTacticsFromData(filteredData);
+	const allResultTypes = detectResultTypesFromData(filteredData);
+	
+	console.log('[aggregateVoterMetrics] Detected tactics:', allTactics);
+	console.log('[aggregateVoterMetrics] Detected result types:', allResultTypes);
+	
+	// Initialize dynamic metrics structure
+	const tactics: Record<string, number> = { sms: 0, phone: 0, canvas: 0 };
+	const contacts: Record<string, number> = { support: 0, oppose: 0, undecided: 0 };
+	const notReached: Record<string, number> = { notHome: 0, refusal: 0, badData: 0 };
+	
+	// Add dynamic tactics
+	allTactics.forEach(tactic => {
+		const key = tactic.toLowerCase().replace(/[^a-z0-9]/g, '');
+		if (!tactics[key]) {
+			tactics[key] = 0;
+		}
+	});
+	
+	// Add dynamic result types
+	allResultTypes.forEach(resultType => {
+		const key = resultType.toLowerCase().replace(/[^a-z0-9]/g, '');
+		if (resultType.toLowerCase().includes('support')) {
+			if (!contacts[key]) contacts[key] = 0;
+		} else if (resultType.toLowerCase().includes('oppose')) {
+			if (!contacts[key]) contacts[key] = 0;
+		} else if (resultType.toLowerCase().includes('undecided')) {
+			if (!contacts[key]) contacts[key] = 0;
+		} else if (resultType.toLowerCase().includes('not') || resultType.toLowerCase().includes('refus') || resultType.toLowerCase().includes('bad')) {
+			if (!notReached[key]) notReached[key] = 0;
+		}
+	});
+	
 	// Initialize metrics structure
 	const metrics: VoterMetrics = {
-		tactics: {
-			sms: 0,
-			phone: 0,
-			canvas: 0
-		},
-		contacts: {
-			support: 0,
-			oppose: 0,
-			undecided: 0
-		},
-		notReached: {
-			notHome: 0,
-			refusal: 0,
-			badData: 0
-		},
+		tactics,
+		contacts,
+		notReached,
 		teamAttempts: {},
-		byDate: []
+		byDate: [],
+		rawData: filteredData
 	};
 
 	// Get unique dates
@@ -127,32 +151,43 @@ export const aggregateVoterMetrics = (filteredData: any[]): VoterMetrics => {
 		// Normalize the tactic for consistent aggregation
 		const normalizedTactic = normalizeTactic(item.tactic);
 		
-		// Record the actual tactic for debugging
-		console.log(`[calculationService] Normalizing tactic "${item.tactic}" to "${normalizedTactic}"`);
+		// Aggregate by normalized tactic (including dynamic tactics)
+		const tacticKey = normalizedTactic.toLowerCase().replace(/[^a-z0-9]/g, '');
+		if (metrics.tactics[tacticKey] !== undefined) {
+			metrics.tactics[tacticKey] += Number(item.attempts) || 0;
+		}
 		
-		// Aggregate by normalized tactic
-		if (normalizedTactic === 'sms') {
-			metrics.tactics.sms += Number(item.attempts) || 0;
-		} else if (normalizedTactic === 'phone') {
-			metrics.tactics.phone += Number(item.attempts) || 0;
-		} else if (normalizedTactic === 'canvas') {
-			metrics.tactics.canvas += Number(item.attempts) || 0;
-		}
+		// Also check for tactic-specific attempt columns
+		allTactics.forEach(tactic => {
+			const key = tactic.toLowerCase().replace(/[^a-z0-9]/g, '');
+			const attemptField = `${key}_attempts`;
+			if (item[attemptField]) {
+				metrics.tactics[key] = (metrics.tactics[key] || 0) + (Number(item[attemptField]) || 0);
+			}
+		});
 
-		// Aggregate contacts by result - explicit Number conversion for all values
-		metrics.contacts.support += Number(item.support) || 0;
-		metrics.contacts.oppose += Number(item.oppose) || 0;
-		metrics.contacts.undecided += Number(item.undecided) || 0;
+		// Aggregate contacts by result - check all contact-related fields
+		Object.keys(metrics.contacts).forEach(contactKey => {
+			if (item[contactKey]) {
+				metrics.contacts[contactKey] += Number(item[contactKey]) || 0;
+			}
+		});
 
-		// Debug logging for individual record not_home values
-		if (Number(item.not_home) > 0) {
-			console.log(`Found not_home value: ${item.not_home} for ${item.first_name} ${item.last_name}`);
-		}
-
-		// Actually sum the not reached metrics from filtered data
-		metrics.notReached.notHome += Number(item.not_home) || 0;
-		metrics.notReached.refusal += Number(item.refusal) || 0;
-		metrics.notReached.badData += Number(item.bad_data) || 0;
+		// Aggregate not reached metrics - check all not-reached fields
+		Object.keys(metrics.notReached).forEach(notReachedKey => {
+			// Map common field name variations
+			const fieldVariations = [
+				notReachedKey,
+				notReachedKey.replace(/([A-Z])/g, '_$1').toLowerCase(),
+				notReachedKey.replace(/([A-Z])/g, ' $1').toLowerCase().replace(/ /g, '_')
+			];
+			
+			fieldVariations.forEach(fieldName => {
+				if (item[fieldName]) {
+					metrics.notReached[notReachedKey] += Number(item[fieldName]) || 0;
+				}
+			});
+		});
 	});
 
 	// Log the not reached metrics for debugging with detailed breakdown

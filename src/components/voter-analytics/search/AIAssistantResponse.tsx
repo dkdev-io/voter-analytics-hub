@@ -1,21 +1,43 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertCircle, AlertTriangle, Calendar, Database, Check } from 'lucide-react';
+import { 
+  AlertCircle, 
+  AlertTriangle, 
+  Calendar, 
+  Check, 
+  Lightbulb, 
+  Target,
+  MessageCircle,
+  BarChart3,
+  Bot,
+  Loader2
+} from 'lucide-react';
 
 interface AIAssistantResponseProps {
   response: string | null;
   isLoading?: boolean;
   isTruncated?: boolean;
   model?: string | null;
+  insights?: string[];
+  recommendations?: string[];
+  followUpQuestions?: string[];
+  confidence?: number;
+  visualizationSuggestions?: string[];
 }
 
 export const AIAssistantResponse: React.FC<AIAssistantResponseProps> = ({ 
   response,
   isLoading = false,
   isTruncated = false,
-  model = null
+  model = null,
+  insights = [],
+  recommendations = [],
+  followUpQuestions = [],
+  confidence = 0,
+  visualizationSuggestions = []
 }) => {
   // REDUCED list of error patterns to avoid false positives
   const isErrorResponse = response && (
@@ -50,7 +72,11 @@ export const AIAssistantResponse: React.FC<AIAssistantResponseProps> = ({
     return (
       <Card className="mt-4">
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium">Generating Insight...</CardTitle>
+          <CardTitle className="text-sm font-medium flex items-center">
+            <Bot className="h-4 w-4 mr-2 text-primary" />
+            AI Assistant
+            <Loader2 className="h-3 w-3 ml-2 animate-spin" />
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
@@ -63,7 +89,10 @@ export const AIAssistantResponse: React.FC<AIAssistantResponseProps> = ({
     );
   }
   
-  if (!response) return null;
+  // Don't render if no content
+  if (!response && insights.length === 0 && recommendations.length === 0 && followUpQuestions.length === 0) {
+    return null;
+  }
 
   // Handle error responses differently
   if (isErrorResponse) {
@@ -96,7 +125,7 @@ export const AIAssistantResponse: React.FC<AIAssistantResponseProps> = ({
         </CardHeader>
         <CardContent>
           <div className="text-sm">
-            <p className="font-bold mb-2">{getFirstSentence(response)}</p>
+            <p className="font-bold mb-2">{response && getFirstSentence(response)}</p>
             <p>I've analyzed the data in your dashboard.</p>
             <p className="text-xs text-gray-500 mt-2">Try using the format YYYY-MM-DD (e.g., 2025-01-31 for January 31, 2025)</p>
           </div>
@@ -104,57 +133,150 @@ export const AIAssistantResponse: React.FC<AIAssistantResponseProps> = ({
       </Card>
     );
   }
-  
-  // Special styling for direct data answers
-  if (isDirectDataAnswer) {
-    return (
-      <Card className="mt-4 border-blue-100">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium flex items-center">
-            <Check className="h-4 w-4 mr-2 text-green-500" />
-            Result
-            {model && (
-              <span className="text-xs bg-gray-100 rounded-full px-2 py-0.5 ml-2">
-                {model}
-              </span>
-            )}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-sm">
-            <p className="font-bold mb-2">{getFirstSentence(response)}</p>
-            <div className="text-xs text-gray-500 mt-4">
-              <p>Results have been added to the dashboard below.</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-  
+
   return (
-    <Card className={`mt-4 ${isTruncated ? 'border-amber-200' : ''}`}>
+    <Card className={`mt-4 ${isTruncated ? 'border-amber-200' : 'border-green-100'}`}>
       <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium flex items-center">
-          {isTruncated ? (
-            <AlertTriangle className="h-4 w-4 mr-2 text-amber-500" />
-          ) : (
-            <Check className="h-4 w-4 mr-2 text-green-500" />
-          )}
-          Result
-          {model && (
-            <span className="text-xs bg-gray-100 rounded-full px-2 py-0.5 ml-2">
-              {model}
-            </span>
-          )}
+        <CardTitle className="text-sm font-medium flex items-center justify-between">
+          <div className="flex items-center">
+            {isTruncated ? (
+              <AlertTriangle className="h-4 w-4 mr-2 text-amber-500" />
+            ) : (
+              <Check className="h-4 w-4 mr-2 text-green-500" />
+            )}
+            AI Assistant Response
+          </div>
+          <div className="flex items-center gap-2">
+            {confidence > 0 && (
+              <Badge variant="outline" className="text-xs">
+                {Math.round(confidence * 100)}% confidence
+              </Badge>
+            )}
+            {model && (
+              <Badge variant="secondary" className="text-xs">
+                {model}
+              </Badge>
+            )}
+          </div>
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="text-sm">
-          <p className="font-bold mb-2">{getFirstSentence(response)}</p>
-          <div className="text-xs text-gray-500 mt-4">
-            <p>Results have been added to the dashboard below.</p>
+      
+      <CardContent className="space-y-4">
+        {/* Main Response */}
+        {response && (
+          <div className="text-sm">
+            <p className="font-bold mb-2">{getFirstSentence(response)}</p>
+            {response.split('.').length > 1 && (
+              <div className="text-gray-600">
+                {response.split('.').slice(1).join('.').trim()}
+              </div>
+            )}
           </div>
+        )}
+
+        {/* Truncation Warning */}
+        {isTruncated && (
+          <div className="flex items-start gap-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <AlertCircle className="h-4 w-4 text-yellow-600 mt-0.5" />
+            <div className="text-sm text-yellow-800">
+              <p className="font-medium">Response Truncated</p>
+              <p>The response was cut off due to length limits. Try asking a more specific question for a complete answer.</p>
+            </div>
+          </div>
+        )}
+
+        {/* Enhanced AI Features */}
+        {(insights.length > 0 || recommendations.length > 0 || followUpQuestions.length > 0 || visualizationSuggestions.length > 0) && (
+          <>
+            <Separator />
+            <div className="space-y-4">
+              
+              {/* Insights */}
+              {insights.length > 0 && (
+                <div>
+                  <h4 className="text-xs font-medium text-gray-700 mb-2 flex items-center gap-1">
+                    <Lightbulb className="h-3 w-3 text-blue-500" />
+                    Key Insights
+                  </h4>
+                  <div className="space-y-2">
+                    {insights.map((insight, idx) => (
+                      <div key={idx} className="text-xs text-gray-600 pl-3 border-l-2 border-blue-200 bg-blue-50 p-2 rounded-r">
+                        {insight}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Recommendations */}
+              {recommendations.length > 0 && (
+                <div>
+                  <h4 className="text-xs font-medium text-gray-700 mb-2 flex items-center gap-1">
+                    <Target className="h-3 w-3 text-green-500" />
+                    Recommendations
+                  </h4>
+                  <div className="space-y-2">
+                    {recommendations.map((rec, idx) => (
+                      <div key={idx} className="text-xs text-gray-600 pl-3 border-l-2 border-green-200 bg-green-50 p-2 rounded-r">
+                        {rec}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Follow-up Questions */}
+              {followUpQuestions.length > 0 && (
+                <div>
+                  <h4 className="text-xs font-medium text-gray-700 mb-2 flex items-center gap-1">
+                    <MessageCircle className="h-3 w-3 text-purple-500" />
+                    Follow-up Questions
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {followUpQuestions.map((question, idx) => (
+                      <Badge 
+                        key={idx} 
+                        variant="outline" 
+                        className="text-xs cursor-pointer hover:bg-purple-50 hover:border-purple-300"
+                        onClick={() => {
+                          // This could trigger a new search with the follow-up question
+                          console.log('Follow-up question clicked:', question);
+                        }}
+                      >
+                        {question}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Visualization Suggestions */}
+              {visualizationSuggestions.length > 0 && (
+                <div>
+                  <h4 className="text-xs font-medium text-gray-700 mb-2 flex items-center gap-1">
+                    <BarChart3 className="h-3 w-3 text-orange-500" />
+                    Visualization Suggestions
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {visualizationSuggestions.map((suggestion, idx) => (
+                      <Badge 
+                        key={idx} 
+                        variant="secondary" 
+                        className="text-xs"
+                      >
+                        {suggestion.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </>
+        )}
+
+        {/* Footer */}
+        <div className="text-xs text-gray-500 pt-2 border-t">
+          <p>Results have been added to the dashboard below.</p>
         </div>
       </CardContent>
     </Card>

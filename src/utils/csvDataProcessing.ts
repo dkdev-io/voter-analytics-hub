@@ -1,55 +1,111 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { 
+  analyzeCSVData, 
+  generateSuggestedMappings, 
+  normalizeDate,
+  createDynamicFieldDefinitions
+} from './flexibleCsvMapping';
+import { 
+  ColumnMapping, 
+  FieldDefinition, 
+  ProcessingResult, 
+  ValidationError,
+  CORE_FIELD_DEFINITIONS 
+} from '@/types/csvMapping';
 
 interface HeaderMappingResult {
   headerMapping: Record<number, string>;
   mappedFields: string[];
+  dynamicFields?: Record<string, any>;
 }
 
 /**
- * Maps CSV headers to database fields
+ * Enhanced CSV header mapping using flexible mapping system
  */
-export const mapHeaders = (headers: string[]): HeaderMappingResult => {
-  const headerMapping: Record<number, string> = {};
+export const mapHeaders = (headers: string[], customMapping?: Record<string, string>): HeaderMappingResult => {
+  console.log('mapHeaders called with:', { headers, customMapping });
   
-  const headerVariations: Record<string, string[]> = {
-    'first_name': ['first_name', 'firstname', 'first', 'fname', 'name', 'given name'],
-    'last_name': ['last_name', 'lastname', 'last', 'lname', 'surname', 'family name'],
-    'team': ['team', 'team_name', 'teamname', 'group', 'department', 'organization', 'org'],
-    'date': ['date', 'contact_date', 'day', 'timestamp', 'contact date'],
-    'tactic': ['tactic', 'type', 'contact_type', 'method', 'channel', 'medium'],
-    'attempts': ['attempts', 'attempt', 'tried', 'tries', 'total_attempts', 'total attempts'],
-    'contacts': ['contacts', 'contact', 'reached', 'connected', 'success', 'successful'],
-    'not_home': ['not_home', 'nothome', 'nh', 'not_at_home', 'away', 'absent', 'not available', 'nh'],
-    'refusal': ['refusal', 'refused', 'decline', 'rejected', 'no', 'not interested', 'negative', 'ref'],
-    'bad_data': ['bad_data', 'baddata', 'bad', 'invalid', 'error', 'incorrect', 'wrong number', 'bd'],
-    'support': ['support', 'supports', 'for', 'positive', 'yes', 'favorable', 'agree'],
-    'oppose': ['oppose', 'opposed', 'against', 'negative', 'disagree', 'unfavorable'],
-    'undecided': ['undecided', 'unsure', 'maybe', 'neutral', 'thinking', 'considering']
-  };
+  let headerMapping: Record<number, string> = {};
+  const dynamicFields: Record<string, any> = {};
   
-  headers.forEach((header, index) => {
-    const normalizedHeader = header.trim().toLowerCase();
-    
-    for (const [dbField, variations] of Object.entries(headerVariations)) {
-      if (variations.includes(normalizedHeader)) {
+  if (customMapping) {
+    // Use provided mapping
+    headers.forEach((header, index) => {
+      const dbField = customMapping[header];
+      if (dbField) {
         headerMapping[index] = dbField;
-        break;
       }
-    }
-  });
-
+    });
+  } else {
+    // Fall back to legacy mapping for backward compatibility
+    const headerVariations: Record<string, string[]> = {
+      'first_name': ['first_name', 'firstname', 'first', 'fname', 'name', 'given name'],
+      'last_name': ['last_name', 'lastname', 'last', 'lname', 'surname', 'family name'],
+      'team': ['team', 'team_name', 'teamname', 'group', 'department', 'organization', 'org'],
+      'date': ['date', 'contact_date', 'day', 'timestamp', 'contact date'],
+      'tactic': ['tactic', 'type', 'contact_type', 'method', 'channel', 'medium'],
+      'attempts': ['attempts', 'attempt', 'tried', 'tries', 'total_attempts', 'total attempts'],
+      'contacts': ['contacts', 'contact', 'reached', 'connected', 'success', 'successful'],
+      'not_home': ['not_home', 'nothome', 'nh', 'not_at_home', 'away', 'absent', 'not available', 'nh'],
+      'refusal': ['refusal', 'refused', 'decline', 'rejected', 'no', 'not interested', 'negative', 'ref'],
+      'bad_data': ['bad_data', 'baddata', 'bad', 'invalid', 'error', 'incorrect', 'wrong number', 'bd'],
+      'support': ['support', 'supports', 'for', 'positive', 'yes', 'favorable', 'agree'],
+      'oppose': ['oppose', 'opposed', 'against', 'negative', 'disagree', 'unfavorable'],
+      'undecided': ['undecided', 'unsure', 'maybe', 'neutral', 'thinking', 'considering']
+    };
+    
+    headers.forEach((header, index) => {
+      const normalizedHeader = header.trim().toLowerCase();
+      
+      for (const [dbField, variations] of Object.entries(headerVariations)) {
+        if (variations.includes(normalizedHeader)) {
+          headerMapping[index] = dbField;
+          break;
+        }
+      }
+      
+      // If no match found, check if it looks like a dynamic field
+      if (!headerMapping[index]) {
+        const cleanHeader = header.toLowerCase().replace(/\s+/g, '_');
+        // Store as dynamic field for potential custom mapping
+        dynamicFields[`dynamic_${cleanHeader}`] = header;
+      }
+    });
+  }
+  
+  console.log('Mapping result:', { headerMapping, mappedFields: Object.values(headerMapping), dynamicFields });
+  
   return { 
     headerMapping, 
-    mappedFields: Object.values(headerMapping) 
+    mappedFields: Object.values(headerMapping),
+    dynamicFields
   };
 };
 
 /**
- * Transforms CSV data into the format expected by the database
+ * Enhanced CSV analysis for flexible mapping
  */
-export const transformCSVData = (csvData: string[][], headerMapping: Record<number, string>): Record<string, any>[] => {
+export const analyzeCSVForMapping = (headers: string[], rows: string[][]) => {
+  return analyzeCSVData(headers, rows);
+};
+
+/**
+ * Enhanced CSV data transformation with flexible mapping support
+ */
+export const transformCSVData = (
+  csvData: string[][], 
+  headerMapping: Record<number, string>, 
+  columnAnalysis?: Record<string, any>,
+  fieldDefinitions?: FieldDefinition[]
+): Record<string, any>[] => {
   console.log(`Starting transformation of ${csvData.length} rows with mapping:`, headerMapping);
+  
+  const fields = fieldDefinitions || CORE_FIELD_DEFINITIONS;
+  const fieldMap = fields.reduce((acc, field) => {
+    acc[field.key] = field;
+    return acc;
+  }, {} as Record<string, FieldDefinition>);
   
   const transformedData = csvData.map((row, rowIndex) => {
     const transformedRow: Record<string, any> = {};
@@ -58,34 +114,41 @@ export const transformCSVData = (csvData: string[][], headerMapping: Record<numb
       const idx = parseInt(index);
       let value = row[idx]?.trim() || '';
       
-      if (['attempts', 'contacts', 'not_home', 'bad_data', 'refusal', 'support', 'oppose', 'undecided'].includes(dbField)) {
-        transformedRow[dbField] = parseInt(value) || 0;
-      } else {
-        if (dbField === 'team' && value) {
-          const lowercaseTeam = value.toLowerCase();
-          if (lowercaseTeam.includes('tony')) {
-            value = 'Team Tony';
-          } else if (lowercaseTeam.includes('party') || lowercaseTeam.includes('local')) {
-            value = 'Local Party';
-          } else if (lowercaseTeam.includes('candidate')) {
-            value = 'Candidate';
+      if (!value) {
+        transformedRow[dbField] = getDefaultValue(dbField, fieldMap[dbField]?.type);
+        return;
+      }
+      
+      const fieldDef = fieldMap[dbField];
+      const fieldType = fieldDef?.type || 'string';
+      
+      // Transform based on field type
+      switch (fieldType) {
+        case 'number':
+          transformedRow[dbField] = parseFloat(value) || 0;
+          break;
+          
+        case 'date':
+          const normalizedDate = normalizeDate(value, columnAnalysis?.[Object.keys(columnAnalysis)[idx]]?.dateFormats);
+          transformedRow[dbField] = normalizedDate || new Date().toISOString().split('T')[0];
+          break;
+          
+        case 'boolean':
+          transformedRow[dbField] = parseBooleanValue(value);
+          break;
+          
+        case 'category':
+        case 'string':
+        case 'name':
+        case 'email':
+        case 'phone':
+        default:
+          // Special handling for team normalization (legacy support)
+          if (dbField === 'team' && value) {
+            value = normalizeTeamValue(value);
           }
           transformedRow[dbField] = value;
-        }
-        
-        if (dbField === 'date' && value) {
-          try {
-            const dateObj = new Date(value);
-            if (!isNaN(dateObj.getTime())) {
-              value = dateObj.toISOString().split('T')[0];
-            }
-          } catch (e) {
-            console.warn(`Could not parse date: ${value}`, e);
-          }
-          transformedRow[dbField] = value;
-        }
-        
-        transformedRow[dbField] = value;
+          break;
       }
     });
     
@@ -102,6 +165,54 @@ export const transformCSVData = (csvData: string[][], headerMapping: Record<numb
 };
 
 /**
+ * Get default value for a field type
+ */
+function getDefaultValue(fieldKey: string, fieldType?: string): any {
+  if (fieldType === 'number') {
+    return 0;
+  }
+  if (fieldType === 'boolean') {
+    return false;
+  }
+  if (fieldType === 'date') {
+    return new Date().toISOString().split('T')[0];
+  }
+  
+  // Legacy defaults for specific fields
+  if (fieldKey === 'team') {
+    return 'Unknown Team';
+  }
+  if (fieldKey === 'tactic') {
+    return 'Unknown';
+  }
+  
+  return '';
+}
+
+/**
+ * Parse boolean values from various string representations
+ */
+function parseBooleanValue(value: string): boolean {
+  const lowerValue = value.toLowerCase().trim();
+  return ['true', 'yes', '1', 'y', 'on'].includes(lowerValue);
+}
+
+/**
+ * Normalize team values (legacy support)
+ */
+function normalizeTeamValue(value: string): string {
+  const lowercaseTeam = value.toLowerCase();
+  if (lowercaseTeam.includes('tony')) {
+    return 'Team Tony';
+  } else if (lowercaseTeam.includes('party') || lowercaseTeam.includes('local')) {
+    return 'Local Party';
+  } else if (lowercaseTeam.includes('candidate')) {
+    return 'Candidate';
+  }
+  return value;
+}
+
+/**
  * Results of the validation process
  */
 export interface ValidationResult {
@@ -110,96 +221,143 @@ export interface ValidationResult {
 }
 
 /**
- * Enhance and validate the transformed data
+ * Enhanced validation with flexible field support
  */
-export const validateAndEnhanceData = (transformedData: Record<string, any>[]): ValidationResult => {
+export const validateAndEnhanceDataEnhanced = (
+  transformedData: Record<string, any>[], 
+  fieldDefinitions: FieldDefinition[] = CORE_FIELD_DEFINITIONS
+): ProcessingResult => {
   console.log(`Validating ${transformedData.length} rows`);
   
   const validData: Record<string, any>[] = [];
-  const invalidData: Array<{row: Record<string, any>, reason: string}> = [];
+  const invalidRows: Array<{ row: Record<string, any>; errors: ValidationError[] }> = [];
+  const warnings: ValidationError[] = [];
   
-  // Count for each type of missing field for reporting
-  const missingFieldCounts: Record<string, number> = {};
+  const requiredFields = fieldDefinitions.filter(f => f.required).map(f => f.key);
+  const numericFields = fieldDefinitions.filter(f => f.type === 'number').map(f => f.key);
   
-  transformedData.forEach((row, index) => {
+  transformedData.forEach((row, rowIndex) => {
     const enhancedRow = { ...row };
+    const rowErrors: ValidationError[] = [];
     
-    // Set default values for numeric fields if they don't exist
-    if (!('attempts' in enhancedRow)) enhancedRow.attempts = 0;
-    if (!('contacts' in enhancedRow)) enhancedRow.contacts = 0;
-    if (!('not_home' in enhancedRow)) enhancedRow.not_home = 0;
-    if (!('bad_data' in enhancedRow)) enhancedRow.bad_data = 0;
-    if (!('refusal' in enhancedRow)) enhancedRow.refusal = 0;
-    if (!('support' in enhancedRow)) enhancedRow.support = 0;
-    if (!('oppose' in enhancedRow)) enhancedRow.oppose = 0;
-    if (!('undecided' in enhancedRow)) enhancedRow.undecided = 0;
+    // Set defaults for numeric fields
+    numericFields.forEach(field => {
+      if (!(field in enhancedRow) || enhancedRow[field] === null || enhancedRow[field] === undefined) {
+        enhancedRow[field] = 0;
+      } else {
+        const num = parseFloat(enhancedRow[field]);
+        if (isNaN(num)) {
+          rowErrors.push({
+            row: rowIndex,
+            column: field,
+            value: enhancedRow[field],
+            error: 'Invalid numeric value',
+            severity: 'warning'
+          });
+          enhancedRow[field] = 0;
+        } else {
+          enhancedRow[field] = num;
+        }
+      }
+    });
     
-    // Ensure all numeric fields are actually numbers
-    enhancedRow.attempts = parseInt(enhancedRow.attempts) || 0;
-    enhancedRow.contacts = parseInt(enhancedRow.contacts) || 0;
-    enhancedRow.not_home = parseInt(enhancedRow.not_home) || 0;
-    enhancedRow.bad_data = parseInt(enhancedRow.bad_data) || 0;
-    enhancedRow.refusal = parseInt(enhancedRow.refusal) || 0;
-    enhancedRow.support = parseInt(enhancedRow.support) || 0;
-    enhancedRow.oppose = parseInt(enhancedRow.oppose) || 0;
-    enhancedRow.undecided = parseInt(enhancedRow.undecided) || 0;
+    // Apply field-specific defaults
+    if (!enhancedRow.team) enhancedRow.team = 'Unknown Team';
+    if (!enhancedRow.tactic) enhancedRow.tactic = 'Unknown';
+    if (!enhancedRow.date) enhancedRow.date = new Date().toISOString().split('T')[0];
     
-    // Set default team if missing
-    if (!enhancedRow.team) {
-      enhancedRow.team = 'Team Tony';
-    }
-    
-    // Auto-fill missing first/last name with placeholders if possible
+    // Handle name fields intelligently
     if (!enhancedRow.first_name && enhancedRow.last_name) {
       enhancedRow.first_name = "Unknown";
+      warnings.push({
+        row: rowIndex,
+        column: 'first_name',
+        value: '',
+        error: 'Missing first name, using "Unknown"',
+        severity: 'warning'
+      });
     }
     
     if (!enhancedRow.last_name && enhancedRow.first_name) {
       enhancedRow.last_name = "Unknown";
+      warnings.push({
+        row: rowIndex,
+        column: 'last_name',
+        value: '',
+        error: 'Missing last name, using "Unknown"',
+        severity: 'warning'
+      });
     }
     
-    // Set default date if missing
-    if (!enhancedRow.date) {
-      enhancedRow.date = new Date().toISOString().split('T')[0];
+    // Check required fields
+    const missingRequired = requiredFields.filter(field => !enhancedRow[field] || enhancedRow[field] === '');
+    
+    if (missingRequired.length > 0) {
+      missingRequired.forEach(field => {
+        rowErrors.push({
+          row: rowIndex,
+          column: field,
+          value: enhancedRow[field] || '',
+          error: 'Required field missing',
+          severity: 'error'
+        });
+      });
     }
     
-    // Set default tactic if missing
-    if (!enhancedRow.tactic) {
-      enhancedRow.tactic = 'Unknown';
+    // Validate email format if present
+    if (enhancedRow.email && enhancedRow.email.trim() !== '') {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(enhancedRow.email)) {
+        rowErrors.push({
+          row: rowIndex,
+          column: 'email',
+          value: enhancedRow.email,
+          error: 'Invalid email format',
+          severity: 'warning'
+        });
+      }
     }
     
-    // Validate required fields - more lenient now with defaults
-    const missingFields = [];
-    if (!enhancedRow.first_name) missingFields.push('first_name');
-    if (!enhancedRow.last_name) missingFields.push('last_name');
-    
-    // Add to valid or invalid data based on validation
-    if (missingFields.length === 0) {
+    // Add to appropriate collection
+    if (rowErrors.filter(e => e.severity === 'error').length === 0) {
       validData.push(enhancedRow);
     } else {
-      invalidData.push({
-        row: enhancedRow,
-        reason: `Missing required fields: ${missingFields.join(', ')}`
-      });
-      
-      // Log sample invalid rows for debugging
-      if (index < 5 || invalidData.length < 5) {
-        console.warn(`Invalid row ${index}:`, enhancedRow, `Missing: ${missingFields.join(', ')}`);
-      }
-      
-      // Count missing field types
-      missingFields.forEach(field => {
-        missingFieldCounts[field] = (missingFieldCounts[field] || 0) + 1;
-      });
+      invalidRows.push({ row: enhancedRow, errors: rowErrors });
     }
+    
+    // Collect warnings
+    warnings.push(...rowErrors.filter(e => e.severity === 'warning'));
   });
   
-  console.log(`Validation results: ${validData.length} valid rows, ${invalidData.length} invalid rows`);
-  if (invalidData.length > 0) {
-    console.log(`Missing field counts:`, missingFieldCounts);
-  }
+  const result: ProcessingResult = {
+    success: invalidRows.length === 0,
+    validRows: validData,
+    invalidRows,
+    warnings,
+    stats: {
+      totalRows: transformedData.length,
+      validRows: validData.length,
+      invalidRows: invalidRows.length,
+      warningRows: warnings.length
+    }
+  };
   
-  return { validData, invalidData };
+  console.log('Enhanced validation results:', result.stats);
+  return result;
+};
+
+/**
+ * Legacy validation function for backward compatibility
+ */
+export const validateAndEnhanceData = (transformedData: Record<string, any>[]): ValidationResult => {
+  const result = validateAndEnhanceDataEnhanced(transformedData);
+  return {
+    validData: result.validRows,
+    invalidData: result.invalidRows.map(item => ({
+      row: item.row,
+      reason: item.errors.map(e => e.error).join(', ')
+    }))
+  };
 };
 
 /**
@@ -267,14 +425,15 @@ export const clearExistingContacts = async (): Promise<void> => {
 };
 
 /**
- * Upload processed data to Supabase
+ * Enhanced data upload with flexible field support
  */
 export const uploadDataBatches = async (
   validData: Record<string, any>[], 
   onProgressUpdate: (progress: number) => void,
-  userEmail?: string
+  userEmail?: string,
+  customFields?: string[]
 ): Promise<void> => {
-  const batchSize = 50; // Reduced batch size for more reliable uploads
+  const batchSize = 50;
   const batches = [];
   
   // Get the current user's ID
@@ -293,13 +452,49 @@ export const uploadDataBatches = async (
   // Create label for the data using the user's email
   const label = `voter contact - ${email}`;
   
-  // Add the user ID, email, and label to each row
-  const dataWithUserInfo = validData.map(item => ({
-    ...item,
-    user_id: userId,
-    user_email: email,
-    label: label
-  }));
+  // Prepare data with user info and field normalization
+  const dataWithUserInfo = validData.map(item => {
+    const normalizedItem = { ...item };
+    
+    // Ensure all expected fields are present with defaults
+    const expectedFields = [
+      'first_name', 'last_name', 'team', 'date', 'tactic',
+      'attempts', 'contacts', 'not_home', 'refusal', 'bad_data',
+      'support', 'oppose', 'undecided'
+    ];
+    
+    expectedFields.forEach(field => {
+      if (!(field in normalizedItem)) {
+        if (['attempts', 'contacts', 'not_home', 'refusal', 'bad_data', 'support', 'oppose', 'undecided'].includes(field)) {
+          normalizedItem[field] = 0;
+        } else if (field === 'team') {
+          normalizedItem[field] = 'Unknown Team';
+        } else if (field === 'tactic') {
+          normalizedItem[field] = 'Unknown';
+        } else if (field === 'date') {
+          normalizedItem[field] = new Date().toISOString().split('T')[0];
+        } else {
+          normalizedItem[field] = '';
+        }
+      }
+    });
+    
+    // Add custom fields if they exist
+    if (customFields) {
+      customFields.forEach(field => {
+        if (!(field in normalizedItem)) {
+          normalizedItem[field] = '';
+        }
+      });
+    }
+    
+    return {
+      ...normalizedItem,
+      user_id: userId,
+      user_email: email,
+      label: label
+    };
+  });
   
   for (let i = 0; i < dataWithUserInfo.length; i += batchSize) {
     batches.push(dataWithUserInfo.slice(i, i + batchSize));
@@ -353,3 +548,5 @@ function is_not(value: any) {
     __is_not: value
   };
 }
+
+// Note: Legacy export is handled by renaming the enhanced function above

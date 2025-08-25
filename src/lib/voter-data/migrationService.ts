@@ -32,10 +32,16 @@ interface MigrationResult {
 // Function to get test voter data from Supabase
 export const getTestData = async (): Promise<VoterContactRow[]> => {
 	try {
-
 		// Get the current user's ID and email
 		const { data: sessionData } = await supabase.auth.getSession();
 		const userId = sessionData.session?.user.id;
+
+		// If no user is authenticated, return demo data for testing/demo purposes
+		if (!userId) {
+			console.log("No authenticated user, returning demo data for charts");
+			const { getDemoData } = await import('@/lib/demoData');
+			return getDemoData();
+		}
 
 		let query = supabase
 			.from('voter_contacts')
@@ -43,26 +49,35 @@ export const getTestData = async (): Promise<VoterContactRow[]> => {
 			.limit(1000);
 
 		// If user is logged in, fetch ONLY their data (no more mixing with system data)
-		if (userId) {
-			query = query.eq('user_id', userId);
-		}
+		query = query.eq('user_id', userId);
 
 		const { data, error } = await query;
 
 		if (error) {
 			console.error("Error fetching voter data from Supabase:", error);
-			return [];
+			// Fall back to demo data if there's an error
+			const { getDemoData } = await import('@/lib/demoData');
+			return getDemoData();
 		}
 
 		if (!data || data.length === 0) {
-			return [];
+			console.log("No user data found, returning demo data for charts");
+			// Fall back to demo data if no user data exists
+			const { getDemoData } = await import('@/lib/demoData');
+			return getDemoData();
 		}
-
 
 		return data as VoterContactRow[];
 	} catch (error) {
 		console.error("Error in getTestData:", error);
-		return [];
+		// Fall back to demo data on any error
+		try {
+			const { getDemoData } = await import('@/lib/demoData');
+			return getDemoData();
+		} catch (demoError) {
+			console.error("Error loading demo data:", demoError);
+			return [];
+		}
 	}
 };
 

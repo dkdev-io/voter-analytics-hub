@@ -1,0 +1,19 @@
+{
+  "timestamp": "2025-08-25T15:24:41.509Z",
+  "siteUrl": "https://lovable.dev/projects/3ddec3b3-aad7-426b-a5b3-2fca327052d7",
+  "results": {
+    "siteAccess": true,
+    "csvUpload": false,
+    "dynamicCharts": false,
+    "aiSearch": false,
+    "dataAccuracy": false,
+    "errors": [
+      "page.waitForTimeout is not a function"
+    ]
+  },
+  "summary": {
+    "totalTests": 5,
+    "passed": 1,
+    "errors": 1
+  }
+}

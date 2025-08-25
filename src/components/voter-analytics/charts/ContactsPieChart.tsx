@@ -7,7 +7,6 @@ import {
 	Tooltip,
 	Legend
 } from 'recharts';
-import { CHART_COLORS } from '@/types/analytics';
 import { CustomPieTooltip } from './CustomTooltip';
 
 interface ContactsPieChartProps {
@@ -16,8 +15,11 @@ interface ContactsPieChartProps {
 }
 
 export const ContactsPieChart: React.FC<ContactsPieChartProps> = ({ data, total }) => {
-	// Filter out zero value data points
-	const filteredData = data.filter(item => item.value > 0);
+	// Filter out zero value data points and ensure colors
+	const filteredData = data.filter(item => item.value > 0).map(item => ({
+		...item,
+		color: item.color || `hsl(${Math.random() * 360}, 70%, 50%)` // Fallback color
+	}));
 	const calculatedTotal = filteredData.reduce((sum, item) => sum + Number(item.value || 0), 0);
 	const actualTotal = calculatedTotal > 0 ? calculatedTotal : 1; // Avoid division by zero
 
@@ -54,13 +56,13 @@ export const ContactsPieChart: React.FC<ContactsPieChartProps> = ({ data, total 
 	// If there's no data, show an empty state
 	if (filteredData.length === 0) {
 		return (
-			<div className="h-72 rounded-lg border border-gray-200 flex flex-col">
-				<h3 className="text-sm font-bold p-2 text-center">Contact Results</h3>
-				<div className="text-center text-sm font-medium pb-4">
+			<div className="h-96 rounded-lg border border-gray-200 flex flex-col">
+				<h3 className="text-sm font-bold p-4 text-center border-b">Contact Results</h3>
+				<div className="text-center text-sm font-medium py-2">
 					Total: 0
 				</div>
 				<div className="flex-1 flex items-center justify-center">
-					<p className="text-gray-500">No data available</p>
+					<p className="text-gray-500">No contact results available</p>
 				</div>
 			</div>
 		);
@@ -68,11 +70,11 @@ export const ContactsPieChart: React.FC<ContactsPieChartProps> = ({ data, total 
 
 	return (
 		<div className="h-96 rounded-lg border border-gray-200 flex flex-col">
-			<h3 className="text-sm font-bold p-2 text-center">Contact Results</h3>
-			<div className="text-center text-sm font-medium pb-4">
+			<h3 className="text-sm font-bold p-4 text-center border-b">Contact Results</h3>
+			<div className="text-center text-sm font-medium py-2">
 				Total: {actualTotal.toLocaleString()}
 			</div>
-			<div className="flex-1">
+			<div className="flex-1 p-2">
 				<ResponsiveContainer width="100%" height="100%">
 					<PieChart>
 						<Pie
@@ -81,7 +83,7 @@ export const ContactsPieChart: React.FC<ContactsPieChartProps> = ({ data, total 
 							cy="45%"
 							innerRadius={40}
 							outerRadius={70}
-							paddingAngle={5}
+							paddingAngle={Math.min(5, Math.max(1, 15 / filteredData.length))}
 							dataKey="value"
 							labelLine={false}
 						>
@@ -95,6 +97,7 @@ export const ContactsPieChart: React.FC<ContactsPieChartProps> = ({ data, total 
 							layout="horizontal"
 							align="center"
 							verticalAlign="bottom"
+							wrapperStyle={{ paddingTop: '10px', maxHeight: '120px', overflow: 'auto' }}
 						/>
 					</PieChart>
 				</ResponsiveContainer>

@@ -1,7 +1,15 @@
 
 import { useState, useEffect } from "react";
-import { type VoterMetrics, CHART_COLORS } from "@/types/analytics";
+import { type VoterMetrics } from "@/types/analytics";
 import { isValid, parseISO } from "date-fns";
+import { 
+  detectTacticsFromData, 
+  detectTeamsFromData, 
+  detectResultTypesFromData,
+  generateTacticsChartConfig,
+  generateCategoricalChartConfig 
+} from "@/services/dynamicChartService";
+import { generateChartColors } from "@/utils/chartColorGenerator";
 
 interface UseFormattedChartDataProps {
   metrics: VoterMetrics | null;
@@ -20,6 +28,9 @@ export const useFormattedChartData = ({
   const [totalContacts, setTotalContacts] = useState(0);
   const [totalNotReached, setTotalNotReached] = useState(0);
   const [datasetName, setDatasetName] = useState<string>("");
+  const [rawData, setRawData] = useState<any[]>([]);
+  const [detectedTactics, setDetectedTactics] = useState<string[]>([]);
+  const [detectedTeams, setDetectedTeams] = useState<string[]>([]);
 
   useEffect(() => {
     if (isLoading || !metrics) {
@@ -30,62 +41,124 @@ export const useFormattedChartData = ({
     console.log("Formatting chart data from metrics:", metrics);
     console.log("Metrics byDate length:", metrics.byDate?.length || 0);
 
-    // Format tactics data for pie chart - ensuring all standard tactics are included
-    const tacticsChartData = [
-      {
-        name: "SMS",
-        value: metrics.tactics.sms || 0,
-        color: CHART_COLORS.TACTIC.SMS,
-      },
-      {
-        name: "Phone",
-        value: metrics.tactics.phone || 0,
-        color: CHART_COLORS.TACTIC.PHONE,
-      },
-      {
-        name: "Canvas",
-        value: metrics.tactics.canvas || 0,
-        color: CHART_COLORS.TACTIC.CANVAS,
-      },
-    ];
+    // Dynamically detect tactics from actual data and generate chart data
+    let tacticsChartData: any[] = [];
     
-    // Format contacts data for pie chart
-    const contactsChartData = [
-      {
-        name: "Support",
-        value: metrics.contacts.support || 0,
-        color: CHART_COLORS.CONTACT.SUPPORT,
-      },
-      {
-        name: "Oppose",
-        value: metrics.contacts.oppose || 0,
-        color: CHART_COLORS.CONTACT.OPPOSE,
-      },
-      {
-        name: "Undecided",
-        value: metrics.contacts.undecided || 0,
-        color: CHART_COLORS.CONTACT.UNDECIDED,
-      },
-    ];
+    // Check if we have raw data to detect tactics from
+    if (metrics.rawData && Array.isArray(metrics.rawData)) {
+      setRawData(metrics.rawData);
+      const tactics = detectTacticsFromData(metrics.rawData);
+      setDetectedTactics(tactics);
+      
+      // Generate dynamic tactics chart data
+      tacticsChartData = tactics.map(tactic => {
+        const tacticKey = tactic.toLowerCase();
+        const value = metrics.tactics[tacticKey as keyof typeof metrics.tactics] || 0;
+        return {
+          name: tactic,
+          value: value
+        };
+      }).filter(item => item.value > 0);
+      
+      // Add colors to the data
+      tacticsChartData = generateChartColors(tacticsChartData, 'tactics');
+    } else {
+      // Fallback to standard tactics for backward compatibility
+      const standardTactics = ['SMS', 'Phone', 'Canvas'];
+      setDetectedTactics(standardTactics);
+      
+      tacticsChartData = standardTactics.map(tactic => {
+        const tacticKey = tactic.toLowerCase() as keyof typeof metrics.tactics;
+        return {
+          name: tactic,
+          value: metrics.tactics[tacticKey] || 0
+        };
+      }).filter(item => item.value > 0);
+      
+      // Add colors to the data
+      tacticsChartData = generateChartColors(tacticsChartData, 'tactics');
+    }
     
-    // Format not reached data for pie chart
-    const notReachedChartData = [
-      {
-        name: "Not Home",
-        value: metrics.notReached.notHome || 0,
-        color: CHART_COLORS.NOT_REACHED.NOT_HOME,
-      },
-      {
-        name: "Refusal",
-        value: metrics.notReached.refusal || 0,
-        color: CHART_COLORS.NOT_REACHED.REFUSAL,
-      },
-      {
-        name: "Bad Data",
-        value: metrics.notReached.badData || 0,
-        color: CHART_COLORS.NOT_REACHED.BAD_DATA,
-      },
-    ];
+    // Dynamically generate contacts data
+    let contactsChartData: any[] = [];
+    
+    if (rawData.length > 0) {
+      const resultTypes = detectResultTypesFromData(rawData);
+      const contactTypes = resultTypes.filter(type => 
+        ['support', 'oppose', 'undecided', 'supporter', 'opposition'].some(keyword => 
+          type.toLowerCase().includes(keyword)
+        )
+      );
+      
+      contactsChartData = contactTypes.map(type => {
+        const typeKey = type.toLowerCase().replace(/\s+/g, '') as keyof typeof metrics.contacts;
+        let value = 0;
+        
+        // Map various result types to metrics
+        if (type.toLowerCase().includes('support')) {
+          value = metrics.contacts.support || 0;
+        } else if (type.toLowerCase().includes('oppose')) {
+          value = metrics.contacts.oppose || 0;
+        } else if (type.toLowerCase().includes('undecided')) {
+          value = metrics.contacts.undecided || 0;
+        }
+        
+        return {
+          name: type,
+          value: value
+        };
+      }).filter(item => item.value > 0);
+    } else {
+      // Fallback to standard contacts
+      contactsChartData = [
+        { name: "Support", value: metrics.contacts.support || 0 },
+        { name: "Oppose", value: metrics.contacts.oppose || 0 },
+        { name: "Undecided", value: metrics.contacts.undecided || 0 }
+      ].filter(item => item.value > 0);
+    }
+    
+    // Add colors to contacts data
+    contactsChartData = generateChartColors(contactsChartData, 'contacts');
+    
+    // Dynamically generate not reached data
+    let notReachedChartData: any[] = [];
+    
+    if (rawData.length > 0) {
+      const resultTypes = detectResultTypesFromData(rawData);
+      const notReachedTypes = resultTypes.filter(type => 
+        ['not_home', 'not home', 'refusal', 'refused', 'bad_data', 'bad data', 'no answer', 'busy'].some(keyword => 
+          type.toLowerCase().includes(keyword)
+        )
+      );
+      
+      notReachedChartData = notReachedTypes.map(type => {
+        let value = 0;
+        
+        // Map various result types to metrics
+        if (type.toLowerCase().includes('not') && type.toLowerCase().includes('home')) {
+          value = metrics.notReached.notHome || 0;
+        } else if (type.toLowerCase().includes('refus')) {
+          value = metrics.notReached.refusal || 0;
+        } else if (type.toLowerCase().includes('bad') && type.toLowerCase().includes('data')) {
+          value = metrics.notReached.badData || 0;
+        }
+        
+        return {
+          name: type,
+          value: value
+        };
+      }).filter(item => item.value > 0);
+    } else {
+      // Fallback to standard not reached categories
+      notReachedChartData = [
+        { name: "Not Home", value: metrics.notReached.notHome || 0 },
+        { name: "Refusal", value: metrics.notReached.refusal || 0 },
+        { name: "Bad Data", value: metrics.notReached.badData || 0 }
+      ].filter(item => item.value > 0);
+    }
+    
+    // Add colors to not reached data
+    notReachedChartData = generateChartColors(notReachedChartData, 'notReached');
     
     console.log("[FormattedChartData] Tactics chart data:", tacticsChartData);
     console.log("[FormattedChartData] Contacts chart data:", contactsChartData);
@@ -163,6 +236,9 @@ export const useFormattedChartData = ({
     totalAttempts,
     totalContacts,
     totalNotReached,
-    datasetName
+    datasetName,
+    rawData,
+    detectedTactics,
+    detectedTeams
   };
 };

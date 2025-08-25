@@ -7,6 +7,7 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import Index from '@/pages/Index';
 import Auth from '@/pages/Auth';
 import Landing from '@/pages/Landing';
+import Demo from '@/pages/Demo';
 import ConnectData from '@/pages/ConnectData';
 import NotFound from '@/pages/NotFound';
 import { AuthGuard } from '@/components/AuthGuard';
@@ -36,6 +37,7 @@ function AppContent() {
       <main>
         <Routes>
           <Route path="/" element={<Landing />} />
+          <Route path="/demo" element={<Demo />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/dashboard" element={<AuthGuard><Index /></AuthGuard>} />
           <Route path="/connect-data" element={<AuthGuard><ConnectData /></AuthGuard>} />

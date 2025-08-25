@@ -63,16 +63,19 @@ export interface VoterMetrics {
     sms: number;
     phone: number;
     canvas: number;
+    [key: string]: number; // Allow dynamic tactics
   };
   contacts: {
     support: number;
     oppose: number;
     undecided: number;
+    [key: string]: number; // Allow dynamic contact types
   };
   notReached: {
     notHome: number;
     refusal: number;
     badData: number;
+    [key: string]: number; // Allow dynamic not reached types
   };
   teamAttempts?: {
     [key: string]: number;
@@ -83,4 +86,5 @@ export interface VoterMetrics {
     contacts: number;
     issues: number;
   }>;
+  rawData?: any[]; // Raw data for dynamic analysis
 }

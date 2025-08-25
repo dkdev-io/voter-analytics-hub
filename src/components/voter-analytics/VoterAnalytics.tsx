@@ -5,10 +5,14 @@ import { QuerySection } from "./dashboard/QuerySection";
 import { ResultsSection } from "./dashboard/ResultsSection";
 import { SearchSection } from "./dashboard/SearchSection";
 import { DashboardCharts } from "./DashboardCharts";
+import { AIInsightsPanel } from "./ai-insights/AIInsightsPanel";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { Button } from "@/components/ui/button";
+import { Sparkles, X } from "lucide-react";
 
 export const VoterAnalytics: React.FC = () => {
 	const [showSearchPanel, setShowSearchPanel] = useState(true);
+	const [showInsightsPanel, setShowInsightsPanel] = useState(true);
 
 	const {
 		// Query state
@@ -40,6 +44,10 @@ export const VoterAnalytics: React.FC = () => {
 		setShowSearchPanel(!showSearchPanel);
 	};
 
+	const toggleInsightsPanel = () => {
+		setShowInsightsPanel(!showInsightsPanel);
+	};
+
 	// Wrapper function for refreshData to ensure it returns void
 	const handleRefreshData = async () => {
 		await refreshData();
@@ -57,7 +65,35 @@ export const VoterAnalytics: React.FC = () => {
 					handleCsvUploadSuccess={handleCsvUploadSuccess}
 				/>
 
-				<div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+				<div className="flex justify-between items-center mb-4">
+					<div className="flex gap-2">
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={toggleSearchPanel}
+							className="h-8"
+						>
+							{showSearchPanel ? 'Hide' : 'Show'} Search
+						</Button>
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={toggleInsightsPanel}
+							className="h-8 flex items-center gap-1"
+						>
+							<Sparkles className="h-3 w-3" />
+							{showInsightsPanel ? 'Hide' : 'Show'} AI Insights
+						</Button>
+					</div>
+				</div>
+
+				<div className={`grid grid-cols-1 gap-6 mt-6 ${
+					showSearchPanel && showInsightsPanel 
+						? 'lg:grid-cols-4' 
+						: showSearchPanel || showInsightsPanel 
+							? 'lg:grid-cols-3' 
+							: 'lg:grid-cols-1'
+				}`}>
 					{/* Left column: Query builder and search */}
 					{showSearchPanel && (
 						<div className="lg:col-span-1">
@@ -84,10 +120,14 @@ export const VoterAnalytics: React.FC = () => {
 						</div>
 					)}
 
-					{/* Right column: Results and charts */}
-					<div
-						className={`${showSearchPanel ? "lg:col-span-2" : "lg:col-span-3"}`}
-					>
+					{/* Middle column: Results and charts */}
+					<div className={`${
+						showSearchPanel && showInsightsPanel 
+							? 'lg:col-span-2' 
+							: showSearchPanel || showInsightsPanel 
+								? 'lg:col-span-2' 
+								: 'lg:col-span-1'
+					}`}>
 						<ResultsSection error={error} result={result} query={query} />
 
 						<div className="mt-6">
@@ -99,6 +139,18 @@ export const VoterAnalytics: React.FC = () => {
 							/>
 						</div>
 					</div>
+
+					{/* Right column: AI Insights */}
+					{showInsightsPanel && (
+						<div className="lg:col-span-1">
+							<AIInsightsPanel
+								queryParams={query}
+								isVisible={showInsightsPanel}
+								autoRefresh={true}
+								refreshInterval={30000}
+							/>
+						</div>
+					)}
 				</div>
 			</div>
 		</ErrorBoundary>
