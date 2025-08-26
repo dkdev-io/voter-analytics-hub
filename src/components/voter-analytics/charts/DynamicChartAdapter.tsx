@@ -124,7 +124,7 @@ export const DynamicChartAdapter: React.FC<DynamicChartAdapterProps> = ({
   const chartConfig = getChartConfig();
 
   // Custom legend renderer with percentages
-  const renderLegend = (props: { payload?: Array<{ color: string; value: string; payload: ChartDataPoint }> }) => {
+  const renderLegend = (props: any) => {
     const { payload } = props;
 
     if (!payload || payload.length === 0) {

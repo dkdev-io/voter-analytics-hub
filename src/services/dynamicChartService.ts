@@ -305,7 +305,7 @@ export function generateTimeSeriesChartConfig(
     const date = item[dateField];
     if (!date) return;
     
-    const dateStr = new Date(date).toISOString().split('T')[0];
+    const dateStr = new Date(date as string | number | Date).toISOString().split('T')[0];
     if (!dateGroups[dateStr]) {
       dateGroups[dateStr] = {};
       valueFields.forEach(field => {
@@ -321,17 +321,23 @@ export function generateTimeSeriesChartConfig(
 
   // Convert to chart data format
   const sortedDates = Object.keys(dateGroups).sort();
-  const chartData = sortedDates.map(date => ({
-    date,
-    name: date,
-    ...dateGroups[date]
-  }));
+  const chartData: ChartDataPoint[] = sortedDates.map(date => {
+    const values = dateGroups[date];
+    const primaryValue = values[valueFields[0]] || 0;
+    return {
+      name: date,
+      value: primaryValue,
+      color: colorMap[valueFields[0]] || '#8884d8',
+      date,
+      ...values
+    };
+  });
 
   const colorMap = generateColorPalette(valueFields, 'general');
   const total = chartData.length;
 
   return {
-    data: chartData as ChartDataPoint[],
+    data: chartData,
     total,
     categories: valueFields,
     colorMap,

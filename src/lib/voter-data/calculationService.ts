@@ -97,9 +97,9 @@ export const aggregateVoterMetrics = (filteredData: any[]): VoterMetrics => {
 	
 	// Initialize metrics structure
 	const metrics: VoterMetrics = {
-		tactics,
-		contacts,
-		notReached,
+		tactics: { ...tactics, sms: tactics.sms || 0, phone: tactics.phone || 0, canvas: tactics.canvas || 0 },
+		contacts: { ...contacts, support: contacts.support || 0, oppose: contacts.oppose || 0, undecided: contacts.undecided || 0 },
+		notReached: { ...notReached, notHome: notReached.notHome || 0, refusal: notReached.refusal || 0, badData: notReached.badData || 0 },
 		teamAttempts: {},
 		byDate: [],
 		rawData: filteredData
